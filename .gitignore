@@ -1,5 +1,6 @@
-# Unused Folders
+# Unused Keil assets
 DebugConfig
 Listings
 Objects
 *.uvguix.*
+*.scvd
