@@ -1,10 +1,3 @@
-/**
-  *@file clocks_enel452.c
-  *@author Mitchell Brough 200239781
-  *@brief Library of functions related to peripheral and system clocks
-  *@date 2023-10-26
- */
-
 #include "stm32f10x.h"
 
 #include "../include/clocks_ese.h"
@@ -42,34 +35,34 @@ void sysclock24_init(void){
 
 
 /** Functions to enable related clocks */
-void clock_gpioa(void){
+inline void clock_gpioa(void){
     RCC->APB2ENR |= RCC_APB2ENR_IOPAEN;
 }
 
-void clock_gpiob(void){
+inline void clock_gpiob(void){
     RCC->APB2ENR |= RCC_APB2ENR_IOPBEN;
 }
 
-void clock_gpioc(void){
+inline void clock_gpioc(void){
     RCC->APB2ENR |= RCC_APB2ENR_IOPCEN;
 }
 
-void clock_tim2(void){
+inline void clock_tim2(void){
     RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
 }
 
-void clock_tim3(void){
+inline void clock_tim3(void){
     RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
 }
 
-void clock_tim4(void){
+inline void clock_tim4(void){
     RCC->APB1ENR |= RCC_APB1ENR_TIM4EN;
 }
 
-void clock_usart2(void){
+inline void clock_usart2(void){
     RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
 }
 
-void clock_afio(void){
+inline void clock_afio(void){
     RCC->APB2ENR |= RCC_APB2ENR_AFIOEN;
 }

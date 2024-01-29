@@ -1,10 +1,3 @@
-/**
-  *@file timers_ese.c
-  *@author Mitchell Brough 200239781
-  *@brief Functions related to the configuration of hardware timers
-  *@date 2023-10-05
- */
-
 #include "stm32f10x.h"
 
 #include "../include/timers_ese.h"
@@ -28,4 +21,13 @@ void configure_tim4(void){
     NVIC_EnableIRQ(TIM4_IRQn);
     
     TIM4->CR1 |= TIM_CR1_CEN;
+}
+
+void TIM4_IRQHandler(void){
+    static uint16_t read_Zphase = 0;
+    
+    read_Zphase = TIM4->CCR1;
+    TIM4->CR1 |= TIM_CR1_UDIS;
+    TIM4->EGR |= TIM_EGR_UG;
+    TIM4->CR1 &= ~TIM_CR1_UDIS;
 }
