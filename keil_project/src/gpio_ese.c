@@ -25,15 +25,6 @@ void configure_io(void){
     /** PA7 as Input floating (TIM3 CH2) **/
     /* Default config on reset */
        
-    /** PB0 as Input floating (TIM3 CH3) **/
+    /** PB6 as Input floating (TIM4 CH1) **/
     /* Default config on reset */
-     
-//    /********** Configure USART2 IO pins Tx and Rx **********/
-//    /** PA2 as AFO push-pull @ 50MHz (Tx) */
-//    GPIOA->CRL &= ~GPIO_CRL_MODE2_0;
-//    GPIOA->CRL |= GPIO_CRL_CNF2 | GPIO_CRL_MODE2_1;
-
-//     /** PA3 as pull-up/pull-down input (Rx) */
-//    GPIOA->CRL &= ~GPIO_CRL_MODE3 & ~GPIO_CRL_CNF3_0;
-//    GPIOA->CRL |= GPIO_CRL_CNF3_1;
 }
