@@ -2,8 +2,6 @@
 
 #include "../include/usart_ese.h"
 
-
-
 /**
   *@brief Enables USART to start transmission over the mcu
  */
@@ -21,7 +19,7 @@ void serial_open(void){
   *@brief Stops USART comms, resets registers set in serial_open()
  */
 void serial_close(void){
+    NVIC_DisableIRQ(USART2_IRQn);
     USART2->CR1 &= RESET_USART_CR1; /**< Reset CR1 register */
     USART2->BRR &= RESET_USART_BRR; /**< Reset BRR register */
-    NVIC_DisableIRQ(USART2_IRQn);
 }

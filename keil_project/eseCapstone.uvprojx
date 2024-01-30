@@ -409,11 +409,6 @@
               <FileType>1</FileType>
               <FilePath>.\src\timers_ese.c</FilePath>
             </File>
-            <File>
-              <FileName>interrupts_ese.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\interrupts_ese.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -438,11 +433,6 @@
               <FileName>usart_ese.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\include\usart_ese.h</FilePath>
-            </File>
-            <File>
-              <FileName>interrupts_ese.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\include\interrupts_ese.h</FilePath>
             </File>
           </Files>
         </Group>
