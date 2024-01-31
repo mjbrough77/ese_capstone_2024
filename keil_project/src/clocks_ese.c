@@ -35,34 +35,34 @@ void sysclock24_init(void){
 
 
 /** Functions to enable related clocks */
-inline void clock_gpioa(void){
+void clock_gpioa(void){
     RCC->APB2ENR |= RCC_APB2ENR_IOPAEN;
 }
 
-inline void clock_gpiob(void){
+void clock_gpiob(void){
     RCC->APB2ENR |= RCC_APB2ENR_IOPBEN;
 }
 
-inline void clock_gpioc(void){
+void clock_gpioc(void){
     RCC->APB2ENR |= RCC_APB2ENR_IOPCEN;
 }
 
-inline void clock_tim2(void){
+void clock_tim2(void){
     RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
 }
 
-inline void clock_tim3(void){
+void clock_tim3(void){
     RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
 }
 
-inline void clock_tim4(void){
+void clock_tim4(void){
     RCC->APB1ENR |= RCC_APB1ENR_TIM4EN;
 }
 
-inline void clock_usart2(void){
+void clock_usart2(void){
     RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
 }
 
-inline void clock_afio(void){
+void clock_afio(void){
     RCC->APB2ENR |= RCC_APB2ENR_AFIOEN;
 }

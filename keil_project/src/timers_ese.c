@@ -2,7 +2,7 @@
 
 #include "../include/timers_ese.h"
 
-static const uint32_t VELOCITY_SCALE = 621107; // Velocity calculation shortcut
+static const uint32_t VELOCITY_SCALE = 2706; // Velocity calculation shortcut
 
 /**
   *@brief Configures TIM3 in encoder interface mode
@@ -29,6 +29,7 @@ void TIM4_IRQHandler(void){
     static uint16_t phaseZ_time;
     static uint32_t velocity;
     uint32_t *const ptr_vel = &velocity;
+    uint16_t *const ptr_encode = &encoder_count;
     
     phaseZ_time = TIM4->CCR1;
     encoder_count = TIM3->CNT;
