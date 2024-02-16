@@ -385,6 +385,11 @@
           <GroupName>src</GroupName>
           <Files>
             <File>
+              <FileName>new_i2c_test.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\new_i2c_test.c</FilePath>
+            </File>
+            <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\main.c</FilePath>
@@ -393,6 +398,11 @@
               <FileName>clocks_ese.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\clocks_ese.c</FilePath>
+            </File>
+            <File>
+              <FileName>i2c_ese.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\i2c_ese.c</FilePath>
             </File>
             <File>
               <FileName>gpio_ese.c</FileName>
@@ -423,6 +433,11 @@
               <FileName>gpio_ese.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\include\gpio_ese.h</FilePath>
+            </File>
+            <File>
+              <FileName>i2c_ese.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\include\i2c_ese.h</FilePath>
             </File>
             <File>
               <FileName>timers_ese.h</FileName>
