@@ -34,7 +34,7 @@ void sysclock24_init(void){
 }
 
 
-/** Functions to enable related clocks */
+/******************* Functions to enable related clocks *******************/
 void clock_gpioa(void){
     RCC->APB2ENR |= RCC_APB2ENR_IOPAEN;
 }
@@ -45,6 +45,10 @@ void clock_gpiob(void){
 
 void clock_gpioc(void){
     RCC->APB2ENR |= RCC_APB2ENR_IOPCEN;
+}
+
+void clock_i2c2(void){
+    RCC->APB1ENR |= RCC_APB1ENR_I2C2EN;
 }
 
 void clock_tim2(void){
