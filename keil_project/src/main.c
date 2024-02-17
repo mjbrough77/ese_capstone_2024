@@ -17,8 +17,8 @@ int main(void){
 static void board_init(void){
     sysclock24_init();
     
-    clock_afio();
     clock_gpiob();
+    clock_afio();
     clock_i2c2();
     
     configure_io();

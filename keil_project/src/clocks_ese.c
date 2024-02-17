@@ -6,10 +6,6 @@
   *@brief Configures system clock to 24MHz
  */
 void sysclock24_init(void){
-    /** Enable HSI and wait for it to be ready */
-    RCC->CR |= RCC_CR_HSION;
-    while (((RCC->CR) & (RCC_CR_HSION | RCC_CR_HSIRDY)) == 0);
-    
     /** Enable HSE with Bypass and wait for it to be ready */
     RCC->CR |= RCC_CR_HSEON | RCC_CR_HSEBYP;
     while (((RCC->CR)&(RCC_CR_HSEON | RCC_CR_HSEBYP | RCC_CR_HSERDY)) == 0);
