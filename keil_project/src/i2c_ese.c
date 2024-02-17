@@ -11,9 +11,9 @@
 #include "../include/i2c_ese.h"
 
 void configure_i2c2(void){
-	I2C2->CR2 |= 0x18; // 0x18 = 24MHz
-	I2C2->CCR = 0x78;  // 100kHz 50% DC = 5us high/low = 120 cycles @ 24MHz
-	I2C2->TRISE = 25;  // 1000ns / 41.67us = 24 + 1 = 25
+    I2C2->CR2 |= 0x18; // 0x18 = 24MHz
+    I2C2->CCR = 0x78;  // 100kHz 50% DC = 5us high/low = 120 cycles @ 24MHz
+    I2C2->TRISE = 25;  // 1000ns / 41.67us = 24 + 1 = 25
     
     I2C2->CR2 |= I2C_CR2_ITEVTEN | I2C_CR2_ITBUFEN; // Enable event interrupts
     //I2C2->CR2 |= I2C_CR2_ITERREN; // Enable bus error interrupt
@@ -26,7 +26,7 @@ void configure_i2c2(void){
 
 void I2C2_EV_IRQHandler(void){
     if(I2C2->SR1 & I2C_SR1_SB){
-        (void)I2C2->SR2;
+        (void)I2C2->SR2; // Probably don't need
         I2C2->DR = (0x57<<1);
     }
     
