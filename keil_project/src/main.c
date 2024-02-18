@@ -23,6 +23,7 @@ static void board_init(void){
     
     configure_io();
     configure_i2c2();
+    configure_systick();
 }
 
 static void delay(volatile uint32_t time){

@@ -24,12 +24,22 @@ void configure_tim4(void){
     TIM4->CR1 |= TIM_CR1_CEN;
 }
 
+void configure_systick(void){
+    SysTick->CTRL = 0;
+    SysTick->VAL = 0;
+    SysTick->LOAD = 3000000;
+    SysTick->CTRL = 0x3;
+}
+
+void SysTick_Handler(void){
+    I2C2->CR1 |= I2C_CR1_START;
+}
+
+
 void TIM4_IRQHandler(void){
     static uint16_t encoder_count;
     static uint16_t phaseZ_time;
     static uint32_t velocity;
-    uint32_t *const ptr_vel = &velocity;
-    uint16_t *const ptr_encode = &encoder_count;
     
     phaseZ_time = TIM4->CCR1;
     encoder_count = TIM3->CNT;
