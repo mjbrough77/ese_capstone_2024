@@ -16,38 +16,57 @@ void configure_i2c2(void){
     I2C2->TRISE = 25; // 1000ns / 41.67us = 24 + 1 = 25
     
     I2C2->CR2 |= I2C_CR2_ITEVTEN | I2C_CR2_ITBUFEN; // Enable event interrupts
-    //I2C2->CR2 |= I2C_CR2_ITERREN; // Enable bus error interrupt
     NVIC_EnableIRQ(I2C2_EV_IRQn);
-    //NVIC_EnableIRQ(I2C2_ER_IRQn);
     
     I2C2->CR1 |= I2C_CR1_PE;
-    I2C2->CR1 |= I2C_CR1_START;
+    I2C2->CR1 |= I2C_CR1_START; // I2C Start message (should wait for !busy)
 }
 
 void I2C2_EV_IRQHandler(void){
-    static uint32_t transmit = 1;
+    static uint8_t transmit = 1;
+    static uint8_t rw = 0;
+    static uint8_t data_left = 2;
     
-    if(I2C2->SR1 & I2C_SR1_SB){
-        I2C2->DR = (0x57<<1);
-    }
+    volatile uint16_t status = I2C2->SR1;
     
-    else if(I2C2->SR1 & I2C_SR1_ADDR){
-        (void)I2C2->SR2;
-    }
-    
-    else if(I2C2->SR1 & I2C_SR1_TXE && transmit == 1){
-        I2C2->DR = 0x1;
-        transmit = 0;
-    }
-    
-    else if(I2C2->SR1 & I2C_SR1_BTF){
-        I2C2->CR1 |= I2C_CR1_STOP;
-    }
-}
-
-void I2C2_ER_IRQHandler(void){
-    if(I2C2->SR1 & I2C_SR1_ARLO){
-        I2C2->CR1 |= I2C_CR1_START;
-        I2C2->SR1 &= ~I2C_SR1_ARLO;
+    switch(status){
+        case 1:                         // SB = 1
+            transmit = 1;
+            I2C2->DR = (0x57<<1) + rw;
+            break;
+        
+        case 2:                         // ADDR = 1
+            (void)I2C2->SR2;
+            break;
+        
+        case 64:                        // RxNE = 1
+            if(data_left == 2){
+                I2C2->CR1 |= I2C_CR1_ACK;
+                data_left = 1;
+            }
+            else if(data_left == 0){
+                (void)I2C2->DR;
+                data_left = 2;
+            }
+            break;
+            
+        case 68:                        // RxNE = 1, BTF = 1
+            data_left = 0;
+            I2C2->CR1 &= ~I2C_CR1_ACK;
+            (void)I2C2->DR;
+            I2C2->CR1 |= I2C_CR1_STOP;
+            (void)I2C2->DR;
+            break;
+        
+        case 128:                       // TxNE = 1
+            if(transmit != 1) break;
+            I2C2->DR = 0x1;        
+            transmit = 0;
+            break;
+        
+        case 132:                       // TxNE = 1, BTF = 1
+            I2C2->CR1 |= I2C_CR1_STOP;
+            rw ^= 1;
+            break;
     }
 }
