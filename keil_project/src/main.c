@@ -17,12 +17,14 @@ int main(void){
 static void board_init(void){
     sysclock24_init();
     
-    clock_gpiob();
     clock_afio();
+    clock_gpiob();
     clock_i2c2();
+    clock_dma();
     
     configure_io();
     configure_i2c2();
+    configure_dma();
     configure_systick();
 }
 

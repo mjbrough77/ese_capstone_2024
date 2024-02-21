@@ -27,14 +27,14 @@ void configure_tim4(void){
 void configure_systick(void){
     SysTick->CTRL = 0;
     SysTick->VAL = 0;
-    SysTick->LOAD = 3000000;
+    SysTick->LOAD = 450000;
     SysTick->CTRL = 0x3;
 }
 
-void SysTick_Handler(void){
-    I2C2->CR1 |= I2C_CR1_START;
+void SysTick_Handler(void){  
+    if((I2C2->SR2 & I2C_SR2_BUSY) == 0)
+        I2C2->CR1 |= I2C_CR1_START;
 }
-
 
 void TIM4_IRQHandler(void){
     static uint16_t encoder_count;

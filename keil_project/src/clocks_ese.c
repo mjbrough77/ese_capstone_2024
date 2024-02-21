@@ -59,6 +59,10 @@ void clock_tim4(void){
     RCC->APB1ENR |= RCC_APB1ENR_TIM4EN;
 }
 
+void clock_dma(void){
+    RCC->AHBENR |= RCC_AHBENR_DMA1EN;
+}
+
 void clock_usart2(void){
     RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
 }
