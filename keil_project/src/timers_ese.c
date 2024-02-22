@@ -1,5 +1,3 @@
-#include "stm32f10x.h"
-
 #include "../include/timers_ese.h"
 
 static const uint32_t VELOCITY_SCALE = 2706; // Velocity calculation shortcut

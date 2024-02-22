@@ -15,10 +15,11 @@ int main(void){
 }
 
 static void board_init(void){
-    sysclock24_init();
+    sysclock_init();
     
     clock_afio();
     clock_gpiob();
+    clock_gpioc();
     clock_i2c2();
     clock_dma();
     

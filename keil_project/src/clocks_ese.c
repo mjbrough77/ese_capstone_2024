@@ -1,11 +1,9 @@
-#include "stm32f10x.h"
-
 #include "../include/clocks_ese.h"
 
 /**
-  *@brief Configures system clock to 24MHz
+  *@brief Configures SYSCLK to 40MHz, AHB clock to 20MHz
  */
-void sysclock24_init(void){
+void sysclock_init(void){
     /** Enable HSE with Bypass and wait for it to be ready */
     RCC->CR |= RCC_CR_HSEON | RCC_CR_HSEBYP;
     while (((RCC->CR)&(RCC_CR_HSEON | RCC_CR_HSEBYP | RCC_CR_HSERDY)) == 0);
@@ -17,9 +15,10 @@ void sysclock24_init(void){
     /**Ensure PLL is disabled */
     RCC->CR &= ~RCC_CR_PLLON;
     
-    /** Sets CFGR register such that PLLMUL is 3 (8*3 = 24MHz) */
-    RCC->CFGR = 0x00050000;
-
+    /** Sets CFGR register such that PLLMUL is 3 (8*5 = 40MHz) */
+    /** Sets CFGR register such that AHB Prescaler is 2 (40MHz / 2 = 20MHz) **/
+    RCC->CFGR = 0x000C0080;
+    
     /** Enable PLL and wait for it to be ready */
     RCC->CR |= RCC_CR_PLLON;
     while (((RCC->CR) & (RCC_CR_PLLON | RCC_CR_PLLRDY)) == 0);

@@ -1,5 +1,3 @@
-#include "stm32f10x.h"
-
 #include "../include/gpio_ese.h"
 
 /**
@@ -17,15 +15,14 @@ void configure_io(void){
     /** PB6 as Input floating (TIM4 CH1) **/
     /* Default config on reset */
     
-    /***** View systick output ***/
-    /** PB7 as General purpose push pull @ 2MHz **/
-    GPIOB->CRL &= ~GPIO_CRL_CNF7;
-    GPIOB->CRL |= GPIO_CRL_MODE7_1;
-    
     /********** Configure I2C2 **********/
     /** PB10 as Alternate Function Open Drain @ 2MHz **/
     GPIOB->CRH |= GPIO_CRH_CNF10_1 | GPIO_CRH_MODE10_1;
     
     /** PB11 as Alternate Function Open Drain @ 2MHz **/
     GPIOB->CRH |= GPIO_CRH_CNF11_1 | GPIO_CRH_MODE11_1;
+    
+    /********** Configure MPU interrupt **********/
+    /** PC6 as Input floating (MPU INT) **/
+    /* Default config on reset */
 }

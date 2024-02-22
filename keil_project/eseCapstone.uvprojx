@@ -400,9 +400,19 @@
               <FilePath>.\src\i2c_ese.c</FilePath>
             </File>
             <File>
+              <FileName>interrupts_ese.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\interrupts_ese.c</FilePath>
+            </File>
+            <File>
               <FileName>gpio_ese.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\gpio_ese.c</FilePath>
+            </File>
+            <File>
+              <FileName>mpu6050_driver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\mpu6050_driver.c</FilePath>
             </File>
             <File>
               <FileName>usart_ese.c</FileName>
@@ -425,14 +435,24 @@
               <FilePath>.\include\clocks_ese.h</FilePath>
             </File>
             <File>
+              <FileName>i2c_ese.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\include\i2c_ese.h</FilePath>
+            </File>
+            <File>
+              <FileName>interrupts_ese.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\include\interrupts_ese.h</FilePath>
+            </File>
+            <File>
               <FileName>gpio_ese.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\include\gpio_ese.h</FilePath>
             </File>
             <File>
-              <FileName>i2c_ese.h</FileName>
+              <FileName>mpu6050_driver.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\include\i2c_ese.h</FilePath>
+              <FilePath>.\include\mpu6050_driver.h</FilePath>
             </File>
             <File>
               <FileName>timers_ese.h</FileName>

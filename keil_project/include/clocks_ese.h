@@ -1,7 +1,9 @@
 #ifndef CLOCKS_ESE_H
 #define CLOCKS_ESE_H
 
-void sysclock24_init(void);
+#include "stm32f10x.h"
+
+void sysclock_init(void);
 void clock_gpioa(void);
 void clock_gpiob(void);
 void clock_gpioc(void);

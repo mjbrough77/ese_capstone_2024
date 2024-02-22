@@ -1,7 +1,7 @@
 #ifndef USART_ESE_H
 #define USART_ESE_H
 
-#include "stdint.h"
+#include "stm32f10x.h"
 
 #define RESET_USART_CR1 ((uint16_t) 0x0000) /**< Reset value of USARTx CR1 */
 #define RESET_USART_BRR ((uint16_t) 0x0000) /**< Reset value of USARTx BRR */

@@ -1,5 +1,3 @@
-#include "stm32f10x.h"
-
 #include "../include/usart_ese.h"
 
 /**
