@@ -42,8 +42,7 @@
  *----------------------------------------------------------*/
 
 #if (defined(__ARMCC_VERSION) || defined(__GNUC__) || defined(__ICCARM__))
-#include "stm32f10x.h" /* defines __NVIC_PRIO_BITS */
-
+    #include "stm32f10x.h" /* defines __NVIC_PRIO_BITS */
 #endif
 
 /* Constants that describe the hardware and memory usage. */
@@ -63,7 +62,7 @@
 #define configUSE_16_BIT_TICKS                0
 
 /* Software timer definitions. */
-#define configUSE_TIMERS                      0
+#define configUSE_TIMERS                      1
 #define configTIMER_TASK_PRIORITY             2
 #define configTIMER_QUEUE_LENGTH              5
 #define configTIMER_TASK_STACK_DEPTH          (configMINIMAL_STACK_SIZE * 2)
