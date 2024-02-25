@@ -8,8 +8,18 @@
 
 #include "../include/i2c_ese.h"
 
-static uint8_t const write = 1;
-static uint8_t readings[12];
+const uint8_t mpu_init[MPU_RESET_STEPS][2] = {
+    {REG_PWR_MGMT_1, 0x80},             /* Device Reset */
+    {REG_SIGNAL_PATH_RESET, 0x07},      /* Sensor Reset */
+    {REG_PWR_MGMT_1, 0x01},             /* Clock PLL with x-axis gyro ref */
+    {REG_USER_CTRL, 0x04},              /* Reset FIFO */
+    {REG_SMPLRT_DIV, 0x07},             /* Reset FIFO */
+    {REG_CONFIG, 0x01},                 /* Device Reset */
+    {REG_ACCEL_CONFIG, 0x00},           /* Device Reset */
+    {REG_FIFO_EN, 0x08},                /* Device Reset */
+    {REG_INT_ENABLE, 0x01},             /* Device Reset */
+    {REG_USER_CTRL, 0x40}               /* Device Reset */
+};
 
 void configure_i2c2(void){
     I2C2->CR2 |= 20;  // 20MHz
@@ -29,17 +39,17 @@ void configure_i2c2(void){
 void configure_dma(void){
     // I2C2_Tx DMA channel
     DMA1_Channel4->CPAR = (uint32_t)&I2C2->DR;
-    DMA1_Channel4->CMAR = (uint32_t)&write;
-    DMA1_Channel4->CNDTR = 1;
-    DMA1_Channel4->CCR |= DMA_CCR4_TCIE | DMA_CCR4_DIR | DMA_CCR4_CIRC;
+    DMA1_Channel4->CMAR = (uint32_t)mpu_init[0];
+    DMA1_Channel4->CNDTR = 2;
+    DMA1_Channel4->CCR |= DMA_CCR4_TCIE | DMA_CCR4_DIR;
     DMA1_Channel4->CCR |= DMA_CCR4_EN;
     NVIC_EnableIRQ(DMA1_Channel4_IRQn);
     
-    // I2C2_Rx DMA channel
-    DMA1_Channel5->CPAR = (uint32_t)&I2C2->DR;
-    DMA1_Channel5->CMAR = (uint32_t)readings;
-    DMA1_Channel5->CNDTR = 12;
-    DMA1_Channel5->CCR |= DMA_CCR5_TCIE | DMA_CCR5_CIRC | DMA_CCR5_MINC;
-    DMA1_Channel5->CCR |= DMA_CCR5_EN;
-    NVIC_EnableIRQ(DMA1_Channel5_IRQn);
+//    // I2C2_Rx DMA channel
+//    DMA1_Channel5->CPAR = (uint32_t)&I2C2->DR;
+//    DMA1_Channel5->CMAR = (uint32_t)readings;
+//    DMA1_Channel5->CNDTR = 12;
+//    DMA1_Channel5->CCR |= DMA_CCR5_TCIE | DMA_CCR5_CIRC | DMA_CCR5_MINC;
+//    DMA1_Channel5->CCR |= DMA_CCR5_EN;
+//    NVIC_EnableIRQ(DMA1_Channel5_IRQn);
 }

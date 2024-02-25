@@ -11,6 +11,23 @@
 
 #include "stm32f10x.h"
 
+#define ADDR_EEPROM             0x58
+#define ADDR_MPU6050            0x69
+
+#define REG_SMPLRT_DIV          0x19
+#define REG_CONFIG              0x1A
+#define REG_ACCEL_CONFIG        0x1C
+#define REG_FIFO_EN             0x23
+#define REG_INT_ENABLE          0x38
+#define REG_SIGNAL_PATH_RESET   0x68
+#define REG_USER_CTRL           0x6A
+#define REG_PWR_MGMT_1          0x6B
+
+#define MPU_RESET_STEPS         10
+
+/* Stepped through array for reseting MPU6050 */
+extern const uint8_t mpu_init[MPU_RESET_STEPS][2];
+
 void configure_dma(void);
 void configure_i2c2(void);
 
