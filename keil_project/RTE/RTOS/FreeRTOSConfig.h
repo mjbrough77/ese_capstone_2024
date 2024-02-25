@@ -44,11 +44,10 @@
 #if (defined(__ARMCC_VERSION) || defined(__GNUC__) || defined(__ICCARM__))
 #include "stm32f10x.h" /* defines __NVIC_PRIO_BITS */
 
-extern uint32_t SystemCoreClock;
 #endif
 
 /* Constants that describe the hardware and memory usage. */
-#define configCPU_CLOCK_HZ                    (SystemCoreClock)
+#define configCPU_CLOCK_HZ                    ((uint32_t)40000000)
 #define configTICK_RATE_HZ                    ((TickType_t)1000)
 #define configTOTAL_HEAP_SIZE                 ((size_t)8192)
 #define configMINIMAL_STACK_SIZE              ((uint16_t)128)
@@ -110,7 +109,7 @@ extern uint32_t SystemCoreClock;
 #endif
 
 /* The lowest interrupt priority that can be used in a call to a "set priority" function. */
-#define configLIBRARY_LOWEST_INTERRUPT_PRIORITY       0x07
+#define configLIBRARY_LOWEST_INTERRUPT_PRIORITY       15
 
 /* The highest interrupt priority that can be used by any interrupt service
  * routine that makes calls to interrupt safe FreeRTOS API functions.  DO NOT

@@ -31,7 +31,9 @@ void DMA1_Channel5_IRQHandler(void){
 void I2C2_EV_IRQHandler(void){
     static uint8_t startup = 1;
     static uint8_t index_mpu_init = 0;
+    static uint8_t reg = 
     static uint8_t rw = 0;
+    
     volatile uint16_t status = I2C2->SR1;
     
     if(startup){

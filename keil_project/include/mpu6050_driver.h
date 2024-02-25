@@ -3,6 +3,9 @@
 
 #include "stm32f10x.h"
 
+#define ADDR_EEPROM             0x58
+#define ADDR_MPU6050            0x69
+
 #define REG_SMPLRT_DIV          0x19
 #define REG_CONFIG              0x1A
 #define REG_ACCEL_CONFIG        0x1C
