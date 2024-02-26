@@ -410,19 +410,9 @@
               <FilePath>.\src\gpio_ese.c</FilePath>
             </File>
             <File>
-              <FileName>mpu6050_driver.c</FileName>
+              <FileName>queues_ese.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\mpu6050_driver.c</FilePath>
-            </File>
-            <File>
-              <FileName>usart_ese.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\usart_ese.c</FilePath>
-            </File>
-            <File>
-              <FileName>timers_ese.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\timers_ese.c</FilePath>
+              <FilePath>.\src\queues_ese.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -450,19 +440,9 @@
               <FilePath>.\include\gpio_ese.h</FilePath>
             </File>
             <File>
-              <FileName>mpu6050_driver.h</FileName>
+              <FileName>queues_ese.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\include\mpu6050_driver.h</FilePath>
-            </File>
-            <File>
-              <FileName>timers_ese.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\include\timers_ese.h</FilePath>
-            </File>
-            <File>
-              <FileName>usart_ese.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\include\usart_ese.h</FilePath>
+              <FilePath>.\include\queues_ese.h</FilePath>
             </File>
           </Files>
         </Group>

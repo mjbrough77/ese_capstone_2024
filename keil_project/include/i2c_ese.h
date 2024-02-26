@@ -12,7 +12,7 @@
 #include "stm32f10x.h"
 
 #define ADDR_EEPROM             0x58
-#define ADDR_MPU                0x69
+#define ADDR_MPU                0x68
 
 #define REG_SMPLRT_DIV          0x19
 #define REG_CONFIG              0x1A
@@ -24,13 +24,13 @@
 #define REG_PWR_MGMT_1          0x6B
 
 #define MPU_RESET_STEPS         10   /* # of operations to reset the MPU */
-#define MPU_SINGLE_WRITE         3   /* Single byte write sends 3 values */
+#define MPU_SINGLE_WRITE         2   /* Single byte write sends 2 values */
 
 /* Stepped through array for resetting MPU6050 */
 extern const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE];
 
-void configure_dma(void);
 void configure_i2c2(void);
-
+void reset_i2c2(void);
+void configure_dma(void);
 
 #endif
