@@ -15,7 +15,7 @@ static void delay(uint32_t);
 int main(void){
     board_init();
     
-    i2c2Q = xQueueCreate(2, sizeof(uint8_t));
+    i2c2Q = xQueueCreate(3, sizeof(uint8_t));
     
     xTaskCreate(mpu_reset_task, "MPU Reset", 128, (void*)0, 1, NULL);
     
@@ -56,6 +56,10 @@ _Noreturn static void mpu_reset_task(void* param){
         vTaskDelete(NULL);
         (void)param;
     }
+}
+
+_Noreturn static void mpu_read_task(void* param){
+    
 }
 
 static void delay(volatile uint32_t time){

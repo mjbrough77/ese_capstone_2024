@@ -25,6 +25,8 @@
 
 #define MPU_RESET_STEPS         10   /* # of operations to reset the MPU */
 #define MPU_SINGLE_WRITE         2   /* Single byte write sends 2 values */
+#define MPU_BURST_READ           6   /* Gyroscope data stored in 6 bytes */
+#define MPU_READ_ADDRS           3   /* Number of addresses for one MPU read */
 
 /* Stepped through array for resetting MPU6050 */
 extern const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE];
