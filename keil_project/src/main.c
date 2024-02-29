@@ -7,10 +7,12 @@
 #include "../include/i2c_ese.h"
 #include "../include/timers_ese.h"
 #include "../include/queues_ese.h"
+#include "../include/tasks_ese.h"
 
 static void board_init(void);
 static void mpu_reset_task(void*);
 static void delay(uint32_t);
+
 
 int main(void){
     board_init();
@@ -29,17 +31,18 @@ static void board_init(void){
     
     clock_afio();
     clock_gpiob();
+    clock_gpioc();
     clock_i2c2();
     clock_dma();
     
     configure_io();
     configure_i2c2();
-    configure_dma();
+    configure_i2c2_dma();
 }
 
 _Noreturn static void mpu_reset_task(void* param){
     uint32_t i = 0;
-    uint8_t address = 0x68 << 1;
+    uint8_t address = ADDR_MPU << 1;
     
     while(1){
         vTaskDelay( pdMS_TO_TICKS( 200 ) );
@@ -53,13 +56,11 @@ _Noreturn static void mpu_reset_task(void* param){
             vTaskDelay( pdMS_TO_TICKS( 100 ) );
         }
         
+            EXTI->IMR |= EXTI_IMR_MR6;                /* Unmask EXTI6 */
+        
         vTaskDelete(NULL);
         (void)param;
     }
-}
-
-_Noreturn static void mpu_read_task(void* param){
-    
 }
 
 static void delay(volatile uint32_t time){

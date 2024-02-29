@@ -414,6 +414,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\queues_ese.c</FilePath>
             </File>
+            <File>
+              <FileName>tasks_ese.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\tasks_ese.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -443,6 +448,11 @@
               <FileName>queues_ese.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\include\queues_ese.h</FilePath>
+            </File>
+            <File>
+              <FileName>tasks_ese.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\include\tasks_ese.h</FilePath>
             </File>
           </Files>
         </Group>

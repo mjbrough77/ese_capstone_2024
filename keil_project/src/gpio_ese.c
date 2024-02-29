@@ -6,7 +6,7 @@
 void configure_io(void){
     /********** Configure TIM3 CH1,2 for Encoder Capture **********/
     /** PA6 as Input floating (A-Phase) **/
-    /* Default config on reset*/
+    /* Default config on reset */
         
     /** PA7 as Input floating (B-Phase) **/
     /* Default config on reset */
@@ -25,9 +25,9 @@ void configure_io(void){
     /********** Configure MPU interrupt **********/
     /** PC6 as Input floating (MPU INT) **/
     /* Default config on reset */
-    AFIO->EXTICR[2] |= AFIO_EXTICR2_EXTI6_PC; /* EXTI6 source from PC6 */
+    AFIO->EXTICR[1] |= AFIO_EXTICR2_EXTI6_PC; /* EXTI6 source from PC6 */
     EXTI->IMR |= EXTI_IMR_MR6;                /* Unmask EXTI6 */
-    EXTI->RTSR |= EXTI_RTSR_TR6;              /* EXTI6 on rising edge */
-    NVIC_SetPriority(EXTI9_5_IRQn, 5);        /* ISR Priority > 5 (FreeRTOS) */
+    EXTI->RTSR |= EXTI_RTSR_TR6;              /* EXTI6 on falling edge */
+    NVIC_SetPriority(EXTI9_5_IRQn, 14);       /* Prempted always */
     NVIC_EnableIRQ(EXTI9_5_IRQn);
 }

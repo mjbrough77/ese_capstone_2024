@@ -22,6 +22,7 @@
 #define REG_SIGNAL_PATH_RESET   0x68
 #define REG_USER_CTRL           0x6A
 #define REG_PWR_MGMT_1          0x6B
+#define REG_FIFO                0x74
 
 #define MPU_RESET_STEPS         10   /* # of operations to reset the MPU */
 #define MPU_SINGLE_WRITE         2   /* Single byte write sends 2 values */
@@ -30,9 +31,11 @@
 
 /* Stepped through array for resetting MPU6050 */
 extern const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE];
+extern uint8_t mpu_data[MPU_BURST_READ];
 
 void configure_i2c2(void);
+void configure_i2c2_dma(void);
 void reset_i2c2(void);
-void configure_dma(void);
+
 
 #endif

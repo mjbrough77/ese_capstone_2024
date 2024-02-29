@@ -17,9 +17,11 @@ const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE] = {
     {REG_CONFIG, 0x01},             /* DLPF setting 1 */
     {REG_ACCEL_CONFIG, 0x00},       /* Accelerometer +-2g */
     {REG_FIFO_EN, 0x70},            /* 3-axis gyro into FIFO */
-    {REG_INT_ENABLE, 0x01},         /* Data ready interrupt enable */
-    {REG_USER_CTRL, 0x40}           /* Enable FIFO */
+    {REG_USER_CTRL, 0x40},          /* Enable FIFO */
+    {REG_INT_ENABLE, 0x01}          /* Data ready interrupt enable */
 };
+
+uint8_t mpu_data[MPU_BURST_READ];
 
 void configure_i2c2(void){
     I2C2->CR2 |= 20;                            /* 20MHz */
@@ -35,13 +37,7 @@ void configure_i2c2(void){
     I2C2->CR2 |= I2C_CR2_LAST;  /* NACK on next DMA EOT */
 }
 
-void reset_i2c2(void){
-    I2C2->CR1 |= I2C_CR1_SWRST;
-    I2C2->CR1 &= ~I2C_CR1_SWRST;
-    configure_i2c2();
-}
-
-void configure_dma(void){
+void configure_i2c2_dma(void){
     /* I2C2_Tx DMA channel, configured to reset MPU6050 */
     DMA1_Channel4->CPAR = (uint32_t)&I2C2->DR;
     DMA1_Channel4->CMAR = (uint32_t)mpu_init[0];
@@ -51,4 +47,20 @@ void configure_dma(void){
     
     NVIC_SetPriority(DMA1_Channel4_IRQn, 5); /* ISR Priority > 5 (FreeRTOS) */
     NVIC_EnableIRQ(DMA1_Channel4_IRQn);
+    
+    /* I2C2_Rx DMA channel, configured to read MPU6050 */
+    DMA1_Channel5->CPAR = (uint32_t)&I2C2->DR;
+    DMA1_Channel5->CMAR = (uint32_t)mpu_data;
+    DMA1_Channel5->CNDTR = MPU_BURST_READ;
+    DMA1_Channel5->CCR |= DMA_CCR5_TCIE | DMA_CCR5_MINC | DMA_CCR5_CIRC;
+    DMA1_Channel5->CCR |= DMA_CCR5_EN;
+    
+    NVIC_SetPriority(DMA1_Channel5_IRQn, 5); /* ISR Priority > 5 (FreeRTOS) */
+    NVIC_EnableIRQ(DMA1_Channel5_IRQn);
+}
+
+void reset_i2c2(void){
+    I2C2->CR1 |= I2C_CR1_SWRST;
+    I2C2->CR1 &= ~I2C_CR1_SWRST;
+    configure_i2c2();
 }
