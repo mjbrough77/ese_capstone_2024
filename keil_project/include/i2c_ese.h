@@ -16,7 +16,7 @@
 
 #define REG_SMPLRT_DIV          0x19
 #define REG_CONFIG              0x1A
-#define REG_ACCEL_CONFIG        0x1C
+#define REG_GYRO_CONFIG         0x1B
 #define REG_FIFO_EN             0x23
 #define REG_INT_ENABLE          0x38
 #define REG_SIGNAL_PATH_RESET   0x68

@@ -26,7 +26,6 @@ void configure_io(void){
     /** PC6 as Input floating (MPU INT) **/
     /* Default config on reset */
     AFIO->EXTICR[1] |= AFIO_EXTICR2_EXTI6_PC; /* EXTI6 source from PC6 */
-    EXTI->IMR |= EXTI_IMR_MR6;                /* Unmask EXTI6 */
     EXTI->RTSR |= EXTI_RTSR_TR6;              /* EXTI6 on falling edge */
     NVIC_SetPriority(EXTI9_5_IRQn, 14);       /* Prempted always */
     NVIC_EnableIRQ(EXTI9_5_IRQn);

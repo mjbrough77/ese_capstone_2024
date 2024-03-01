@@ -5,6 +5,7 @@
 #include "../include/clocks_ese.h"
 #include "../include/gpio_ese.h"
 #include "../include/i2c_ese.h"
+#include "../include/interrupts_ese.h"
 #include "../include/timers_ese.h"
 #include "../include/queues_ese.h"
 #include "../include/tasks_ese.h"
@@ -56,7 +57,7 @@ _Noreturn static void mpu_reset_task(void* param){
             vTaskDelay( pdMS_TO_TICKS( 100 ) );
         }
         
-            EXTI->IMR |= EXTI_IMR_MR6;                /* Unmask EXTI6 */
+        EXTI->IMR |= EXTI_IMR_MR6;
         
         vTaskDelete(NULL);
         (void)param;
