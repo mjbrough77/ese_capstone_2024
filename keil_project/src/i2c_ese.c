@@ -21,6 +21,11 @@ const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE] = {
     {REG_INT_ENABLE, 0x01}          /* Data ready interrupt enable */
 };
 
+/* Some arbitrary data to write to EEPROM */
+const uint8_t eeprom_write_data[EEPROM_WRITE] = {
+    0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+};
+
 uint8_t mpu_data[MPU_BURST_READ];
 
 void configure_i2c2(void){
@@ -57,7 +62,6 @@ void configure_i2c2_dma(void){
     
     NVIC_SetPriority(DMA1_Channel5_IRQn, 5); /* ISR Priority >= 5 (FreeRTOS) */
     NVIC_EnableIRQ(DMA1_Channel5_IRQn);
-
 }
 
 void reset_i2c2(void){

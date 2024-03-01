@@ -7,7 +7,8 @@
 
 void DMA1_Channel4_IRQHandler(void){
     static uint8_t mpu_reset_index = 1;
-
+    static uint8_t reconfigure_for_eeprom = 0;
+    
     I2C2->CR2 &= ~I2C_CR2_DMAEN;
     
     /* Initial Reset of MPU */
@@ -16,14 +17,25 @@ void DMA1_Channel4_IRQHandler(void){
         DMA1_Channel4->CMAR = (uint32_t)mpu_init[mpu_reset_index++];
         DMA1_Channel4->CNDTR = MPU_SINGLE_WRITE;
         DMA1_Channel4->CCR |= DMA_CCR4_EN;
+        reconfigure_for_eeprom = 1;
     }
+    
+    else if(reconfigure_for_eeprom == 1){
+        DMA1_Channel4->CCR &= (uint16_t)0xFFFE; /* Disable Channel 4 DMA */
+        DMA1_Channel4->CMAR = (uint32_t)eeprom_write_data;
+        DMA1_Channel4->CNDTR = MPU_SINGLE_WRITE;
+        DMA1_Channel4->CCR |= DMA_CCR4_CIRC;
+        DMA1_Channel4->CCR |= DMA_CCR4_EN;
+        reconfigure_for_eeprom = 0;
+    }
+    
     
     DMA1->IFCR |= DMA_IFCR_CTCIF4;
 }
 
 void DMA1_Channel5_IRQHandler(void){
     I2C2->CR1 |= I2C_CR1_STOP;
-    EXTI->IMR |= EXTI_IMR_MR6;
+    EXTI->IMR |= EXTI_IMR_MR6;      /* Unmask INT after read */
     DMA1->IFCR |= DMA_IFCR_CTCIF5;
 }
 
@@ -33,7 +45,7 @@ void I2C2_EV_IRQHandler(void){
     uint8_t queue_size = (uint8_t)uxQueueMessagesWaitingFromISR(i2c2Q);
     uint8_t address_to_send = 0;
     uint8_t register_to_send = 0;
-    volatile uint32_t delay = 0xFF;
+    volatile uint32_t delay = 0x2F;
     
     /* Full queue indicates = read MPU, assumed empty queue after each stop */
     if(queue_size == MPU_READ_ADDRS){ 
@@ -77,9 +89,8 @@ void EXTI9_5_IRQHandler(void){
     const static uint8_t mpu_fifo_addr = REG_FIFO;
     const static uint8_t mpu_read_addr = (ADDR_MPU << 1) + 1;
     
-    EXTI->IMR &= ~EXTI_IMR_MR6; /* Mask INT pin on MPU */
-    
     if(!(I2C2->SR2 & I2C_SR2_BUSY)){
+        EXTI->IMR &= ~EXTI_IMR_MR6; /* Mask INT pin on MPU */
         xQueueSendToBackFromISR(i2c2Q, &mpu_write_addr, NULL);
         xQueueSendToBackFromISR(i2c2Q, &mpu_fifo_addr, NULL);
         xQueueSendToBackFromISR(i2c2Q, &mpu_read_addr, NULL);

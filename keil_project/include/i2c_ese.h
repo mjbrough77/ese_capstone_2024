@@ -28,9 +28,11 @@
 #define MPU_SINGLE_WRITE         2   /* Single byte write sends 2 values */
 #define MPU_BURST_READ           6   /* Gyroscope data stored in 6 bytes */
 #define MPU_READ_ADDRS           3   /* Number of addresses for one MPU read */
+#define EEPROM_WRITE            16   /* Number of bytes saved to EEPROM */
 
 /* Stepped through array for resetting MPU6050 */
 extern const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE];
+extern const uint8_t eeprom_write_data[EEPROM_WRITE];
 extern uint8_t mpu_data[MPU_BURST_READ];
 
 void configure_i2c2(void);
