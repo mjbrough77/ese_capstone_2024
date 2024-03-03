@@ -4,6 +4,7 @@
 #include "../include/interrupts_ese.h"
 #include "../include/i2c_ese.h"
 #include "../include/queues_ese.h"
+#include "../include/tasks_ese.h"
 
 void DMA1_Channel4_IRQHandler(void){
     static uint8_t mpu_reset_index = 1;
@@ -22,20 +23,17 @@ void DMA1_Channel4_IRQHandler(void){
     
     else if(reconfigure_for_eeprom == 1){
         DMA1_Channel4->CCR &= (uint16_t)0xFFFE; /* Disable Channel 4 DMA */
-        DMA1_Channel4->CMAR = (uint32_t)eeprom_write_data;
-        DMA1_Channel4->CNDTR = MPU_SINGLE_WRITE;
+        DMA1_Channel4->CNDTR = EEPROM_WRITE;
         DMA1_Channel4->CCR |= DMA_CCR4_CIRC;
         DMA1_Channel4->CCR |= DMA_CCR4_EN;
         reconfigure_for_eeprom = 0;
     }
-    
     
     DMA1->IFCR |= DMA_IFCR_CTCIF4;
 }
 
 void DMA1_Channel5_IRQHandler(void){
     I2C2->CR1 |= I2C_CR1_STOP;
-    EXTI->IMR |= EXTI_IMR_MR6;      /* Unmask INT after read */
     DMA1->IFCR |= DMA_IFCR_CTCIF5;
 }
 
@@ -45,7 +43,7 @@ void I2C2_EV_IRQHandler(void){
     uint8_t queue_size = (uint8_t)uxQueueMessagesWaitingFromISR(i2c2Q);
     uint8_t address_to_send = 0;
     uint8_t register_to_send = 0;
-    volatile uint32_t delay = 0x2F;
+    volatile uint32_t delay = 0x2F; /* SEE BELOW */
     
     /* Full queue indicates = read MPU, assumed empty queue after each stop */
     if(queue_size == MPU_READ_ADDRS){ 
@@ -66,36 +64,28 @@ void I2C2_EV_IRQHandler(void){
         (void)I2C2->SR2;
     }
 
-    /* End of transmission */
+    /* End of transmission on Tx session */
     else if(status & I2C_SR1_BTF){
         I2C2->CR1 |= I2C_CR1_STOP;
         I2C2->CR1 &= ~I2C_CR1_STOP;
     }
     
-    /* Only runs when MPU FIFO register read */
+    /* Only runs on MPU FIFO read */
     else if(status & I2C_SR1_TXE){
         if(xQueueReceiveFromISR(i2c2Q, &register_to_send, NULL) == pdPASS){
             I2C2->CR2 &= ~I2C_CR2_ITBUFEN;
             restart = 0;
             I2C2->DR = register_to_send;
             I2C2->CR1 |= I2C_CR1_START;
-            while(delay--);
+            while(delay--); /* WARNING: SOME DELAY REQUIRED AFTER RESTART */
         }
     }
 }
 
 void EXTI9_5_IRQHandler(void){
-    const static uint8_t mpu_write_addr = ADDR_MPU << 1;
-    const static uint8_t mpu_fifo_addr = REG_FIFO;
-    const static uint8_t mpu_read_addr = (ADDR_MPU << 1) + 1;
-    
-    if(!(I2C2->SR2 & I2C_SR2_BUSY)){
-        EXTI->IMR &= ~EXTI_IMR_MR6; /* Mask INT pin on MPU */
-        xQueueSendToBackFromISR(i2c2Q, &mpu_write_addr, NULL);
-        xQueueSendToBackFromISR(i2c2Q, &mpu_fifo_addr, NULL);
-        xQueueSendToBackFromISR(i2c2Q, &mpu_read_addr, NULL);
-        I2C2->CR1 |= I2C_CR1_START;
-    }
-    
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     EXTI->PR |= EXTI_PR_PR6;
+    
+    vTaskNotifyGiveFromISR(mpu_read_handle, &xHigherPriorityTaskWoken);
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }

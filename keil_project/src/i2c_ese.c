@@ -1,11 +1,3 @@
-/*
- * FILENAME: i2c_lib.c
- *
- * DESCRIPTION: Library concerned with I2C
- *
- * AUTHOR: Mitchell Brough, 200239781
-*/
-
 #include "../include/i2c_ese.h"
 
 const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE] = {
@@ -26,7 +18,7 @@ const uint8_t eeprom_write_data[EEPROM_WRITE] = {
     0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
 };
 
-uint8_t mpu_data[MPU_BURST_READ];
+uint8_t mpu_data[MPU_FIFO_READ];
 
 void configure_i2c2(void){
     I2C2->CR2 |= 20;                            /* 20MHz */
@@ -50,17 +42,17 @@ void configure_i2c2_dma(void){
     DMA1_Channel4->CCR |= DMA_CCR4_TCIE | DMA_CCR4_DIR | DMA_CCR4_MINC;
     DMA1_Channel4->CCR |= DMA_CCR4_EN;
     
-    NVIC_SetPriority(DMA1_Channel4_IRQn, 5); 
+    NVIC_SetPriority(DMA1_Channel4_IRQn, 5); /* ISR Priority >= 5 (FreeRTOS) */
     NVIC_EnableIRQ(DMA1_Channel4_IRQn);
     
     /* I2C2_Rx DMA channel, configured to read MPU6050 */
     DMA1_Channel5->CPAR = (uint32_t)&I2C2->DR;
     DMA1_Channel5->CMAR = (uint32_t)mpu_data;
-    DMA1_Channel5->CNDTR = MPU_BURST_READ;
+    DMA1_Channel5->CNDTR = MPU_FIFO_READ;
     DMA1_Channel5->CCR |= DMA_CCR5_TCIE | DMA_CCR5_MINC | DMA_CCR5_CIRC;
     DMA1_Channel5->CCR |= DMA_CCR5_EN;
     
-    NVIC_SetPriority(DMA1_Channel5_IRQn, 5); /* ISR Priority >= 5 (FreeRTOS) */
+    NVIC_SetPriority(DMA1_Channel5_IRQn, 5);
     NVIC_EnableIRQ(DMA1_Channel5_IRQn);
 }
 
