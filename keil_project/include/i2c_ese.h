@@ -35,6 +35,7 @@ typedef uint32_t WheelSpeed_t;
 typedef uint16_t GyroRead_t;
 typedef uint16_t UltrasonicRead_t;
 typedef uint8_t Weight_t;
+typedef uint8_t* MPUBuffer_t;
 
 typedef struct{
     uint8_t address_high;
@@ -52,12 +53,12 @@ typedef struct{
 
 /* Stepped through array for resetting MPU6050 */
 extern const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE];
+
+
 extern uint8_t global_mpu_data[MPU_FIFO_READ];
-extern LogData_t global_data_log;
 
 void configure_i2c2(void);
 void configure_i2c2_dma(void);
-void reset_i2c2(void);
-void update_log(LogData_t);
+void update_log_dma(LogData_t*);
 
 #endif

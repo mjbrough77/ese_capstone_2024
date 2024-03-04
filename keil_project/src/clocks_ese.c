@@ -7,25 +7,25 @@ void sysclock_init(void){
     /** Enable HSE with Bypass and wait for it to be ready */
     RCC->CR |= RCC_CR_HSEON | RCC_CR_HSEBYP;
     while (((RCC->CR)&(RCC_CR_HSEON | RCC_CR_HSEBYP | RCC_CR_HSERDY)) == 0);
-    
+
     /** Set HSE as SYSCLK and wait for it to be recognized */
     RCC->CFGR = RCC_CFGR_SW_HSE;
     while (((RCC->CFGR) & (RCC_CFGR_SW_HSE | RCC_CFGR_SWS_HSE)) == 0);
 
     /**Ensure PLL is disabled */
     RCC->CR &= ~RCC_CR_PLLON;
-    
+
     /** Sets CFGR register such that PLLMUL is 3 (8*5 = 40MHz) */
     /** Sets CFGR register such that AHB Prescaler is 2 (40MHz / 2 = 20MHz) **/
     RCC->CFGR = 0x000C0080;
-    
+
     /** Enable PLL and wait for it to be ready */
     RCC->CR |= RCC_CR_PLLON;
     while (((RCC->CR) & (RCC_CR_PLLON | RCC_CR_PLLRDY)) == 0);
-    
+
     /** Set PLL as SYSCLK and wait for it to be ready */
     RCC->CFGR |= RCC_CFGR_SW_PLL;
-    while (((RCC->CFGR) & (RCC_CFGR_SW_PLL | RCC_CFGR_SWS_PLL)) == 0);    
+    while (((RCC->CFGR) & (RCC_CFGR_SW_PLL | RCC_CFGR_SWS_PLL)) == 0);
 }
 
 

@@ -5,5 +5,6 @@
 #include "queue.h"
 
 extern QueueHandle_t i2c2Q;
+extern QueueHandle_t eeprom_logQ;
 
 #endif
