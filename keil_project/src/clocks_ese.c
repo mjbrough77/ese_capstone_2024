@@ -1,7 +1,22 @@
+/**
+  *@file clocks_ese.c
+  *@author Mitchell Brough
+  *@brief Library concered with clock control on the F103RB
+  *@version 0.1
+  *@date 2024-03-04
+  *
+  *@copyright Copyright (c) 2024 Mitchell Brough
+  *
+ */
 #include "../include/clocks_ese.h"
 
+/**************************************************************************
+ * System Clock Initialization
+**************************************************************************/
 /**
   *@brief Configures SYSCLK to 40MHz, AHB clock to 20MHz
+  *
+  * AHB must be a multiple of 10MHz for I2C Fast Mode (400kHz)
  */
 void sysclock_init(void){
     /** Enable HSE with Bypass and wait for it to be ready */
@@ -29,7 +44,9 @@ void sysclock_init(void){
 }
 
 
-/******************* Functions to enable related clocks *******************/
+/**************************************************************************
+ * Peripheral Clock Enable Functions
+**************************************************************************/
 void clock_gpioa(void){
     RCC->APB2ENR |= RCC_APB2ENR_IOPAEN;
 }

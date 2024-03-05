@@ -1,3 +1,14 @@
+/**
+  *@file clocks_ese.h
+  *@author Mitchell Brough
+  *@brief Library concered with clock control on the F103RB
+  *@version 0.1
+  *@date 2024-03-04
+  *
+  *@copyright Copyright (c) 2024 Mitchell Brough
+  *
+ */
+
 #ifndef CLOCKS_ESE_H
 #define CLOCKS_ESE_H
 

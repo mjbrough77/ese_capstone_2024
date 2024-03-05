@@ -1,15 +1,27 @@
+/**
+  *@file i2c_ese.h
+  *@author Mitchell Brough
+  *@brief Library related to the I2C bus and attached peripherals
+  *@version 1.0
+  *@date 2024-03-04
+  *
+  *@copyright Copyright (c)  Mitchell Brough
+  *
+ */
+
 #ifndef I2C_ESE
 #define I2C_ESE
 
 #include "stm32f10x.h"
 
-/************************************************************************** 
+/**************************************************************************
  * I2C Device Addresses
 **************************************************************************/
 #define ADDR_EEPROM             0x50
 #define ADDR_MPU                0x68
 
-/************************************************************************** 
+
+/**************************************************************************
  * MPU6050 Register Addresses
 **************************************************************************/
 #define REG_SMPLRT_DIV          0x19
@@ -22,7 +34,8 @@
 #define REG_PWR_MGMT_1          0x6B
 #define REG_FIFO                0x74
 
-/************************************************************************** 
+
+/**************************************************************************
  * I2C Transmission Length Definitions
 **************************************************************************/
 #define EEPROM_WRITE  sizeof(LogData_t) /* # of bytes sent on log write */
@@ -31,32 +44,58 @@
 #define MPU_FIFO_READ               6   /* # of bytes read from FIFO */
 #define MPU_READ_ADDRS              3   /* Addresses needed for MPU read */
 
+
+/**************************************************************************
+ * Typedefs and structures
+**************************************************************************/
 typedef uint32_t WheelSpeed_t;
 typedef uint16_t GyroRead_t;
 typedef uint16_t UltrasonicRead_t;
 typedef uint8_t Weight_t;
 typedef uint8_t* MPUBuffer_t;
 
+/**
+  *@brief Stucture used to store measured values to save to EEPROM log.
+  *
+  * The `event_flags` member variable indicates when any measured values
+  * exceed the tolerated threshold.
+  *
+  * Bits [2:0] are set high if any are exceeded after a system power-on.
+  *
+  * [2] W = user weight exceeded
+  * [1] D = chair has gotten to close to an obstacle
+  * [0] T = chair has exceed tilt requirements on any axis
+ */
 typedef struct{
-    uint8_t address_high;
-    uint8_t address_low;
-    Weight_t weight_measure;
-    UltrasonicRead_t ultrasonic_left;
-    UltrasonicRead_t ultrasonic_right;
-    GyroRead_t gyro_x_axis;
-    GyroRead_t gyro_y_axis;
-    GyroRead_t gyro_z_axis;
-    WheelSpeed_t left_wheel_speed;
-    WheelSpeed_t right_wheel_speed;
-    uint8_t event_flags;
+    uint8_t address_high;               /* EEPROM high address for page write */
+    uint8_t address_low;                /* EEPROM low address for page write */
+    Weight_t weight_measure;            /* ADC value from weight sensor */
+    UltrasonicRead_t ultrasonic_left;   /* Distance measure from left US */
+    UltrasonicRead_t ultrasonic_right;  /* Distance measure from right US */
+    GyroRead_t gyro_x_axis;             /* MPU6050 x-axis angular speed */
+    GyroRead_t gyro_y_axis;             /* MPU6050 y-axis angular speed */
+    GyroRead_t gyro_z_axis;             /* MPU6050 z-axis angular speed */
+    WheelSpeed_t left_wheel_speed;      /* Velocity in um/s */
+    WheelSpeed_t right_wheel_speed;     /* Velocity in um/s */
+    uint8_t event_flags;                /* xxxx xWDT */
 }LogData_t;
 
-/* Stepped through array for resetting MPU6050 */
+
+/**************************************************************************
+ * MPU6050 Initialization Array
+**************************************************************************/
+/**
+  *@brief Array storing MPU6050 register addresses and write values.
+  *
+  * On intitailization, `mpu_init` will be stepped through to reset the MPU.
+  * Each row represents a seperate write instruction.
+ */
 extern const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE];
 
 
-extern uint8_t global_mpu_data[MPU_FIFO_READ];
-
+/**************************************************************************
+ * Function Declarations
+**************************************************************************/
 void configure_i2c2(void);
 void configure_i2c2_dma(void);
 void update_log_dma(LogData_t*);

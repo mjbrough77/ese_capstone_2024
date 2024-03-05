@@ -54,13 +54,13 @@ _Noreturn static void mpu_reset_task(void* param){
             vTaskDelay( pdMS_TO_TICKS( 100 ) );
         }
 
-        xTaskCreate(eeprom_write_task, "EEPROM W", 128, NULL, 2, &eeprom_write_handle);
+        xTaskCreate(eeprom_write_task, "EEPROM W", 128, NULL, 1, &eeprom_write_handle);
         xTaskCreate(mpu_read_task, "MPU Read", 128, NULL, 1, &mpu_read_handle);
 
-        EXTI->IMR |= EXTI_IMR_MR6;
+        EXTI->IMR |= EXTI_IMR_MR6; /* mpu_read_task created, unmask INT */
 
         vTaskDelete(NULL);
-        taskYIELD();
+        taskYIELD(); /* Co-operative scheduler requires explicit yield */
 
         (void)param;
     }
@@ -69,12 +69,16 @@ _Noreturn static void mpu_reset_task(void* param){
 _Noreturn static void eeprom_write_task(void* param){
     TickType_t xLastWakeTime = xTaskGetTickCount();
     const uint8_t eeprom_write_addr = ADDR_EEPROM << 1;
-    uint8_t page_high = 0x15;
-    uint8_t page_low = 0x0;
+    const uint32_t log_size = sizeof(LogData_t);
+
+    uint8_t page_high = log_size;
+    uint8_t page_low = 0;
+
     MPUBuffer_t last_mpu_data = NULL;
     LogData_t eeprom_log = {page_high,page_low,0,0,0,0,0,0,0,0,0};
 
     while(1){
+        /* Send log every second */
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS( 1000 ));
 
         if(I2C2->SR2 & I2C_SR2_BUSY){
@@ -85,21 +89,26 @@ _Noreturn static void eeprom_write_task(void* param){
         xQueueReceive(eeprom_logQ, &last_mpu_data, portMAX_DELAY);
 
         eeprom_log.weight_measure = (Weight_t)(ADC1->DR);
-        eeprom_log.gyro_x_axis = (GyroRead_t)(last_mpu_data[0]<<8)+(GyroRead_t)last_mpu_data[1];
-        eeprom_log.gyro_y_axis = (GyroRead_t)(last_mpu_data[2]<<8)+(GyroRead_t)last_mpu_data[2];
-        eeprom_log.gyro_x_axis = (GyroRead_t)(last_mpu_data[4]<<8)+(GyroRead_t)last_mpu_data[3];
+        eeprom_log.gyro_x_axis =  (GyroRead_t)(last_mpu_data[0]<<8);
+        eeprom_log.gyro_x_axis += (GyroRead_t)last_mpu_data[1];
+        eeprom_log.gyro_y_axis =  (GyroRead_t)(last_mpu_data[2]<<8);
+        eeprom_log.gyro_y_axis += (GyroRead_t)last_mpu_data[3];
+        eeprom_log.gyro_z_axis =  (GyroRead_t)(last_mpu_data[4]<<8);
+        eeprom_log.gyro_z_axis += (GyroRead_t)last_mpu_data[5];
 
         update_log_dma(&eeprom_log);
 
         xQueueSendToBack(i2c2Q, &eeprom_write_addr, portMAX_DELAY);
         I2C2->CR1 |= I2C_CR1_START;
 
-        page_high = (page_high + 0x15) % 0x20000;
-        page_low  = (page_low + 0x15) % 0x1FFEB;
+        /* After sending log via queue, we can safely edit the log */
+        page_high = (page_high + log_size) % 0x20000;
+        page_low  = (page_low + log_size) % 0x1FFEB;
         eeprom_log.address_high = page_high;
         eeprom_log.address_low  = page_low;
 
-        taskYIELD();
+        taskYIELD(); /* Co-operative scheduler requires explicit yield */
+
         (void)param;
     }
 }
@@ -118,12 +127,12 @@ _Noreturn static void mpu_read_task(void* param){
             if(I2C2->SR2 & I2C_SR2_BUSY) vTaskSuspendAll();
         }
 
-        xQueueSendToBack(i2c2Q, &mpu_write_addr, NULL);
-        xQueueSendToBack(i2c2Q, &mpu_fifo_addr, NULL);
-        xQueueSendToBack(i2c2Q, &mpu_read_addr, NULL);
+        xQueueSendToBack(i2c2Q, &mpu_write_addr, portMAX_DELAY);
+        xQueueSendToBack(i2c2Q, &mpu_fifo_addr, portMAX_DELAY);
+        xQueueSendToBack(i2c2Q, &mpu_read_addr, portMAX_DELAY);
         I2C2->CR1 |= I2C_CR1_START;
 
-        taskYIELD();
+        taskYIELD(); /* Co-operative scheduler requires explicit yield */
         (void)param;
     }
 }
