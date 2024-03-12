@@ -39,6 +39,7 @@
  * I2C Transmission Length Definitions
 **************************************************************************/
 #define EEPROM_WRITE  sizeof(LogData_t) /* # of bytes sent on log write */
+#define PAGE_SIZE                 128   /* EEPROM page width in bytes */
 #define MPU_RESET_STEPS            10   /* # of operations to reset the MPU */
 #define MPU_SINGLE_WRITE            2   /* Bytes sent during write to MPU */
 #define MPU_FIFO_READ               6   /* # of bytes read from FIFO */

@@ -13,9 +13,6 @@ static void board_init(void);
 static void mpu_reset_task(void*);
 static void eeprom_write_task(void*);
 static void mpu_read_task(void*);
-void vApplicationIdleHook(void);
-
-volatile uint32_t count_idle = 0;
 
 int main(void){
     board_init();
@@ -23,7 +20,7 @@ int main(void){
     i2c2Q = xQueueCreate(MPU_READ_ADDRS, sizeof(uint8_t));
     eeprom_logQ = xQueueCreate(1, sizeof(MPUData_t));
 
-    xTaskCreate(mpu_reset_task, "MPU Reset", 128, NULL, 1, NULL);
+    xTaskCreate(mpu_reset_task, "MPU Reset", 128, NULL, 0, NULL);
 
     vTaskStartScheduler();
 
@@ -57,8 +54,8 @@ _Noreturn static void mpu_reset_task(void* param){
             vTaskDelay( pdMS_TO_TICKS( 100 ) );
         }
 
-        xTaskCreate(eeprom_write_task, "EEPROM W", 128, NULL, 1, &eeprom_write_handle);
-        xTaskCreate(mpu_read_task, "MPU Read", 128, NULL, 1, &mpu_read_handle);
+        xTaskCreate(eeprom_write_task, "EEPROM W", 128, NULL, 0, &eeprom_write_handle);
+        xTaskCreate(mpu_read_task, "MPU Read", 128, NULL, 0, &mpu_read_handle);
 
         EXTI->IMR |= EXTI_IMR_MR6; /* mpu_read_task created, unmask INT */
 
@@ -71,13 +68,13 @@ _Noreturn static void mpu_reset_task(void* param){
 
 _Noreturn static void eeprom_write_task(void* param){
     TickType_t xLastWakeTime = xTaskGetTickCount();
-    const uint8_t eeprom_write_addr = ADDR_EEPROM << 1;
     const uint32_t log_size = sizeof(LogData_t);
-    const uint32_t high_address_boundary = (0x20000/log_size) * log_size;
-    const uint32_t low_address_boundary = high_address_boundary - (log_size-1);
-
-    uint8_t page_high = log_size-1;
-    uint8_t page_low = 0;
+    const uint8_t CTRL_BLOCK = 0x2;
+    
+    uint8_t eeprom_write_addr = ADDR_EEPROM << 1;
+    uint16_t address_to_write = 0x0000;
+    uint8_t page_high = 0x00;
+    uint8_t page_low  = 0x00;
 
     MPUData_t last_mpu_data = {0,0,0};
     LogData_t eeprom_log = {page_high,page_low,0,0,0,0,0,0,0,0,0};
@@ -98,14 +95,18 @@ _Noreturn static void eeprom_write_task(void* param){
         eeprom_log.gyro_y_axis = last_mpu_data.gyro_y_axis;
         eeprom_log.gyro_z_axis = last_mpu_data.gyro_z_axis;
 
+        /* DMA1_I2C2_Tx points to updated log */
         update_log_dma(&eeprom_log);
 
         xQueueSendToBack(i2c2Q, &eeprom_write_addr, portMAX_DELAY);
-        //I2C2->CR1 |= I2C_CR1_START;
+        I2C2->CR1 |= I2C_CR1_START;
 
         /* Update write bounds */
-        page_high += log_size;
-        page_low  += log_size;
+        address_to_write += log_size;
+        if((address_to_write + log_size) & PAGE_SIZE-1 / PAGE_SIZE )
+        
+        page_high = (address_to_write & 0xFF00) >> 8;
+        page_low  = (address_to_write & 0xFF);
         if(page_high >= high_address_boundary) page_high = log_size-1;
         if(page_low >= low_address_boundary) page_low = 0;
         
@@ -114,7 +115,6 @@ _Noreturn static void eeprom_write_task(void* param){
         eeprom_log.address_low  = page_low;
 
         taskYIELD(); /* Co-operative scheduler requires explicit yield */
-
         (void)param;
     }
 }
@@ -125,11 +125,10 @@ _Noreturn static void mpu_read_task(void* param){
     const uint8_t mpu_read_addr = (ADDR_MPU << 1) + 1;
 
     while(1){
-
-        ulTaskNotifyTake(pdFALSE, portMAX_DELAY);
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
         if(I2C2->SR2 & I2C_SR2_BUSY){
-            vTaskDelay( pdMS_TO_TICKS( 3 ) ); /* T_ROMWRITE < 3ms */
+            vTaskDelay( pdMS_TO_TICKS( 100 ) ); /* T_ROMWRITE < 3ms */
             if(I2C2->SR2 & I2C_SR2_BUSY) vTaskSuspendAll();
         }
 
@@ -141,8 +140,4 @@ _Noreturn static void mpu_read_task(void* param){
         taskYIELD(); /* Co-operative scheduler requires explicit yield */
         (void)param;
     }
-}
-
-void vApplicationIdleHook(void){
-    count_idle++;
 }
