@@ -88,7 +88,7 @@ _Noreturn static void eeprom_write_task(void* param){
 
         xQueueReceive(eeprom_logQ, &last_mpu_data, portMAX_DELAY);
 
-        eeprom_log.weight_measure = (Weight_t)(ADC1->DR);
+        //eeprom_log.weight_measure = (Weight_t)(ADC1->DR);
         eeprom_log.gyro_x_axis =  (GyroRead_t)(last_mpu_data[0]<<8);
         eeprom_log.gyro_x_axis += (GyroRead_t)last_mpu_data[1];
         eeprom_log.gyro_y_axis =  (GyroRead_t)(last_mpu_data[2]<<8);
