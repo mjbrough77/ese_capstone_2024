@@ -52,7 +52,6 @@ typedef uint16_t WheelSpeed_t;
 typedef uint16_t GyroRead_t;
 typedef uint16_t UltrasonicRead_t;
 typedef uint8_t Weight_t;
-typedef uint8_t* MPUBuffer_t;
 
 /**
   *@brief Stucture used to store measured values to save to EEPROM log.
@@ -80,6 +79,11 @@ typedef struct{
     WheelSpeed_t right_wheel_speed;     /* Velocity in 100um/s */
 }LogData_t;
 
+typedef struct{
+    GyroRead_t gyro_x_axis;             /* MPU6050 x-axis angular speed */
+    GyroRead_t gyro_y_axis;             /* MPU6050 y-axis angular speed */
+    GyroRead_t gyro_z_axis;             /* MPU6050 z-axis angular speed */
+}MPUData_t;
 
 /**************************************************************************
  * MPU6050 Initialization Array

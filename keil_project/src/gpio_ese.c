@@ -72,6 +72,6 @@ void configure_io(void){
     /* Default config on reset */
     AFIO->EXTICR[1] |= AFIO_EXTICR2_EXTI6_PC; /* EXTI6 source from PC6 */
     EXTI->RTSR |= EXTI_RTSR_TR6;              /* EXTI6 on falling edge */
-    NVIC_SetPriority(EXTI9_5_IRQn, 14);       /* Prempted always */
+    NVIC_SetPriority(EXTI9_5_IRQn, 5);        /* Prempted always */
     NVIC_EnableIRQ(EXTI9_5_IRQn);             /* Line 6 still needs unmasking */
 }

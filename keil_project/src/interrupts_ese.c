@@ -44,7 +44,7 @@ void DMA1_Channel4_IRQHandler(void){
     static uint8_t mpu_reset_index = 1;
     static uint8_t reconfigure_for_eeprom = 0;
 
-    I2C2->CR2 &= ~I2C_CR2_DMAEN;
+    I2C2->CR2 &= ~I2C_CR2_DMAEN; /* Requests are disabled at every EOT */
 
     /* Initial Reset of MPU */
     if(mpu_reset_index < MPU_RESET_STEPS){
@@ -69,19 +69,46 @@ void DMA1_Channel4_IRQHandler(void){
         reconfigure_for_eeprom = 0; /* Prevent statement from running again */
     }
 
-    DMA1->IFCR |= DMA_IFCR_CTCIF4;
+    DMA1->IFCR |= DMA_IFCR_CTCIF4; /* Clear interrupt */
 }
 
 /**
   *@brief Sends the MPU6050 FIFO data to eeprom_write_task for logging.
   * This interrupt only executes on EOT for I2C2_Rx.
+  * 
+  * The MPU FIFO data storage is as follows
+  * ----------------------------------------------------------- *
+  *     BYTE #    |         VALUE          |    Register (dec)  *
+  * ----------------------------------------------------------- *
+  *       0       |     GYRO_XOUT[15:8]    |         67         *
+  *       1       |     GYRO_XOUT[7:0]     |         68         *
+  * ----------------------------------------------------------- *
+  *       2       |     GYRO_YOUT[15:8]    |         69         *
+  *       3       |     GYRO_YOUT[7:0]     |         70         *
+  * ----------------------------------------------------------- *
+  *       4       |     GYRO_ZOUT[15:8]    |         71         *
+  *       5       |     GYRO_ZOUT[7:0]     |         72         *
+  * ----------------------------------------------------------- *
   *
   *@pre The queue `eeprom_logQ` has been created
  */
 void DMA1_Channel5_IRQHandler(void){
+    MPUData_t gyro_data;
+    
+    I2C2->CR2 &= ~I2C_CR2_DMAEN; /* Requests are disabled at every EOT */
     I2C2->CR1 |= I2C_CR1_STOP;
-    xQueueOverwriteFromISR(eeprom_logQ, mpu_data, NULL);
-    DMA1->IFCR |= DMA_IFCR_CTCIF5;
+    
+    /* See above explanation */
+    gyro_data.gyro_x_axis =  (GyroRead_t)(mpu_data[0]<<8);
+    gyro_data.gyro_x_axis += (GyroRead_t)mpu_data[1];
+    gyro_data.gyro_y_axis =  (GyroRead_t)(mpu_data[2]<<8);
+    gyro_data.gyro_y_axis += (GyroRead_t)mpu_data[3];
+    gyro_data.gyro_z_axis =  (GyroRead_t)(mpu_data[4]<<8);
+    gyro_data.gyro_z_axis += (GyroRead_t)mpu_data[5];
+    
+    xQueueOverwriteFromISR(eeprom_logQ, &gyro_data, NULL);
+    
+    DMA1->IFCR |= DMA_IFCR_CTCIF5; /* Clear interrupt */
 }
 
 /**
