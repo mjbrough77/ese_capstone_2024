@@ -84,7 +84,6 @@ void configure_i2c2_dma(void){
   *@pre DMA1 clock should be enabled
  */
 void update_log_dma(LogData_t *log){
-    DMA1_Channel4->CCR &= (uint16_t)0xFFFE; /* Disable Channel 4 DMA */
     DMA1_Channel4->CMAR = (uint32_t)log;
     DMA1_Channel4->CCR |= DMA_CCR4_EN;
 }

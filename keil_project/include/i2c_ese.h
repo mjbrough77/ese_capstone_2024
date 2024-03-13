@@ -36,10 +36,18 @@
 
 
 /**************************************************************************
+ * EEPROM Hardware Definitions
+**************************************************************************/
+#define PAGE_SIZE                 128   /* ROM page width in bytes */
+#define PAGE_PER_BLOCK            200   /* For block of addressable memory space */
+#define TOTAL_PAGES               400   /* Total number of EEPROM pages */
+
+
+/**************************************************************************
  * I2C Transmission Length Definitions
 **************************************************************************/
 #define EEPROM_WRITE  sizeof(LogData_t) /* # of bytes sent on log write */
-#define PAGE_SIZE                 128   /* EEPROM page width in bytes */
+
 #define MPU_RESET_STEPS            10   /* # of operations to reset the MPU */
 #define MPU_SINGLE_WRITE            2   /* Bytes sent during write to MPU */
 #define MPU_FIFO_READ               6   /* # of bytes read from FIFO */
@@ -49,10 +57,11 @@
 /**************************************************************************
  * Typedefs and structures
 **************************************************************************/
-typedef uint16_t WheelSpeed_t;
-typedef uint16_t GyroRead_t;
-typedef uint16_t UltrasonicRead_t;
-typedef uint8_t Weight_t;
+typedef uint16_t WheelSpeed_t;      /* Wheel speed always < 3.2187 km/h */
+typedef uint16_t GyroRead_t;        /* Gyroscope is 2 bytes per axis */
+typedef uint16_t UltrasonicRead_t;  /* Ultrasonics use 2 bytes */
+typedef uint16_t PageNum_t;         /* Size based on TOTAL_PAGES */
+typedef uint8_t Weight_t;           /* Only using 8 bits of 12 bit ADC */
 
 /**
   *@brief Stucture used to store measured values to save to EEPROM log.
@@ -76,8 +85,8 @@ typedef struct{
     GyroRead_t gyro_x_axis;             /* MPU6050 x-axis angular speed */
     GyroRead_t gyro_y_axis;             /* MPU6050 y-axis angular speed */
     GyroRead_t gyro_z_axis;             /* MPU6050 z-axis angular speed */
-    WheelSpeed_t left_wheel_speed;      /* Velocity in 100um/s */
-    WheelSpeed_t right_wheel_speed;     /* Velocity in 100um/s */
+    WheelSpeed_t left_wheel_speed;      /* Velocity in 100cm/s */
+    WheelSpeed_t right_wheel_speed;     /* Velocity in 100cm/s */
 }LogData_t;
 
 typedef struct{

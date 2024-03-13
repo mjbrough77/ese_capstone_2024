@@ -46,7 +46,7 @@ void DMA1_Channel4_IRQHandler(void){
 
     I2C2->CR2 &= ~I2C_CR2_DMAEN; /* Requests are disabled at every EOT */
 
-    /* Initial Reset of MPU */
+    /* Initial Reset of MPU, each iteration steps through reset matrix */
     if(mpu_reset_index < MPU_RESET_STEPS){
         DMA1_Channel4->CCR &= (uint16_t)0xFFFE; /* Disable Tx DMA */
         DMA1_Channel4->CMAR = (uint32_t)mpu_init[mpu_reset_index++];
@@ -57,12 +57,13 @@ void DMA1_Channel4_IRQHandler(void){
 
     /* Should only execute once */
     else if(reconfigure_for_eeprom == 1){
+        /* Reset DMA1_Channel4 (I2C2_Tx) for EEPROM write */
         DMA1_Channel4->CCR &= (uint16_t)0xFFFE; /* Disable Tx DMA */
         DMA1_Channel4->CNDTR = EEPROM_WRITE;
         DMA1_Channel4->CCR |= DMA_CCR4_CIRC;
-        DMA1_Channel4->CCR |= DMA_CCR4_EN;
-
-        /* Assuming DMA1_Channel5 is disabled */
+        /* DMA1_Channel 4 configuration finished in eeprom_write_task() */
+        
+        /* Assuming DMA1_Channel5 (I2C2_Rx) is disabled */
         DMA1_Channel5->CMAR = (uint32_t)mpu_data; /* Update Rx DMA channel */
         DMA1_Channel5->CCR |= DMA_CCR5_EN;
 
