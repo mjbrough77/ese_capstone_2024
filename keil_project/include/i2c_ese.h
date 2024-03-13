@@ -89,6 +89,7 @@ typedef struct{
     WheelSpeed_t right_wheel_speed;     /* Velocity in 100cm/s */
 }LogData_t;
 
+/* Passes gyro data to eeprom_write_task to maintain reentrancy */
 typedef struct{
     GyroRead_t gyro_x_axis;             /* MPU6050 x-axis angular speed */
     GyroRead_t gyro_y_axis;             /* MPU6050 y-axis angular speed */
@@ -113,5 +114,12 @@ extern const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE];
 void configure_i2c2(void);
 void configure_i2c2_dma(void);
 void update_log_dma(LogData_t*);
+
+/**************************************************************************
+ * Peripheral Tasks
+**************************************************************************/
+void mpu_reset_task(void*);
+void eeprom_write_task(void*);
+void mpu_read_task(void*);
 
 #endif
