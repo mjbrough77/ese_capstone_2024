@@ -22,7 +22,7 @@
   </DaveTm>
 
   <Target>
-    <TargetName>Target 1</TargetName>
+    <TargetName>STM32F103RB</TargetName>
     <ToolsetNumber>0x4</ToolsetNumber>
     <ToolsetName>ARM-ADS</ToolsetName>
     <TargetOption>
@@ -212,7 +212,7 @@
   </Target>
 
   <Group>
-    <GroupName>Source Group 1</GroupName>
+    <GroupName>src</GroupName>
     <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
@@ -224,7 +224,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\main.c</PathWithFileName>
+      <PathWithFileName>.\src\main.c</PathWithFileName>
       <FilenameWithoutPath>main.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -236,32 +236,32 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\utilities.c</PathWithFileName>
-      <FilenameWithoutPath>utilities.c</FilenameWithoutPath>
+      <PathWithFileName>.\src\clocks_ese.c</PathWithFileName>
+      <FilenameWithoutPath>clocks_ese.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
     <File>
       <GroupNumber>1</GroupNumber>
       <FileNumber>3</FileNumber>
-      <FileType>5</FileType>
+      <FileType>1</FileType>
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\utilities.h</PathWithFileName>
-      <FilenameWithoutPath>utilities.h</FilenameWithoutPath>
+      <PathWithFileName>.\src\drive_ese.c</PathWithFileName>
+      <FilenameWithoutPath>drive_ese.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
     <File>
       <GroupNumber>1</GroupNumber>
       <FileNumber>4</FileNumber>
-      <FileType>5</FileType>
+      <FileType>1</FileType>
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\pin_assignment.txt</PathWithFileName>
-      <FilenameWithoutPath>pin_assignment.txt</FilenameWithoutPath>
+      <PathWithFileName>.\src\gpio_ese.c</PathWithFileName>
+      <FilenameWithoutPath>gpio_ese.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -272,8 +272,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\drive.c</PathWithFileName>
-      <FilenameWithoutPath>drive.c</FilenameWithoutPath>
+      <PathWithFileName>.\src\utilities_ese.c</PathWithFileName>
+      <FilenameWithoutPath>utilities_ese.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -284,8 +284,64 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\drive.h</PathWithFileName>
-      <FilenameWithoutPath>drive.h</FilenameWithoutPath>
+      <PathWithFileName>.\pin_assignment.txt</PathWithFileName>
+      <FilenameWithoutPath>pin_assignment.txt</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+  </Group>
+
+  <Group>
+    <GroupName>include</GroupName>
+    <tvExp>1</tvExp>
+    <tvExpOptDlg>0</tvExpOptDlg>
+    <cbSel>0</cbSel>
+    <RteFlg>0</RteFlg>
+    <File>
+      <GroupNumber>2</GroupNumber>
+      <FileNumber>7</FileNumber>
+      <FileType>5</FileType>
+      <tvExp>0</tvExp>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <bDave2>0</bDave2>
+      <PathWithFileName>.\include\clocks_ese.h</PathWithFileName>
+      <FilenameWithoutPath>clocks_ese.h</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>2</GroupNumber>
+      <FileNumber>8</FileNumber>
+      <FileType>5</FileType>
+      <tvExp>0</tvExp>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <bDave2>0</bDave2>
+      <PathWithFileName>.\include\drive_ese.h</PathWithFileName>
+      <FilenameWithoutPath>drive_ese.h</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>2</GroupNumber>
+      <FileNumber>9</FileNumber>
+      <FileType>5</FileType>
+      <tvExp>0</tvExp>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <bDave2>0</bDave2>
+      <PathWithFileName>.\include\gpio_ese.h</PathWithFileName>
+      <FilenameWithoutPath>gpio_ese.h</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>2</GroupNumber>
+      <FileNumber>10</FileNumber>
+      <FileType>5</FileType>
+      <tvExp>0</tvExp>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <bDave2>0</bDave2>
+      <PathWithFileName>.\include\utilities_ese.h</PathWithFileName>
+      <FilenameWithoutPath>utilities_ese.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>

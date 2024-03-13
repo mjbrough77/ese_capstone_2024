@@ -3,7 +3,7 @@
  * Auto generated Run-Time-Environment Configuration File
  *      *** Do not modify ! ***
  *
- * Project: 'eseCapstone' 
+ * Project: 'boardA' 
  * Target:  'STM32F103RB' 
  */
 
