@@ -1,0 +1,35 @@
+CD74HC4511E (x2)
+(BCD to 7-seg)
+Digital Output (D0-1) - PB5, Header D4
+Digital Output (D1-1) - PB4, Header D5 (requires remap)
+Digital Output (D2-1) - PB10, Header D6
+Digital Output (D3-1) - PA9, Header D8
+Digital Output (D0-2) - PA4, Header A2
+Digital Output (D1-2) - PA10, Header D2
+Digital Output (D2-2) - PB9, Header D14
+Digital Output (D3-2) - PB8, Header D15
+Digital Output (BL) - PA5, Header D13
+
+MTS-102
+(2-position switch)
+Digital Input - PC7, Header D9
+
+HW-504
+(Joystick)
+Analog Input (VRX) - PC0, ADC IN10, Header A5
+Analog Input (VRY) - PC1, ADC IN11, Header A4
+Digital Input (SW) - PB0, Header A3
+
+Sabertooth 2x32e
+(Motor Driver)
+PWM Output (S2) - PA6, TIM3 CH1, Header D12
+PWM Output (S1) - PA7, TIM3 CH2, Header D11
+
+
+HC-SR04
+(Ultrasonic Sensors)
+PWM Output (TRIG) - PA1, TIM2 CH2 Header A1
+TIM Input (LEFT) - PA8, TIM1 CH1, Header D7
+TIM Input (RIGHT) - PB6, TIM4 CH1, Header D10
+
+---------------------------------------------------
