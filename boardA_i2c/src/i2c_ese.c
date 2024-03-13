@@ -18,8 +18,8 @@
 #include "../include/queues_ese.h"
 
 /* Macros to suspend tasks for debugging */
-#define EEPROM_TASK_SUSPEND
-//#define MPU_TASK_SUSPEND    
+//#define EEPROM_TASK_SUSPEND
+//#define MPU_TASK_SUSPEND
 
 
 /**************************************************************************
@@ -91,10 +91,13 @@ void configure_i2c2_dma(void){
 /**
   *@brief Gives DMA_Channel4 (I2C2_Tx) the buffer location of the eeprom log
   *
+  * Used exclusively by `eeprom_write_task` to give the DMA controller the
+  * address of the log in memory
+  *
   *@param log The data to be saved on the EEPROM
-  *@pre DMA1 clock should be enabled
+  *@pre
  */
-void update_log_dma(LogData_t *log){
+static void set_log_address_dma(LogData_t *log){
     DMA1_Channel4->CMAR = (uint32_t)log;
     DMA1_Channel4->CCR |= DMA_CCR4_EN;
 }
@@ -103,6 +106,14 @@ void update_log_dma(LogData_t *log){
 /**************************************************************************
  * I2C2 Peripheral Tasks
 **************************************************************************/
+/**
+  *@brief Task used to reset MPU
+  *
+  * The purpose of using a task to reset the MPU is the functionality of delays
+  * which make it much easier to give proper timings when resetting
+  *
+  *@param param unused
+*/
 _Noreturn void mpu_reset_task(void* param){
     uint32_t i;
     uint8_t address = ADDR_MPU << 1;
@@ -117,61 +128,69 @@ _Noreturn void mpu_reset_task(void* param){
             vTaskDelay( pdMS_TO_TICKS( 100 ) );
         }
 
+        /* Create program tasks */
         xTaskCreate(eeprom_write_task, "EEPROM W", 128, NULL, 0, &eeprom_write_handle);
         xTaskCreate(mpu_read_task, "MPU Read", 128, NULL, 0, &mpu_read_handle);
 
         EXTI->IMR |= EXTI_IMR_MR6; /* mpu_read_task created, unmask INT */
 
         vTaskDelete(NULL); /* No further use for this task */
-        taskYIELD(); /* Co-operative scheduler requires explicit yield */
+        taskYIELD();       /* Co-operative scheduler requires explicit yield */
 
         (void)param;
     }
 }
 
+/**
+  *@brief Updates the log and starts a write to the EEPROM
+  *
+  *
+  *
+  *@param param unused
+ */
 _Noreturn void eeprom_write_task(void* param){
     TickType_t xLastWakeTime = xTaskGetTickCount();
-    
+
     const uint32_t LOG_SIZE = sizeof(LogData_t);
     const uint8_t CTRL_BLOCK = 0x2; /* Block bit of the control byte */
-    
+
     uint8_t control_byte = ADDR_EEPROM << 1;
     uint16_t address_to_write = 0x0000;
-    
+
     /* Big endian storage, have to break down otherwise address in reverse */
     uint8_t address_high = 0x00;
     uint8_t address_low  = 0x00;
-    
+
     /* Used to check page bounds */
     PageNum_t new_page_num = 0;
     PageNum_t old_page_num = 0;
-    
+
     /* Initialize log data */
     MPUData_t last_mpu_data = {0,0,0};
     LogData_t eeprom_log = {address_high,address_low,0,0,0,0,0,0,0,0,0};
 
     /* Set log address for DMA */
-    update_log_dma(&eeprom_log);
-    
+    set_log_address_dma(&eeprom_log);
+
     while(1){
         #ifdef EEPROM_TASK_SUSPEND
             vTaskSuspend(NULL);
         #endif
-        
+
         /**************************** PERIOD = 1s ****************************/
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS( 1000 ));
-        
+
         /**************************** ERROR CHECK ****************************/
         if(I2C2->SR2 & I2C_SR2_BUSY){
             vTaskDelay( pdMS_TO_TICKS( 1 ) ); /* T_MPUREAD < 1ms */
-            
+
             /* Bus error, suspend scheduler */
-            if(I2C2->SR2 & I2C_SR2_BUSY) 
+            if(I2C2->SR2 & I2C_SR2_BUSY)
                 vTaskSuspendAll();
         }
-        
+
         /**************************** UPDATE LOG ****************************/
-        /* MPU data must be read between write sessions */
+        /* MPU not read between write == error, suspend task*/
         xQueueReceive(eeprom_logQ, &last_mpu_data, portMAX_DELAY);
 
         eeprom_log.address_high = address_high;
@@ -185,33 +204,33 @@ _Noreturn void eeprom_write_task(void* param){
 //        eeprom_log.left_wheel_speed;
 //        eeprom_log.right_wheel_speed;
 //        eeprom_log.event_flags;
-        
+
         /**************************** START WRITE ***************************/
         xQueueSendToBack(i2c2Q, &control_byte, portMAX_DELAY);
         I2C2->CR1 |= I2C_CR1_START;
-        
+
         /*********************** UPDATE WRITE ADDRESS ************************/
         address_to_write += LOG_SIZE;
-        
+
         /* Will this write extend beyond the page bound? */
         new_page_num = (address_to_write + LOG_SIZE) / PAGE_SIZE;
-        
+
         /* Move to next addressable block of memory space */
-        if(new_page_num != 0 && new_page_num % PAGE_PER_BLOCK == 0){
+        if(new_page_num != 0 && new_page_num % PAGES_PER_BLOCK == 0){
             control_byte ^= CTRL_BLOCK;
             new_page_num = 0;
         }
-        
+
         /* Move to start of next page boundary if not enough space */
         if(new_page_num != old_page_num)
             address_to_write = PAGE_SIZE * new_page_num;
-        
+
         /* Update addresses */
         address_high = (address_to_write & 0xFF00) >> 8;
         address_low  = (address_to_write & 0xFF);
 
-        old_page_num = new_page_num;       
-        
+        old_page_num = new_page_num;
+
         /****************************** YIELD ********************************/
         taskYIELD(); /* Co-operative scheduler requires explicit yield */
         (void)param;
@@ -227,17 +246,18 @@ _Noreturn void mpu_read_task(void* param){
         #ifdef MPU_TASK_SUSPEND
             vTaskSuspend(NULL);
         #endif
-       
+
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
         if(I2C2->SR2 & I2C_SR2_BUSY){
             vTaskDelay( pdMS_TO_TICKS( 2 ) ); /* T_EEPROMW < 2ms */
-            
+
             /* Bus error, suspend scheduler */
-            if(I2C2->SR2 & I2C_SR2_BUSY) 
-                vTaskSuspendAll(); 
+            if(I2C2->SR2 & I2C_SR2_BUSY)
+                vTaskSuspendAll();
         }
 
+        /* Assumes i2c2Q empty, task will block indefinitely otherwise */
         xQueueSendToBack(i2c2Q, &MPU_WRITE_ADDR, portMAX_DELAY);
         xQueueSendToBack(i2c2Q, &MPU_FIFO_ADDR, portMAX_DELAY);
         xQueueSendToBack(i2c2Q, &MPU_READ_ADDR, portMAX_DELAY);

@@ -9,10 +9,6 @@
 #include "../include/queues_ese.h"
 #include "../include/tasks_ese.h"
 
-/* Macros to suspend tasks for debugging */
-//#define EEPROM_TASK_SUSPEND
-//#define MPU_TASK_SUSPEND    
-
 static void board_init(void);
 
 int main(void){

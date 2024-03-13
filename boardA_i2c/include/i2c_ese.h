@@ -39,7 +39,7 @@
  * EEPROM Hardware Definitions
 **************************************************************************/
 #define PAGE_SIZE                 128   /* ROM page width in bytes */
-#define PAGE_PER_BLOCK            200   /* For block of addressable memory space */
+#define PAGES_PER_BLOCK           200   /* Memory divided into blocks */
 #define TOTAL_PAGES               400   /* Total number of EEPROM pages */
 
 
@@ -89,12 +89,20 @@ typedef struct{
     WheelSpeed_t right_wheel_speed;     /* Velocity in 100cm/s */
 }LogData_t;
 
-/* Passes gyro data to eeprom_write_task to maintain reentrancy */
+/**
+  *@brief Passes data between MPU buffer in memory to `eeprom_write_task`
+  *
+  * To ensure reetrancy, the DMA controller and `eeprom_write_task` should not
+  * have concurrent access to the MPU buffer in memory, to get around this, the
+  * data is copied into this structure before being passed via queue to
+  * `eeprom_write_task`
+ */
 typedef struct{
     GyroRead_t gyro_x_axis;             /* MPU6050 x-axis angular speed */
     GyroRead_t gyro_y_axis;             /* MPU6050 y-axis angular speed */
     GyroRead_t gyro_z_axis;             /* MPU6050 z-axis angular speed */
 }MPUData_t;
+
 
 /**************************************************************************
  * MPU6050 Initialization Array
@@ -109,14 +117,14 @@ extern const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE];
 
 
 /**************************************************************************
- * Function Declarations
+ * Configuration Function Declarations
 **************************************************************************/
 void configure_i2c2(void);
 void configure_i2c2_dma(void);
-void update_log_dma(LogData_t*);
+
 
 /**************************************************************************
- * Peripheral Tasks
+ * Peripheral Task Declarations
 **************************************************************************/
 void mpu_reset_task(void*);
 void eeprom_write_task(void*);
