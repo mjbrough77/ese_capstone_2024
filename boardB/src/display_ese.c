@@ -1,7 +1,7 @@
 /**
   *@file drive.c
   *@author Emily Schwab
-  *@brief 
+  *@brief
   *
   *@version 1.0
   *@date 2024-01-19
@@ -9,22 +9,18 @@
   *@copyright Copyright (c) 2024 Emily Schwab
   *
  */
- 
-#include "stm32f10x.h"
 
-#include "../include/drive.h"
-#include "../include/utilities.h"
+#include "../include/display_ese.h"
 
-void display(uint8_t digits)
-{
-    if(digits > 99) digits = 99;    /* Saturate digits to 99 */
-	bcdOne(digits % 10);            /* Display ones digit */
-	bcdTen(digits / 10);            /* Display tens digit */
-}
-
-void bcdOne(uint8_t num){
-	
-	/* Switch case to display */
+/**
+  *@brief Writes a value from 0-9 on the ones digit
+  *
+  * See schematic for pin information
+  *
+  *@param num value from 0-9
+  *@pre num has been type checked by send_to_display()
+ */
+void write_ones_sevenseg(uint8_t num){
 	switch(num){
 		case 0:
 			GPIOB->BSRR |= GPIO_BSRR_BR5 | GPIO_BSRR_BR4 | GPIO_BSRR_BR10;
@@ -32,35 +28,35 @@ void bcdOne(uint8_t num){
 			break;
 		case 1:
 			GPIOB->BSRR |= GPIO_BSRR_BS5 | GPIO_BSRR_BR4 | GPIO_BSRR_BR10;
-            GPIOA->BSRR |= GPIO_BSRR_BR9;		
+            GPIOA->BSRR |= GPIO_BSRR_BR9;
 			break;
 		case 2:
 			GPIOB->BSRR |= GPIO_BSRR_BR5 | GPIO_BSRR_BS4 | GPIO_BSRR_BR10;
-            GPIOA->BSRR |= GPIO_BSRR_BR9;		
+            GPIOA->BSRR |= GPIO_BSRR_BR9;
 			break;
 		case 3:
 			GPIOB->BSRR |= GPIO_BSRR_BS5 | GPIO_BSRR_BS4 | GPIO_BSRR_BR10;
-            GPIOA->BSRR |= GPIO_BSRR_BR9;		
+            GPIOA->BSRR |= GPIO_BSRR_BR9;
 			break;
 		case 4:
 			GPIOB->BSRR |= GPIO_BSRR_BR5 | GPIO_BSRR_BR4 | GPIO_BSRR_BS10;
-            GPIOA->BSRR |= GPIO_BSRR_BR9;		
+            GPIOA->BSRR |= GPIO_BSRR_BR9;
 			break;
 		case 5:
 			GPIOB->BSRR |= GPIO_BSRR_BS5 | GPIO_BSRR_BR4 | GPIO_BSRR_BS10;
-            GPIOA->BSRR |= GPIO_BSRR_BR9;		
+            GPIOA->BSRR |= GPIO_BSRR_BR9;
 			break;
 		case 6:
 			GPIOB->BSRR |= GPIO_BSRR_BR5 | GPIO_BSRR_BS4 | GPIO_BSRR_BS10;
-            GPIOA->BSRR |= GPIO_BSRR_BR9;	
+            GPIOA->BSRR |= GPIO_BSRR_BR9;
 			break;
 		case 7:
 			GPIOB->BSRR |= GPIO_BSRR_BS5 | GPIO_BSRR_BS4 | GPIO_BSRR_BS10;
-            GPIOA->BSRR |= GPIO_BSRR_BR9;		
+            GPIOA->BSRR |= GPIO_BSRR_BR9;
 			break;
 		case 8:
 			GPIOB->BSRR |= GPIO_BSRR_BR5 | GPIO_BSRR_BR4 | GPIO_BSRR_BR10;
-            GPIOA->BSRR |= GPIO_BSRR_BS9;		
+            GPIOA->BSRR |= GPIO_BSRR_BS9;
 			break;
 		case 9:
 		default:
@@ -70,8 +66,15 @@ void bcdOne(uint8_t num){
 	}
 }
 
-void bcdTen(uint8_t num){
-	// Switch case to display
+/**
+  *@brief Writes a value from 0-9 on the tens digit
+  *
+  * See schematic for pin information
+  *
+  *@param num value from 0-9
+  *@pre num has been type checked by send_to_display()
+ */
+void write_tens_sevenseg(uint8_t num){
 	switch(num){
 		case 0:
             GPIOA->BSRR |= GPIO_BSRR_BR4 | GPIO_BSRR_BR10;
@@ -79,11 +82,11 @@ void bcdTen(uint8_t num){
             break;
 		case 1:
             GPIOA->BSRR |= GPIO_BSRR_BS4 | GPIO_BSRR_BR10;
-            GPIOB->BSRR |= GPIO_BSRR_BR9 | GPIO_BSRR_BR8;	
+            GPIOB->BSRR |= GPIO_BSRR_BR9 | GPIO_BSRR_BR8;
 			break;
 		case 2:
             GPIOA->BSRR |= GPIO_BSRR_BR4 | GPIO_BSRR_BS10;
-            GPIOB->BSRR |= GPIO_BSRR_BR9 | GPIO_BSRR_BR8;	
+            GPIOB->BSRR |= GPIO_BSRR_BR9 | GPIO_BSRR_BR8;
 			break;
 		case 3:
             GPIOA->BSRR |= GPIO_BSRR_BS4 | GPIO_BSRR_BS10;
@@ -117,20 +120,14 @@ void bcdTen(uint8_t num){
 	}
 }
 
-uint8_t manual(void){
-	
-	if ((GPIOC->IDR & GPIO_IDR_IDR7) == 0)
-		return 0;		// If input low, return 0
-	else
-		return 1;		// If input high, return 1
-
+/**
+  *@brief Outputs a number to the two seven-segment displays
+  *
+  *@param digits value from 0-99
+  *@pre BL has been set to high
+ */
+void send_to_display(uint8_t digits){
+    if(digits > 99) digits = 99;        /* Saturate digits to 99 */
+	write_ones_sevenseg(digits % 10);   /* Display ones digit */
+	write_tens_sevenseg(digits / 10);   /* Display tens digit */
 }
-
-void stop(void){
-	TIM3->EGR |= TIM_EGR_UG; // Reinitialize the counter
-	TIM3->ARR = 200; // 200 counts = 20 ms or 50 Hz
-	TIM3->CCR1 = 15;
-	TIM3->CCR2 = 15;
-	TIM3->CR1 |= TIM_CR1_ARPE | TIM_CR1_CEN; // Enable Timer 3
-}
-

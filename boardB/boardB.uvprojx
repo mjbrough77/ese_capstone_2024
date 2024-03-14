@@ -337,7 +337,7 @@
             <v6WtE>0</v6WtE>
             <v6Rtti>0</v6Rtti>
             <VariousControls>
-              <MiscControls></MiscControls>
+              <MiscControls>-Wno-invalid-utf8</MiscControls>
               <Define></Define>
               <Undefine></Undefine>
               <IncludePath></IncludePath>
@@ -390,14 +390,19 @@
               <FilePath>.\src\main.c</FilePath>
             </File>
             <File>
+              <FileName>adc_ese.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\adc_ese.c</FilePath>
+            </File>
+            <File>
               <FileName>clocks_ese.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\clocks_ese.c</FilePath>
             </File>
             <File>
-              <FileName>drive_ese.c</FileName>
+              <FileName>display_ese.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\drive_ese.c</FilePath>
+              <FilePath>.\src\display_ese.c</FilePath>
             </File>
             <File>
               <FileName>gpio_ese.c</FileName>
@@ -405,14 +410,9 @@
               <FilePath>.\src\gpio_ese.c</FilePath>
             </File>
             <File>
-              <FileName>utilities_ese.c</FileName>
+              <FileName>timers_ese.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\utilities_ese.c</FilePath>
-            </File>
-            <File>
-              <FileName>pin_assignment.txt</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\pin_assignment.txt</FilePath>
+              <FilePath>.\src\timers_ese.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -420,14 +420,19 @@
           <GroupName>include</GroupName>
           <Files>
             <File>
+              <FileName>adc_ese.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\include\adc_ese.h</FilePath>
+            </File>
+            <File>
               <FileName>clocks_ese.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\include\clocks_ese.h</FilePath>
             </File>
             <File>
-              <FileName>drive_ese.h</FileName>
+              <FileName>display_ese.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\include\drive_ese.h</FilePath>
+              <FilePath>.\include\display_ese.h</FilePath>
             </File>
             <File>
               <FileName>gpio_ese.h</FileName>
@@ -435,9 +440,9 @@
               <FilePath>.\include\gpio_ese.h</FilePath>
             </File>
             <File>
-              <FileName>utilities_ese.h</FileName>
+              <FileName>timers_ese.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\include\utilities_ese.h</FilePath>
+              <FilePath>.\include\timers_ese.h</FilePath>
             </File>
           </Files>
         </Group>

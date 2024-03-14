@@ -95,7 +95,7 @@ void configure_i2c2_dma(void){
   * address of the log in memory
   *
   *@param log The data to be saved on the EEPROM
-  *@pre
+  *@pre MPU6050 has been reset
  */
 static void set_log_address_dma(LogData_t *log){
     DMA1_Channel4->CMAR = (uint32_t)log;

@@ -10,17 +10,16 @@
   *
  */
 
+#include "../include/adc_ese.h"
 #include "../include/clocks_ese.h"
-#include "../include/drive_ese.h"
+#include "../include/display_ese.h"
 #include "../include/gpio_ese.h"
-#include "../include/utilities_ese.h"
+#include "../include/timers_ese.h"
 
 static void board_init(void);
 
 int main(void){
     board_init();
-	
-	stop();
 	
 	while(1);
 }
@@ -36,8 +35,8 @@ static void board_init(void){
     clock_tim3();
     
     configure_io();
+    configure_tim3();
+    configure_adc1();
     
-	adcInit();			/* Analog to Digital Converter */
-	timInit();			/* Timers for PWM Output */
-	enableTimer3IRQ();	/* Timer 3 interrupt enable */
+    enable_tim3IRQ();
 }

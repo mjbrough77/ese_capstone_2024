@@ -20,10 +20,10 @@
   *
   * The E6B2-CZ3E encoders are quadrature encoders meaning that each pulse is
   * sampled four times. Our encoders are rated 1024 pulses ber rotation (PPR)
-  * so for one full rotation, we instead would count 4096 PPR
+  * so for one full rotation, we instead would count 4096 pulses
   *
   * Based on some preliminary testing, the wheel to motor turn ratio is 30.
-  * Although there is *no* official spec for this, 1:30 is common for wheelchair
+  * Although there is no *official* spec for this, 1:30 is common for wheelchair
   * DC motors, so we are confident in this estimate.
   *
   * We are also limited in our time measurements as the 16-bit timers on the

@@ -1,5 +1,5 @@
 /**
-  *@file utilities.c
+  *@file drive.h
   *@author Emily Schwab
   *@brief
   *
@@ -7,17 +7,16 @@
   *@date 2024-01-19
   *
   *@copyright Copyright (c) 2024 Emily Schwab
+  *
  */
 
-#ifndef UTILITIES_ESE_H
-#define UTILITIES_ESE_H
+#ifndef DISPLAY_ESE_H
+#define DISPLAY_ESE_H
 
 #include "stm32f10x.h"
 
-void configure_tim3(void);
-
-void enableTimer3IRQ(void);
-
-void TIM3_IRQHandler(void);
+void write_ones_sevenseg(uint8_t);
+void write_tens_sevenseg(uint8_t);
+void send_to_display(uint8_t);
 
 #endif
