@@ -20,11 +20,7 @@
 
 /**
   *@brief Buffer for storing MPU Data.
-  * ONLY ACCSSESED BY `DMA1_Channel4_IRQHandler` and `DMA1_Channel5_IRQHandler`.
-  *
-  * We do not risk reentrancy because the I2C2 bus may only ever be sending
-  * or recieving, not both
-  *
+  * ONLY ACCSSESED BY `DMA1_Channel5_IRQHandler`
  */
 static uint8_t mpu_data[MPU_FIFO_READ];
 

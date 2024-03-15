@@ -22,5 +22,6 @@ void clock_tim3(void);
 void clock_adc1(void);
 void clock_dma(void);
 void clock_afio(void);
+void clock_usart3(void);
 
 #endif

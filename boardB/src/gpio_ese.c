@@ -24,7 +24,7 @@ void configure_io(void){
     GPIOB->CRL |= GPIO_CRL_MODE5_1;
     GPIOB->CRL &= ~GPIO_CRL_CNF5;
 
-    /** PB4 as GPO Push-Pull @ 2MHz (D1-1) **/
+    /** PB4 as GPO Push-Pull @ 2MHz (D1-1) WITH REMAP **/
     AFIO->MAPR |= AFIO_MAPR_SWJ_CFG_NOJNTRST;
     GPIOB->CRL |= GPIO_CRL_MODE4_1;
     GPIOB->CRL &= ~GPIO_CRL_CNF4 & ~GPIO_CRL_MODE4_0;
@@ -106,5 +106,20 @@ void configure_io(void){
 
     /********** Configure TIM4 CH1 for Input Capture **********/
     /** PB6 as Floating Input (RIGHT SENSOR ECHO) */
+    /* Default config on reset */
+    
+    
+    /**************************************************************************
+     * USART (INTER-MCU COMMUNICATIONS)
+    **************************************************************************/
+    /********** Configure USART3 **********/
+    /* Remap PC10 -> Tx, PC11 -> Rx, PC12 -> CK */
+    AFIO->MAPR |= AFIO_MAPR_USART3_REMAP_PARTIALREMAP;
+    
+    /** PC10 as AFO push-pull @ 2MHz (USART3_Tx) */
+    GPIOC->CRH |= GPIO_CRH_MODE10_1 | GPIO_CRH_CNF10_1;
+    GPIOA->CRH &= ~GPIO_CRH_CNF10_0;
+    
+    /** PB6 as Floating Input (USART3_Rx) */
     /* Default config on reset */
 }

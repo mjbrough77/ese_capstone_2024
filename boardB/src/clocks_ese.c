@@ -31,6 +31,7 @@ void sysclock_init(void){
 
     /** Sets CFGR register such that PLLMUL is 3 (8*5 = 40MHz) */
     /** Sets CFGR register such that AHB Prescaler is 2 (40MHz / 2 = 20MHz) **/
+    /** PLLSRC = HSE **/
     RCC->CFGR = 0x000D0080;
 
     /** Enable PLL and wait for it to be ready **/
@@ -68,4 +69,8 @@ void clock_adc1(void){
 
 void clock_afio(void){
     RCC->APB2ENR |= RCC_APB2ENR_AFIOEN;
+}
+
+void clock_usart3(void){
+    RCC->APB1ENR |= RCC_APB1ENR_USART3EN;
 }

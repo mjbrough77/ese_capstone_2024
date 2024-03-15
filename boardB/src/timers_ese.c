@@ -1,6 +1,7 @@
 #include "../include/adc_ese.h"
 #include "../include/timers_ese.h"
 
+
 void configure_tim3(void){
     /* Channels 1 & 2, PWM Mode 1, Preload enable, fast enable */
 	TIM3->CCMR1 |= TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1;

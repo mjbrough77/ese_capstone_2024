@@ -33,6 +33,7 @@ static void board_init(void){
     clock_gpioc();
     clock_adc1();
     clock_tim3();
+    clock_usart3();
     
     configure_io();
     configure_tim3();
