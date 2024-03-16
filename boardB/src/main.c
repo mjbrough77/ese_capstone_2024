@@ -14,6 +14,7 @@
 #include "../include/clocks_ese.h"
 #include "../include/display_ese.h"
 #include "../include/gpio_ese.h"
+#include "../include/interrupts_ese.h"
 #include "../include/timers_ese.h"
 
 static void board_init(void);
@@ -30,14 +31,20 @@ static void board_init(void){
     clock_afio();
     clock_gpioa();
     clock_gpiob();
-    clock_gpioc();
-    clock_adc1();
-    clock_tim3();
-    clock_usart3();
+//    clock_gpioc();
+//    clock_adc1();
+    clock_tim2();
+//    clock_tim3();
+    clock_tim4();
+//    clock_usart3();
     
     configure_io();
-    configure_tim3();
-    configure_adc1();
+    configure_tim2();
+//    configure_tim3();
+    configure_tim4();
+//    configure_adc1();
     
-    enable_tim3IRQ();
+    start_ultrasonics();
+    
+//    enable_tim3IRQ();
 }

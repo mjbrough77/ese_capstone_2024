@@ -46,62 +46,10 @@
 /**************************************************************************
  * I2C Transmission Length Definitions
 **************************************************************************/
-#define EEPROM_WRITE  sizeof(LogData_t) /* # of bytes sent on log write */
-
 #define MPU_RESET_STEPS            10   /* # of operations to reset the MPU */
 #define MPU_SINGLE_WRITE            2   /* Bytes sent during write to MPU */
 #define MPU_FIFO_READ               6   /* # of bytes read from FIFO */
 #define MPU_READ_ADDRS              3   /* Addresses needed for MPU read */
-
-
-/**************************************************************************
- * Typedefs and structures
-**************************************************************************/
-typedef uint16_t WheelSpeed_t;      /* Wheel speed always < 3.2187 km/h */
-typedef uint16_t GyroRead_t;        /* Gyroscope is 2 bytes per axis */
-typedef uint16_t UltrasonicRead_t;  /* Ultrasonics use 2 bytes */
-typedef uint16_t PageNum_t;         /* Size based on TOTAL_PAGES */
-typedef uint8_t Weight_t;           /* Only using 8 bits of 12 bit ADC */
-
-/**
-  *@brief Stucture used to store measured values to save to EEPROM log.
-  *
-  * The `event_flags` member variable indicates when any measured values
-  * exceed the tolerated threshold.
-  *
-  * Bits [2:0] are set if any are exceeded after a system power-on.
-  *
-  * [2] W = user weight exceeded
-  * [1] D = chair has gotten to close to an obstacle
-  * [0] T = chair has exceed tilt requirements on any axis
- */
-typedef struct{
-    uint8_t address_high;               /* EEPROM high address for page write */
-    uint8_t address_low;                /* EEPROM low address for page write */
-    uint8_t event_flags;                /* xxxx xWDT */
-    Weight_t weight_measure;            /* ADC value from weight sensor */
-    UltrasonicRead_t ultrasonic_left;   /* Distance measure from left US */
-    UltrasonicRead_t ultrasonic_right;  /* Distance measure from right US */
-    GyroRead_t gyro_x_axis;             /* MPU6050 x-axis angular speed */
-    GyroRead_t gyro_y_axis;             /* MPU6050 y-axis angular speed */
-    GyroRead_t gyro_z_axis;             /* MPU6050 z-axis angular speed */
-    WheelSpeed_t left_wheel_speed;      /* Velocity in 100cm/s */
-    WheelSpeed_t right_wheel_speed;     /* Velocity in 100cm/s */
-}LogData_t;
-
-/**
-  *@brief Passes data between MPU buffer in memory to `eeprom_write_task`
-  *
-  * To ensure reetrancy, the DMA controller and `eeprom_write_task` should not
-  * have concurrent access to the MPU buffer in memory, to get around this, the
-  * data is copied into this structure before being passed via queue to
-  * `eeprom_write_task`
- */
-typedef struct{
-    GyroRead_t gyro_x_axis;             /* MPU6050 x-axis angular speed */
-    GyroRead_t gyro_y_axis;             /* MPU6050 y-axis angular speed */
-    GyroRead_t gyro_z_axis;             /* MPU6050 z-axis angular speed */
-}MPUData_t;
 
 
 /**************************************************************************

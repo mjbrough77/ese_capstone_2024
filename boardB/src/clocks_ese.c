@@ -59,8 +59,16 @@ void clock_gpioc(void){
     RCC->APB2ENR |= RCC_APB2ENR_IOPCEN;
 }
 
+void clock_tim2(void){
+    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
+}
+
 void clock_tim3(void){
     RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
+}
+
+void clock_tim4(void){
+    RCC->APB1ENR |= RCC_APB1ENR_TIM4EN;
 }
 
 void clock_adc1(void){

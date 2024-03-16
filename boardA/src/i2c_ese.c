@@ -13,6 +13,7 @@
 #include "task.h"
 #include "queue.h"
 
+#include "../../project_types.h"
 #include "../include/i2c_ese.h"
 #include "../include/tasks_ese.h"
 #include "../include/queues_ese.h"

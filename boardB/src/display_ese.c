@@ -131,3 +131,11 @@ void send_to_display(uint8_t digits){
 	write_ones_sevenseg(digits % 10);   /* Display ones digit */
 	write_tens_sevenseg(digits / 10);   /* Display tens digit */
 }
+
+void turn_on_display(void){
+    GPIOA->BSRR |= GPIO_BSRR_BS5;
+}
+
+void turn_off_display(void){
+    GPIOA->BSRR |= GPIO_BSRR_BR5;
+}

@@ -36,6 +36,11 @@ void configure_io(void){
     /** PA9 as GPO Push-Pull @ 2MHz (D3-1) **/
     GPIOA->CRH |= GPIO_CRH_MODE9_1;
     GPIOA->CRH &= ~GPIO_CRH_CNF9;
+    
+    /** PC2 as GPO Push-Pull @ 2MHz (Decimal Point) **/
+    GPIOC->CRL |= GPIO_CRL_MODE2_1;
+    GPIOC->CRL &= ~GPIO_CRL_CNF2;
+    GPIOC->BSRR |= GPIO_BRR_BR2; /* MUST BE LOW TO PREVENT OVER CURRENT */
 
 
     /**************************************************************************
@@ -49,14 +54,22 @@ void configure_io(void){
     GPIOA->CRH |= GPIO_CRH_MODE10_1;
     GPIOA->CRH &= ~GPIO_CRH_CNF10;
 
-    /** PB6 as GPO Push-Pull @ 2MHz (D2-2) **/
-    GPIOB->CRL |= GPIO_CRL_MODE6_1;
-    GPIOB->CRL &= ~GPIO_CRL_CNF6;
+    /** PB9 as GPO Push-Pull @ 2MHz (D2-2) **/
+    GPIOB->CRH |= GPIO_CRH_MODE9_1;
+    GPIOB->CRH &= ~GPIO_CRH_CNF9;
 
     /** PB8 as GPO Push-Pull @ 2MHz (D3-2) **/
     GPIOB->CRH |= GPIO_CRH_MODE8_1;
     GPIOB->CRH &= ~GPIO_CRH_CNF8;
 
+
+    /**************************************************************************
+     * SEVEN SEGMENT DISPLAY BLANKING
+    **************************************************************************/
+    /** PA5 as GPO Push-Pull @ 2MHz (Blanking) **/
+    GPIOA->CRL |= GPIO_CRL_MODE5_1;
+    GPIOA->CRL &= ~GPIO_CRL_CNF5;
+    
 
     /**************************************************************************
      * TWO POSITION SWITCH
@@ -100,12 +113,11 @@ void configure_io(void){
     GPIOA->CRL |= GPIO_CRL_MODE1_1 | GPIO_CRL_CNF1_1;
     GPIOA->CRL &= ~GPIO_CRL_CNF1_0;
 
-    /********** Configure TIM1 CH1 for Input Capture **********/
-    /** PA8 as Floating Input (LEFT SENSOR ECHO) */
-    /* Default config on reset */
-
-    /********** Configure TIM4 CH1 for Input Capture **********/
+    /********** Configure TIM4 CH1,2 for Input Capture **********/
     /** PB6 as Floating Input (RIGHT SENSOR ECHO) */
+    /* Default config on reset */
+    
+    /** PB7 as Floating Input (LEFT SENSOR ECHO) */
     /* Default config on reset */
     
     

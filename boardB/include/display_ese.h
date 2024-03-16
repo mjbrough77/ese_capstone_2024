@@ -18,5 +18,7 @@
 void write_ones_sevenseg(uint8_t);
 void write_tens_sevenseg(uint8_t);
 void send_to_display(uint8_t);
+void turn_on_display(void);
+void turn_off_display(void);
 
 #endif

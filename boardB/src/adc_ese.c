@@ -13,9 +13,9 @@ void configure_adc1(void){
 }
 
 uint32_t read_joystick_x(void){
-    return ADC1->JDR1;
+    return ADC1->JDR1;  /* Word access is atomic */
 }
 
 uint32_t read_joystick_y(void){
-    return ADC1->JDR2;
+    return ADC1->JDR2;  /* Word access is atomic */
 }

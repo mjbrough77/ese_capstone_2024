@@ -13,6 +13,7 @@
 #include "FreeRTOS.h"
 #include "queue.h"
 
+#include "../../project_types.h"
 #include "../include/interrupts_ese.h"
 #include "../include/i2c_ese.h"
 #include "../include/queues_ese.h"
@@ -55,7 +56,7 @@ void DMA1_Channel4_IRQHandler(void){
     else if(reconfigure_for_eeprom == 1){
         /* Reset DMA1_Channel4 (I2C2_Tx) for EEPROM write */
         DMA1_Channel4->CCR &= (uint16_t)0xFFFE; /* Disable Tx DMA */
-        DMA1_Channel4->CNDTR = EEPROM_WRITE;
+        DMA1_Channel4->CNDTR = sizeof(LogData_t);
         DMA1_Channel4->CCR |= DMA_CCR4_CIRC;
         /* DMA1_Channel 4 configuration finished in eeprom_write_task() */
         
@@ -96,12 +97,12 @@ void DMA1_Channel5_IRQHandler(void){
     I2C2->CR1 |= I2C_CR1_STOP;
     
     /* See above explanation */
-    gyro_data.gyro_x_axis =  (GyroRead_t)(mpu_data[0]<<8);
-    gyro_data.gyro_x_axis += (GyroRead_t)mpu_data[1];
-    gyro_data.gyro_y_axis =  (GyroRead_t)(mpu_data[2]<<8);
-    gyro_data.gyro_y_axis += (GyroRead_t)mpu_data[3];
-    gyro_data.gyro_z_axis =  (GyroRead_t)(mpu_data[4]<<8);
-    gyro_data.gyro_z_axis += (GyroRead_t)mpu_data[5];
+    gyro_data.gyro_x_axis =  (Gyro_t)(mpu_data[0]<<8);
+    gyro_data.gyro_x_axis += (Gyro_t)mpu_data[1];
+    gyro_data.gyro_y_axis =  (Gyro_t)(mpu_data[2]<<8);
+    gyro_data.gyro_y_axis += (Gyro_t)mpu_data[3];
+    gyro_data.gyro_z_axis =  (Gyro_t)(mpu_data[4]<<8);
+    gyro_data.gyro_z_axis += (Gyro_t)mpu_data[5];
     
     xQueueOverwriteFromISR(eeprom_logQ, &gyro_data, NULL);
     

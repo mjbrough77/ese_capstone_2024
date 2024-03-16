@@ -2,6 +2,7 @@
 #include "task.h"
 #include "queue.h"
 
+#include "../../project_types.h"
 #include "../include/clocks_ese.h"
 #include "../include/gpio_ese.h"
 #include "../include/i2c_ese.h"
