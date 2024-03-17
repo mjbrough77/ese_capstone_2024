@@ -20,12 +20,14 @@ void configure_io(void){
     /**************************************************************************
      * SEVEN SEGMENT DISPLAY 1
     **************************************************************************/
+    /** Free PB4 by disabling NJTRST debug port **/
+    AFIO->MAPR |= AFIO_MAPR_SWJ_CFG_NOJNTRST;
+    
     /** PB5 as GPO Push-Pull @ 2MHz (D0-1) **/
     GPIOB->CRL |= GPIO_CRL_MODE5_1;
     GPIOB->CRL &= ~GPIO_CRL_CNF5;
-
-    /** PB4 as GPO Push-Pull @ 2MHz (D1-1) WITH REMAP **/
-    AFIO->MAPR |= AFIO_MAPR_SWJ_CFG_NOJNTRST;
+    
+    /** PB4 as GPO Push-Pull @ 2MHz (D1-1) **/
     GPIOB->CRL |= GPIO_CRL_MODE4_1;
     GPIOB->CRL &= ~GPIO_CRL_CNF4 & ~GPIO_CRL_MODE4_0;
 
@@ -69,6 +71,7 @@ void configure_io(void){
     /** PA5 as GPO Push-Pull @ 2MHz (Blanking) **/
     GPIOA->CRL |= GPIO_CRL_MODE5_1;
     GPIOA->CRL &= ~GPIO_CRL_CNF5;
+    GPIOA->BSRR |= GPIO_BSRR_BR5; /* Make sure displays are off */
     
 
     /**************************************************************************

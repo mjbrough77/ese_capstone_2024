@@ -9,13 +9,16 @@ void configure_adc1(void){
     
 	ADC1->CR2 |= ADC_CR2_CAL;       /* Calibrate ADC1 */
     while(ADC1->CR2 & ADC_CR2_CAL);
+}
+
+void start_joystick_read(void){
     ADC1->CR2 |= ADC_CR2_ADON;      /* Start ADC conversions */
 }
 
 uint32_t read_joystick_x(void){
-    return ADC1->JDR1;  /* Word access is atomic */
+    return ADC1->JDR1;              /* Word access is atomic */
 }
 
 uint32_t read_joystick_y(void){
-    return ADC1->JDR2;  /* Word access is atomic */
+    return ADC1->JDR2;              /* Word access is atomic */
 }
