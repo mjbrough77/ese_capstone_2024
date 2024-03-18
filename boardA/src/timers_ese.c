@@ -9,10 +9,13 @@
   *
  */
 
+#include "../../project_types.h"
 #include "../include/timers_ese.h"
 
 /**
-  *@brief Simplifies velocity calculation while maintaining precision
+  * -------------------------- About VELOCITY_FACTOR ---------------------------
+  *
+  * Simplifies velocity calculation while maintaining precision
   *
   * To prevent slow floating point computations, we can express the velocity
   * in terms of a multiplication factor. Then, for the final calculation, we
@@ -56,7 +59,6 @@
   * just use a scaled integer instead. After scaling by 10^4 we are left with
   * the final value stored as an integer (e.g. 3.2187km/h is stored as 32187)
  */
-static const uint32_t VELOCITY_FACTOR = 146112;
 
 /**
   *@brief Configures TIM3 in encoder interface mode
@@ -98,7 +100,7 @@ void TIM4_IRQHandler(void){
     encoder_count = TIM3->CNT;
 
     if(phaseZ_time == 0) velocity = 0;  /* Divide by zero condition */
-    else velocity = VELOCITY_SCALE * encoder_count / phaseZ_time;
+    else velocity = VELOCITY_FACTOR * encoder_count / phaseZ_time;
 
     /* Reset Z-phase timer count */
     TIM4->CR1 |= TIM_CR1_UDIS;

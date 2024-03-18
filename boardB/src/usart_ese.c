@@ -1,11 +1,15 @@
+#include "../include/tasks_ese.h"
+#include "../include/queues_ese.h"
+
 #include "../../project_types.h"
+#include "../include/timers_ese.h"
 #include "../include/usart_ese.h"
 
 void configure_usart3(void){
     USART3->CR1 |= USART_CR1_UE;    /* Enable USART3 */
     USART3->BRR = 0x10;             /* Baud Rate = 1.25Mbps, See RM0008 */
     
-    USART3->CR1 |= USART_CR1_TCIE | USART_CR1_IDLEIE;   /* Interrupt on TC */
+    USART3->CR1 |= USART_CR1_TCIE | USART_CR1_RXNEIE;
     USART3->CR1 |= USART_CR1_TE | USART_CR1_RE;         /* Enable Tx, Rx */   
 }
 
@@ -26,4 +30,27 @@ void configure_usart3_dma(void){
     NVIC_EnableIRQ(DMA1_Channel3_IRQn);
 }
 
+static void set_ultrasonic_buffer_dma(Ultrasonic_t* buffer){
+    DMA1_Channel2->CMAR = (uint32_t)buffer;
+    DMA1_Channel2->CCR |= DMA_CCR2_EN;
+}
 
+_Noreturn void ultrasonic_data_task(void* param){
+    Ultrasonic_t distances[ULTRASONIC_COUNT]; /* Distances in um */
+    
+    set_ultrasonic_buffer_dma(distances);
+    
+    /* Transfer of distance data MUST take < 60ms */
+    /* Otherwise, DMA controller has concurrent access to `distances` */
+    while(1){
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        
+        distances[0] = (read_right_ultrasonic()-ULTRASONIC_RIGHT_OFFSET)*HALF_SPEED_OF_SOUND;
+        distances[1] = (read_left_ultrasonic()-ULTRASONIC_LEFT_OFFSET)*HALF_SPEED_OF_SOUND;
+        
+        USART3->CR3 |= USART_CR3_DMAT; /* Start transfer of ultrasonic data */
+        
+        taskYIELD();
+        (void)param;
+    }
+}

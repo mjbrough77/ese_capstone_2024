@@ -13,6 +13,12 @@ void configure_adc1(void){
 
 void start_joystick_read(void){
     ADC1->CR2 |= ADC_CR2_ADON;      /* Start ADC conversions */
+    NVIC_EnableIRQ(TIM3_IRQn);      /* Start data conversions */
+}
+
+void stop_joystick_read(void){
+    ADC1->CR2 &= ~ADC_CR2_ADON;     /* Stop ADC conversions */
+    NVIC_DisableIRQ(TIM3_IRQn);     /* Stop data conversions */
 }
 
 uint32_t read_joystick_x(void){

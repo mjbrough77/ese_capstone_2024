@@ -21,4 +21,6 @@ void send_to_display(uint8_t);
 void turn_on_display(void);
 void turn_off_display(void);
 
+void print_speed_task(void*);
+
 #endif

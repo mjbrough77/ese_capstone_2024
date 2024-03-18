@@ -6,6 +6,7 @@
 void configure_adc1(void);
 
 void start_joystick_read(void);
+void stop_joystick_read(void);
 uint32_t read_joystick_x(void);
 uint32_t read_joystick_y(void);
 

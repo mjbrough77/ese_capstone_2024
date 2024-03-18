@@ -5,6 +5,9 @@
 #define ULTRASONIC_LEFT_OFFSET  474     /* us, found during testing */
 #define ULTRASONIC_RIGHT_OFFSET 460     /* us, found during testing */
 
+#define SPEED_SCALE 1000                /* Speed data stored as 10^4 km/h */
+#define VELOCITY_FACTOR = 146112;       /* See boardA/src/timers_ese.c */
+
 /**************************************************************************
  * Typedefs and structures
 **************************************************************************/

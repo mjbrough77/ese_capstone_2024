@@ -10,6 +10,10 @@
   *
  */
 
+#include "../include/tasks_ese.h"
+#include "../include/queues_ese.h"
+
+#include "../../project_types.h"
 #include "../include/display_ese.h"
 
 /**
@@ -138,4 +142,16 @@ void turn_on_display(void){
 
 void turn_off_display(void){
     GPIOA->BSRR |= GPIO_BSRR_BR5;
+}
+
+_Noreturn void print_speed_task(void* param){
+    WheelSpeed_t current_speed = 0;
+    
+    while(1){
+        xQueuePeek(speedQ, &current_speed, portMAX_DELAY);
+        send_to_display(current_speed/SPEED_SCALE);
+        
+        taskYIELD();
+        (void)param;
+    }
 }

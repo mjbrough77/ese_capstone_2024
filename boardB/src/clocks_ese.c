@@ -2,7 +2,7 @@
   *@file clocks_ese.c
   *@author Mitchell Brough
   *@brief Library concered with clock control on the F103RB
-  *@version 0.1
+  *@version 1.0
   *@date 2024-03-04
   *
   *@copyright Copyright (c) 2024 Mitchell Brough
@@ -29,7 +29,7 @@ void sysclock_init(void){
     /** Ensure PLL is disabled **/
     RCC->CR &= ~RCC_CR_PLLON;
 
-    /** Sets CFGR register such that PLLMUL is 3 (8*5 = 40MHz) */
+    /** Sets CFGR register such that PLLMUL is 5 (8MHz * 5 = 40MHz) */
     /** Sets CFGR register such that AHB Prescaler is 2 (40MHz / 2 = 20MHz) **/
     /** PLLSRC = HSE **/
     RCC->CFGR = 0x000D0080;
