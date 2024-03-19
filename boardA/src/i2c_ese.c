@@ -112,19 +112,22 @@ static void set_log_address_dma(LogData_t *log){
   *@param param unused
 */
 _Noreturn void mpu_reset_task(void* param){
+#ifndef MPU_RESET_SKIP
     uint32_t i;
     uint8_t address = ADDR_MPU << 1;
-
+#endif
     while(1){
         vTaskDelay( pdMS_TO_TICKS( 200 ) );
 
-        /* I2C2 bus assumed free, no other access to take place */
-        for(i = 0; i < MPU_RESET_STEPS; i++){
-            xQueueSend(i2c2Q, &address, portMAX_DELAY);
-            I2C2->CR1 |= I2C_CR1_START;
-            vTaskDelay( pdMS_TO_TICKS( 100 ) );
-        }
-
+        #ifndef MPU_RESET_SKIP
+            /* I2C2 bus assumed free, no other access to take place */
+            for(i = 0; i < MPU_RESET_STEPS; i++){
+                xQueueSend(i2c2Q, &address, portMAX_DELAY);
+                I2C2->CR1 |= I2C_CR1_START;
+                vTaskDelay( pdMS_TO_TICKS( 100 ) );
+            }
+        #endif
+        
         /* Create program tasks */
         xTaskCreate(eeprom_write_task,"EEPROM",128,NULL,1,&eeprom_write_handle);
         xTaskCreate(mpu_read_task,"MPU Read",128,NULL,1,&mpu_read_handle);
@@ -173,12 +176,13 @@ _Noreturn void eeprom_write_task(void* param){
     LogData_t eeprom_log = {address_high,address_low,0,0,0,0,0,0,0,0,0};
 
     /* Set log address for DMA */
-    set_log_address_dma(&eeprom_log);
+    DMA1_Channel4->CMAR = (uint32_t)&eeprom_log;
+    DMA1_Channel4->CCR |= DMA_CCR4_EN;
 
     while(1){
-        #ifdef EEPROM_TASK_SUSPEND
-            vTaskSuspend(NULL);
-        #endif
+    #ifdef EEPROM_TASK_SUSPEND
+        vTaskSuspend(NULL);
+    #endif
 
         /**************************** PERIOD = 1s ****************************/
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS( 1000 ));
@@ -248,9 +252,9 @@ _Noreturn void mpu_read_task(void* param){
     const uint8_t MPU_FIFO_ADDR = REG_FIFO;
 
     while(1){
-        #ifdef MPU_TASK_SUSPEND
-            vTaskSuspend(NULL);
-        #endif
+    #ifdef MPU_TASK_SUSPEND
+        vTaskSuspend(NULL);
+    #endif
 
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 

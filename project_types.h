@@ -1,9 +1,11 @@
 #include "stdint.h"
 
-/* Macros to suspend tasks for debugging */
+/* Macros for debugging */
+#define MPU_RESET_SKIP
 #define EEPROM_TASK_SUSPEND
 #define MPU_TASK_SUSPEND
 #define SEND_SPEED_TASK_SUSPEND
+#define SEND_ULTRASONIC_TASK_SUSPEND
 
 #define HALF_SPEED_OF_SOUND     140     /* m/s */
 #define ULTRASONIC_RIGHT_OFFSET 460     /* us, found during testing */
@@ -13,6 +15,8 @@
 #define VELOCITY_FACTOR         146112  /* See boardA/src/timers_ese.c */
 #define WHEEL_COUNT             2
 #define MAX_SPEED               35000
+
+#define USART_READY             0xFF
 
 /**************************************************************************
  * I2C Device Addresses

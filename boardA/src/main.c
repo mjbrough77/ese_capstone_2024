@@ -42,6 +42,5 @@ static void board_init(void){
     configure_i2c2();
     configure_usart3();
     configure_i2c2_dma();
-    configure_usart3_dma();
-    
+    prepare_usart3_dma();
 }

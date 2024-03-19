@@ -14,7 +14,7 @@ void configure_usart3(void){
     USART3->CR1 |= USART_CR1_TE | USART_CR1_RE; /* Enable Tx, Rx */   
 }
 
-void configure_usart3_dma(void){
+void prepare_usart3_dma(void){
     /* USART3_Tx DMA Channel */
     DMA1_Channel2->CPAR = (uint32_t)&USART3->DR;
     DMA1_Channel2->CNDTR = sizeof(ChairSpeed_t);
@@ -33,23 +33,20 @@ void configure_usart3_dma(void){
     NVIC_EnableIRQ(DMA1_Channel3_IRQn);
 }
 
-static void set_wheelspeed_buffer_dma(ChairSpeed_t* buffer){
-    DMA1_Channel2->CMAR = (uint32_t)buffer;
-    DMA1_Channel2->CCR |= DMA_CCR2_EN;
-}
-
 _Noreturn void send_speed_task(void* param){
     ChairSpeed_t total_speed;
     WheelVelocity_t left_vel;
     WheelVelocity_t right_vel;
     
-    set_wheelspeed_buffer_dma(&total_speed);
+    /* Finish configuring DMA_USART3_Tx */
+    DMA1_Channel2->CMAR = (uint32_t)&total_speed;
+    DMA1_Channel2->CCR |= DMA_CCR2_EN;
     
     /* Constantly transfers wheel speed data */
     while(1){
-        #ifdef SEND_SPEED_TASK_SUSPEND
-            vTaskSuspend(NULL);
-        #endif
+    #ifdef SEND_SPEED_TASK_SUSPEND
+        vTaskSuspend(NULL);
+    #endif
 
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* Unblocks on USART3 TC */
         

@@ -57,4 +57,6 @@ static void board_init(void){
     configure_tim3();   /* Starts motor driver signals, init to stop */
     configure_tim4();
     configure_adc1();
+    configure_usart3();
+    prepare_usart3_dma();
 }

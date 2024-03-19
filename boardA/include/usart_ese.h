@@ -4,7 +4,7 @@
 #include "stm32f10x.h"
 
 void configure_usart3(void);
-void configure_usart3_dma(void);
+void prepare_usart3_dma(void);
 void send_speed_task(void*);
 
 #endif

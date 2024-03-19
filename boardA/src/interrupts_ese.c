@@ -1,7 +1,7 @@
 /**
   *@file interrupts_ese.c
   *@author Mitchell Brough
-  *@brief Contains all interrupt handler definitions and buffer for MPU6050 data
+  *@brief Contains all interrupt handler definitions and serial data buffers
   *
   *@version 1.0
   *@date 2024-03-03
@@ -31,8 +31,8 @@ static Distances_t ultrasonic_distances;
 static uint8_t mpu_data[MPU_FIFO_READ];
 
 void DMA1_Channel3_IRQHandler(void){
-    xQueueOverwriteFromISR(ultrasonic_dataQ, &ultrasonic_distances, NULL);
     DMA1->IFCR |= DMA_IFCR_CTCIF3;
+    xQueueOverwriteFromISR(ultrasonic_dataQ, &ultrasonic_distances, NULL);
 }
 
 /**
@@ -49,7 +49,7 @@ void DMA1_Channel3_IRQHandler(void){
  */
 void DMA1_Channel4_IRQHandler(void){
     static uint8_t mpu_reset_index = 1;
-    static uint8_t reconfigure_for_eeprom = 0;
+    static uint8_t init = 1;
 
     I2C2->CR2 &= ~I2C_CR2_DMAEN; /* Requests are disabled at every EOT */
 
@@ -59,12 +59,11 @@ void DMA1_Channel4_IRQHandler(void){
         DMA1_Channel4->CMAR = (uint32_t)mpu_init[mpu_reset_index++];
         DMA1_Channel4->CNDTR = MPU_SINGLE_WRITE;
         DMA1_Channel4->CCR |= DMA_CCR4_EN;
-        reconfigure_for_eeprom = 1;
     }
 
     /* Should only execute once */
-    else if(reconfigure_for_eeprom == 1){
-        /* Initialize DMA1_Channel3 buffer location */
+    else if(init == 1){
+        /* Start DMA_USART3_Rx, place received data in buffer at `ultrasonic_distances */
         DMA1_Channel3->CMAR = (uint32_t)&ultrasonic_distances;
         DMA1_Channel5->CCR |= DMA_CCR5_EN;
         
@@ -74,11 +73,11 @@ void DMA1_Channel4_IRQHandler(void){
         DMA1_Channel4->CCR |= DMA_CCR4_CIRC;
         /* DMA1_Channel 4 configuration finished in eeprom_write_task() */
         
-        /* Assuming DMA1_Channel5 (I2C2_Rx) is disabled */
-        DMA1_Channel5->CMAR = (uint32_t)mpu_data; /* Update Rx DMA channel */
+        /* Data received over I2C2 placed in buffer at `mpu_data` */
+        DMA1_Channel5->CMAR = (uint32_t)mpu_data;
         DMA1_Channel5->CCR |= DMA_CCR5_EN;
 
-        reconfigure_for_eeprom = 0; /* Prevent statement from running again */
+        init = 0; /* Done initializing DMA controller */
     }
 
     DMA1->IFCR |= DMA_IFCR_CTCIF4; /* Clear interrupt */
