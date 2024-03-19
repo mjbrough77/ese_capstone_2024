@@ -145,7 +145,7 @@ void turn_off_display(void){
 }
 
 _Noreturn void print_speed_task(void* param){
-    WheelSpeed_t current_speed = 0;
+    WheelVelocity_t current_speed = 0;
     
     while(1){
         xQueuePeek(speedQ, &current_speed, portMAX_DELAY);

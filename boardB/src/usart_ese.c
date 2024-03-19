@@ -22,7 +22,7 @@ void configure_usart3_dma(void){
     
     /* USART3_Rx DMA Channel */
     DMA1_Channel3->CPAR = (uint32_t)&USART3->DR;
-    DMA1_Channel3->CNDTR = sizeof(WheelSpeed_t);
+    DMA1_Channel3->CNDTR = WHEEL_COUNT * sizeof(WheelVelocity_t);
     DMA1_Channel3->CCR |= DMA_CCR3_TCIE | DMA_CCR3_MINC;
     DMA1_Channel3->CCR |= DMA_CCR3_CIRC;
     

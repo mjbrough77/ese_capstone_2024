@@ -16,12 +16,11 @@
 /**
   *@brief Configures SYSCLK to 40MHz, AHB clock to 20MHz
   *
-  * AHB must be a multiple of 10MHz for I2C Fast Mode (400kHz)
  */
 void sysclock_init(void){
     /** Enable HSE with Bypass and wait for it to be ready **/
     RCC->CR |= RCC_CR_HSEON | RCC_CR_HSEBYP;
-    while (((RCC->CR)&(RCC_CR_HSEON | RCC_CR_HSEBYP | RCC_CR_HSERDY)) == 0);
+    while (((RCC->CR) & (RCC_CR_HSEON | RCC_CR_HSEBYP | RCC_CR_HSERDY)) == 0);
 
     /** Set HSE as SYSCLK and wait for it to be recognized **/
     RCC->CFGR = RCC_CFGR_SW_HSE;
@@ -30,8 +29,9 @@ void sysclock_init(void){
     /** Ensure PLL is disabled **/
     RCC->CR &= ~RCC_CR_PLLON;
 
-    /** Sets CFGR register such that PLLMUL is 3 (8*5 = 40MHz) **/
+    /** Sets CFGR register such that PLLMUL is 5 (8MHz * 5 = 40MHz) */
     /** Sets CFGR register such that AHB Prescaler is 2 (40MHz / 2 = 20MHz) **/
+    /** PLLSRC = HSE **/
     RCC->CFGR = 0x000D0080;
 
     /** Enable PLL and wait for it to be ready **/
@@ -75,7 +75,7 @@ void clock_tim4(void){
     RCC->APB1ENR |= RCC_APB1ENR_TIM4EN;
 }
 
-void clock_dma(void){
+void clock_dma1(void){
     RCC->AHBENR |= RCC_AHBENR_DMA1EN;
 }
 

@@ -4,22 +4,63 @@
 #define EEPROM_TASK_SUSPEND
 #define MPU_TASK_SUSPEND
 
-#define ULTRASONIC_COUNT 2              /* Number of ultrasonics */
 #define HALF_SPEED_OF_SOUND 140         /* m/s */
 #define ULTRASONIC_RIGHT_OFFSET 460     /* us, found during testing */
 #define ULTRASONIC_LEFT_OFFSET  474     /* us, found during testing */
 
 #define SPEED_SCALE 1000         /* Speed data stored as 10^4 km/h */
 #define VELOCITY_FACTOR 146112   /* See boardA/src/timers_ese.c */
+#define WHEEL_COUNT 2
+#define MAX_SPEED 35000
+
+/**************************************************************************
+ * I2C Device Addresses
+**************************************************************************/
+#define ADDR_EEPROM             0x50
+#define ADDR_MPU                0x68
+
+
+/**************************************************************************
+ * MPU6050 Register Addresses
+**************************************************************************/
+#define REG_SMPLRT_DIV          0x19
+#define REG_CONFIG              0x1A
+#define REG_GYRO_CONFIG         0x1B
+#define REG_FIFO_EN             0x23
+#define REG_INT_ENABLE          0x38
+#define REG_SIGNAL_PATH_RESET   0x68
+#define REG_USER_CTRL           0x6A
+#define REG_PWR_MGMT_1          0x6B
+#define REG_FIFO                0x74
+
+
+/**************************************************************************
+ * EEPROM Hardware Definitions
+**************************************************************************/
+#define PAGE_SIZE                 128   /* ROM page width in bytes */
+#define PAGES_PER_BLOCK           200   /* Memory divided into blocks */
+#define TOTAL_PAGES               400   /* Total number of EEPROM pages */
+
+
+/**************************************************************************
+ * I2C Transmission Length Definitions
+**************************************************************************/
+#define MPU_RESET_STEPS            10   /* # of operations to reset the MPU */
+#define MPU_SINGLE_WRITE            2   /* Bytes sent during write to MPU */
+#define MPU_FIFO_READ               6   /* # of bytes read from FIFO */
+#define MPU_READ_ADDRS              3   /* Addresses needed for MPU read */
+
 
 /**************************************************************************
  * Typedefs and structures
 **************************************************************************/
-typedef uint16_t WheelSpeed_t;      /* Wheel speed always < 3.2187 km/h */
+typedef int32_t  WheelVelocity_t;   /* Must record speeds > MAX_SPEED */
+typedef uint16_t ChairSpeed_t;      /* Must record speeds > MAX_SPEED */
 typedef uint16_t Gyro_t;            /* Gyroscope is 2 bytes per axis */
 typedef uint32_t Ultrasonic_t;      /* Ultrasonics use 4 bytes */
 typedef uint16_t PageNum_t;         /* Size based on TOTAL_PAGES */
-typedef uint8_t Weight_t;           /* Only using 8 bits of 12 bit ADC */
+typedef uint8_t  Weight_t;          /* Only using 8 bits of 12 bit ADC */
+
 
 /**
   *@brief Stucture used to store measured values to save to EEPROM log.
@@ -38,13 +79,13 @@ typedef struct{
     uint8_t address_low;                /* EEPROM low address for page write */
     uint8_t event_flags;                /* xxxx xWDT */
     Weight_t weight_measure;            /* ADC value from weight sensor */
-    Ultrasonic_t ultrasonic_left;       /* Distance measure from left US */
-    Ultrasonic_t ultrasonic_right;      /* Distance measure from right US */
+    Ultrasonic_t ultrasonic_left;       /* Distance measure from left [um] */
+    Ultrasonic_t ultrasonic_right;      /* Distance measure from right [um] */
     Gyro_t gyro_x_axis;                 /* MPU6050 x-axis angular speed */
     Gyro_t gyro_y_axis;                 /* MPU6050 y-axis angular speed */
     Gyro_t gyro_z_axis;                 /* MPU6050 z-axis angular speed */
-    WheelSpeed_t left_wheel_speed;      /* Velocity in 100cm/s */
-    WheelSpeed_t right_wheel_speed;     /* Velocity in 100cm/s */
+    WheelVelocity_t left_wheel_speed;   /* Velocity [10cm/h] */
+    WheelVelocity_t right_wheel_speed;  /* Velocity [10cm/h] */
 }LogData_t;
 
 /**
@@ -64,4 +105,9 @@ typedef struct{
 typedef struct{
     Ultrasonic_t left_data;
     Ultrasonic_t right_data;
-}UltrasonicDistances_t;
+}Distances_t;
+
+typedef struct{
+    WheelVelocity_t left_speed;
+    WheelVelocity_t right_speed;
+}Speeds_t;

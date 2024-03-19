@@ -419,11 +419,26 @@
               <FileType>1</FileType>
               <FilePath>.\src\tasks_ese.c</FilePath>
             </File>
+            <File>
+              <FileName>timers_ese.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\timers_ese.c</FilePath>
+            </File>
+            <File>
+              <FileName>usart_ese.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\usart_ese.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
           <GroupName>include</GroupName>
           <Files>
+            <File>
+              <FileName>project_types.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\project_types.h</FilePath>
+            </File>
             <File>
               <FileName>clocks_ese.h</FileName>
               <FileType>5</FileType>
@@ -455,9 +470,14 @@
               <FilePath>.\include\tasks_ese.h</FilePath>
             </File>
             <File>
-              <FileName>project_types.h</FileName>
+              <FileName>timers_ese.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\project_types.h</FilePath>
+              <FilePath>.\include\timers_ese.h</FilePath>
+            </File>
+            <File>
+              <FileName>usart_ese.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\include\usart_ese.h</FilePath>
             </File>
           </Files>
         </Group>

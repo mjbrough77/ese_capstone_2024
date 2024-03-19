@@ -8,7 +8,7 @@
 #include "../include/timers_ese.h"
 #include "../include/usart_ese.h"
 
-static WheelSpeed_t speed_data;
+static WheelVelocity_t speed_data;
 
 void TIM2_IRQHandler(void){
     vTaskNotifyGiveFromISR(ultrasonic_handle, NULL);

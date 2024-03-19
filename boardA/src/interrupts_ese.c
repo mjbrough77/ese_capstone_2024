@@ -10,20 +10,30 @@
   *
  */
 
-#include "FreeRTOS.h"
-#include "queue.h"
+#include "../include/queues_ese.h"
+#include "../include/tasks_ese.h"
 
 #include "../../project_types.h"
 #include "../include/interrupts_ese.h"
 #include "../include/i2c_ese.h"
-#include "../include/queues_ese.h"
-#include "../include/tasks_ese.h"
+
+
+/**
+  *@brief Buffer for storing MPU Data.
+  * ONLY ACCSSESED BY DMA1_Channel3_IRQHandler` and the DMA controller
+ */
+static Distances_t ultrasonic_distances;
 
 /**
   *@brief Buffer for storing MPU Data.
   * ONLY ACCSSESED BY DMA1_Channel5_IRQHandler` and the DMA controller
  */
 static uint8_t mpu_data[MPU_FIFO_READ];
+
+void DMA1_Channel3_IRQHandler(void){
+    xQueueOverwriteFromISR(ultrasonic_dataQ, &ultrasonic_distances, NULL);
+    DMA1->IFCR |= DMA_IFCR_CTCIF3;
+}
 
 /**
   *@brief Updates I2C2 DMA channel requests during and after initialization.
@@ -199,19 +209,18 @@ void EXTI9_5_IRQHandler(void){
  */
 
 void TIM1_CC_IRQHandler(void){
+    WheelVelocity_t velocity;   /* Speed with direction */
     int16_t encoder_count;      /* Encoder mode used a signed counting method */
-    int32_t signed_velocity;    /* Speed with direction */
     uint16_t phaseZ_time;       /* Time for Z-phase to complete one rotation */
     
     phaseZ_time = TIM1->CCR1;
     encoder_count = (int16_t)TIM2->CNT; 
     
     /* Timer overflow or timer = 0 cases */
-    if(TIM1->SR & TIM_SR_UIF || phaseZ_time == 0) signed_velocity = 0;
-    else signed_velocity = VELOCITY_FACTOR * encoder_count / phaseZ_time;
-    if(signed_velocity < 0) signed_velocity = -signed_velocity;
+    if(TIM1->SR & TIM_SR_UIF || phaseZ_time == 0) velocity = 0; 
+    else velocity = (WheelVelocity_t)(VELOCITY_FACTOR*encoder_count/phaseZ_time);
     
-    xQueueOverwriteFromISR(left_wheel_dataQ, &signed_velocity, NULL);
+    xQueueOverwriteFromISR(right_wheel_dataQ, &velocity, NULL);
     
     /* Reset Z-phase timer count */
     TIM1->CR1 |= TIM_CR1_UDIS;
@@ -227,19 +236,18 @@ void TIM1_CC_IRQHandler(void){
   *
  */
 void TIM4_IRQHandler(void){
+    WheelVelocity_t velocity;   /* Speed with direction */
     int16_t encoder_count;      /* Encoder mode used a signed counting method */
-    int32_t signed_velocity;    /* Speed with direction */
     uint16_t phaseZ_time;       /* Time for Z-phase to complete one rotation */
     
     phaseZ_time = TIM4->CCR1;
     encoder_count = (int16_t)TIM3->CNT; 
     
     /* Timer overflow or timer = 0 cases */
-    if(TIM4->SR & TIM_SR_UIF || phaseZ_time == 0) signed_velocity = 0; 
-    else signed_velocity = VELOCITY_FACTOR * encoder_count / phaseZ_time;
-    if(signed_velocity < 0) signed_velocity = -signed_velocity;
+    if(TIM4->SR & TIM_SR_UIF || phaseZ_time == 0) velocity = 0; 
+    else velocity = (WheelVelocity_t)(VELOCITY_FACTOR*encoder_count/phaseZ_time);
     
-    xQueueOverwriteFromISR(right_wheel_dataQ, &signed_velocity, NULL);
+    xQueueOverwriteFromISR(right_wheel_dataQ, &velocity, NULL);
     
     /* Reset Z-phase timer count */
     TIM4->CR1 |= TIM_CR1_UDIS;

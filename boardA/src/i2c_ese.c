@@ -9,14 +9,11 @@
   *@copyright Copyright (c) 2024 Mitchell Brough
   *
  */
-#include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
+#include "../include/tasks_ese.h"
+#include "../include/queues_ese.h"
 
 #include "../../project_types.h"
 #include "../include/i2c_ese.h"
-#include "../include/tasks_ese.h"
-#include "../include/queues_ese.h"
 
 
 /**************************************************************************
@@ -166,9 +163,9 @@ _Noreturn void eeprom_write_task(void* param){
 
     /* Initialize log data */
     MPUData_t last_mpu_data = {0,0,0};
-    WheelSpeed_t left_wheel_speed = 0;
-    WheelSpeed_t right_wheel_speed = 0;
-    UltrasonicDistances_t distance_data = {0,0};
+    WheelVelocity_t left_wheel_speed = 0;
+    WheelVelocity_t right_wheel_speed = 0;
+    Distances_t distance_data = {0,0};
     LogData_t eeprom_log = {address_high,address_low,0,0,0,0,0,0,0,0,0};
 
     /* Set log address for DMA */

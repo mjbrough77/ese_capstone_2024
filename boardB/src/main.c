@@ -29,7 +29,7 @@ static void board_init(void);
 int main(void){
     board_init();
     
-    speedQ = xQueueCreate(1, sizeof(WheelSpeed_t));
+    speedQ = xQueueCreate(1, sizeof(WheelVelocity_t));
     
     xTaskCreate(print_speed_task,"Speed",128,NULL,1,&print_speed_handle);
     xTaskCreate(ultrasonic_data_task,"Ultra",128,NULL,1,&ultrasonic_handle);
