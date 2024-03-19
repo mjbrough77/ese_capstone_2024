@@ -10,10 +10,9 @@
   *
  */
 
-#include "../include/tasks_ese.h"
+#include "../../project_types.h"
 #include "../include/queues_ese.h"
 
-#include "../../project_types.h"
 #include "../include/display_ese.h"
 
 /**
@@ -145,7 +144,7 @@ void turn_off_display(void){
 }
 
 _Noreturn void print_speed_task(void* param){
-    WheelVelocity_t current_speed = 0;
+    ChairSpeed_t current_speed = 0;
     
     while(1){
         xQueuePeek(speedQ, &current_speed, portMAX_DELAY);

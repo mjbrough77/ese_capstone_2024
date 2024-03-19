@@ -1,14 +1,14 @@
+#include "../../project_types.h"
 #include "../include/tasks_ese.h"
 #include "../include/queues_ese.h"
 
-#include "../../project_types.h"
+#include "../include/interrupts_ese.h"
 #include "../include/adc_ese.h"
 #include "../include/display_ese.h"
-#include "../include/interrupts_ese.h"
 #include "../include/timers_ese.h"
 #include "../include/usart_ese.h"
 
-static WheelVelocity_t speed_data;
+static ChairSpeed_t speed_data = 0;
 
 void TIM2_IRQHandler(void){
     vTaskNotifyGiveFromISR(ultrasonic_handle, NULL);
@@ -34,19 +34,19 @@ void USART3_IRQHandler(void){
     static uint8_t init = 1;
     uint32_t status = USART3->SR;
     
-    /* After Board B is done initialization */
+    /* After Board B is done initialization, runs once */
     if(init == 1 && status & USART_SR_RXNE){
         DMA1_Channel3->CMAR = (uint32_t)&speed_data;
         DMA1_Channel3->CCR |= DMA_CCR3_EN;  /* Enable USART3_Rx DMA */
-        USART3->CR3 |= USART_CR3_DMAR;      /* Enable USART3_Rx requests */
         USART3->CR1 &= ~USART_CR1_RXNEIE;   /* Disable RxNE interrupt */
+        USART3->CR3 |= USART_CR3_DMAR;      /* Enable USART3_Rx requests */
         
         /* Small, practically inline functions */
         start_joystick_read();
         start_ultrasonics();
         turn_on_display();
         
-        (void)USART3->DR;
+        (void)USART3->DR; /* Clears RxNE flag */
         init = 0;
     }
     

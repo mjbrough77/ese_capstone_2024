@@ -1,5 +1,5 @@
-#include "../include/adc_ese.h"
 #include "../include/timers_ese.h"
+#include "../include/adc_ese.h"
 
 /* Ultrasonic TRIG pin */
 void configure_tim2(void){

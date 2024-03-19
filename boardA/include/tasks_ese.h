@@ -21,5 +21,6 @@
 
 extern TaskHandle_t mpu_read_handle;
 extern TaskHandle_t eeprom_write_handle;
+extern TaskHandle_t send_speed_handle;
 
 #endif

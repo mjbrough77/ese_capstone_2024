@@ -3,15 +3,16 @@
 /* Macros to suspend tasks for debugging */
 #define EEPROM_TASK_SUSPEND
 #define MPU_TASK_SUSPEND
+#define SEND_SPEED_TASK_SUSPEND
 
-#define HALF_SPEED_OF_SOUND 140         /* m/s */
+#define HALF_SPEED_OF_SOUND     140     /* m/s */
 #define ULTRASONIC_RIGHT_OFFSET 460     /* us, found during testing */
 #define ULTRASONIC_LEFT_OFFSET  474     /* us, found during testing */
 
-#define SPEED_SCALE 1000         /* Speed data stored as 10^4 km/h */
-#define VELOCITY_FACTOR 146112   /* See boardA/src/timers_ese.c */
-#define WHEEL_COUNT 2
-#define MAX_SPEED 35000
+#define SPEED_SCALE             1000    /* Speed data stored as 10^4 km/h */
+#define VELOCITY_FACTOR         146112  /* See boardA/src/timers_ese.c */
+#define WHEEL_COUNT             2
+#define MAX_SPEED               35000
 
 /**************************************************************************
  * I2C Device Addresses
@@ -37,9 +38,9 @@
 /**************************************************************************
  * EEPROM Hardware Definitions
 **************************************************************************/
-#define PAGE_SIZE                 128   /* ROM page width in bytes */
-#define PAGES_PER_BLOCK           200   /* Memory divided into blocks */
-#define TOTAL_PAGES               400   /* Total number of EEPROM pages */
+#define PAGE_SIZE               128   /* ROM page width in bytes */
+#define PAGES_PER_BLOCK         200   /* Memory divided into blocks */
+#define TOTAL_PAGES             400   /* Total number of EEPROM pages */
 
 
 /**************************************************************************
@@ -68,8 +69,9 @@ typedef uint8_t  Weight_t;          /* Only using 8 bits of 12 bit ADC */
   * The `event_flags` member variable indicates when any measured values
   * exceed the tolerated threshold.
   *
-  * Bits [2:0] are set if any are exceeded after a system power-on.
+  * Bits [3:0] are set if any are exceeded after a system power-on.
   *
+  * [3] S = speed exceeded
   * [2] W = user weight exceeded
   * [1] D = chair has gotten to close to an obstacle
   * [0] T = chair has exceed tilt requirements on any axis
@@ -77,7 +79,7 @@ typedef uint8_t  Weight_t;          /* Only using 8 bits of 12 bit ADC */
 typedef struct{
     uint8_t address_high;               /* EEPROM high address for page write */
     uint8_t address_low;                /* EEPROM low address for page write */
-    uint8_t event_flags;                /* xxxx xWDT */
+    uint8_t event_flags;                /* xxxx SWDT */
     Weight_t weight_measure;            /* ADC value from weight sensor */
     Ultrasonic_t ultrasonic_left;       /* Distance measure from left [um] */
     Ultrasonic_t ultrasonic_right;      /* Distance measure from right [um] */
@@ -97,9 +99,9 @@ typedef struct{
   * `eeprom_write_task`
  */
 typedef struct{
-    Gyro_t gyro_x_axis;             /* MPU6050 x-axis angular speed */
-    Gyro_t gyro_y_axis;             /* MPU6050 y-axis angular speed */
-    Gyro_t gyro_z_axis;             /* MPU6050 z-axis angular speed */
+    Gyro_t gyro_x_axis;     /* MPU6050 x-axis angular speed */
+    Gyro_t gyro_y_axis;     /* MPU6050 y-axis angular speed */
+    Gyro_t gyro_z_axis;     /* MPU6050 z-axis angular speed */
 }MPUData_t;
 
 typedef struct{

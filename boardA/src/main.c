@@ -9,6 +9,7 @@
 #include "../include/timers_ese.h"
 #include "../include/queues_ese.h"
 #include "../include/tasks_ese.h"
+#include "../include/usart_ese.h"
 
 static void board_init(void);
 
@@ -39,5 +40,8 @@ static void board_init(void){
 
     configure_io();
     configure_i2c2();
+    configure_usart3();
     configure_i2c2_dma();
+    configure_usart3_dma();
+    
 }

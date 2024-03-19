@@ -9,11 +9,13 @@
   *@copyright Copyright (c) 2024 Mitchell Brough
   *
  */
+ 
+#include "../../project_types.h"
 #include "../include/tasks_ese.h"
 #include "../include/queues_ese.h"
 
-#include "../../project_types.h"
 #include "../include/i2c_ese.h"
+#include "../include/usart_ese.h"
 
 
 /**************************************************************************
@@ -77,7 +79,8 @@ void configure_i2c2_dma(void){
     DMA1_Channel5->CPAR = (uint32_t)&I2C2->DR;
     DMA1_Channel5->CNDTR = MPU_FIFO_READ;
     DMA1_Channel5->CCR |= DMA_CCR5_TCIE | DMA_CCR5_MINC | DMA_CCR5_CIRC;
-
+    /* DMA1_Channel5 finished configuration in DMA1_Channel4_IRQHandler() */
+    
     NVIC_SetPriority(DMA1_Channel5_IRQn, 5); /* ISR Priority >= 5 (FreeRTOS) */
     NVIC_EnableIRQ(DMA1_Channel5_IRQn);
 }
@@ -123,9 +126,10 @@ _Noreturn void mpu_reset_task(void* param){
         }
 
         /* Create program tasks */
-        xTaskCreate(eeprom_write_task, "EEPROM W", 128, NULL, 0, &eeprom_write_handle);
-        xTaskCreate(mpu_read_task, "MPU Read", 128, NULL, 0, &mpu_read_handle);
-
+        xTaskCreate(eeprom_write_task,"EEPROM",128,NULL,1,&eeprom_write_handle);
+        xTaskCreate(mpu_read_task,"MPU Read",128,NULL,1,&mpu_read_handle);
+        xTaskCreate(send_speed_task,"Speed",128,NULL,1,&send_speed_handle);
+        
         EXTI->IMR |= EXTI_IMR_MR6; /* mpu_read_task created, unmask INT */
 
         vTaskDelete(NULL); /* No further use for this task */

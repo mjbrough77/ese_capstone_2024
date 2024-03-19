@@ -47,6 +47,10 @@ void sysclock_init(void){
 /**************************************************************************
  * Peripheral Clock Enable Functions
 **************************************************************************/
+void clock_afio(void){
+    RCC->APB2ENR |= RCC_APB2ENR_AFIOEN;
+}
+
 void clock_gpioa(void){
     RCC->APB2ENR |= RCC_APB2ENR_IOPAEN;
 }
@@ -59,6 +63,22 @@ void clock_gpioc(void){
     RCC->APB2ENR |= RCC_APB2ENR_IOPCEN;
 }
 
+void clock_adc1(void){
+    RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
+}
+
+void clock_dma1(void){
+    RCC->AHBENR |= RCC_AHBENR_DMA1EN;
+}
+
+void clock_i2c2(void){
+    RCC->APB1ENR |= RCC_APB1ENR_I2C2EN;
+}
+
+void clock_tim1(void){
+    RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
+}
+
 void clock_tim2(void){
     RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
 }
@@ -69,14 +89,6 @@ void clock_tim3(void){
 
 void clock_tim4(void){
     RCC->APB1ENR |= RCC_APB1ENR_TIM4EN;
-}
-
-void clock_adc1(void){
-    RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
-}
-
-void clock_afio(void){
-    RCC->APB2ENR |= RCC_APB2ENR_AFIOEN;
 }
 
 void clock_usart3(void){

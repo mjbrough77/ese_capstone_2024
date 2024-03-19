@@ -13,7 +13,7 @@
 #ifndef DISPLAY_ESE_H
 #define DISPLAY_ESE_H
 
-#include "stm32f10x.h"
+#include "stdint.h"
 
 void write_ones_sevenseg(uint8_t);
 void write_tens_sevenseg(uint8_t);

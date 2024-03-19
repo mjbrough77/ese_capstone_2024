@@ -12,11 +12,8 @@
 #ifndef I2C_ESE
 #define I2C_ESE
 
-#include "stm32f10x.h"
+#include "../../project_types.h"
 
-/**************************************************************************
- * MPU6050 Initialization Array
-**************************************************************************/
 /**
   *@brief Array storing MPU6050 register addresses and write values.
   *
@@ -25,13 +22,11 @@
  */
 extern const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE];
 
-
 /**************************************************************************
  * Configuration Function Declarations
 **************************************************************************/
 void configure_i2c2(void);
 void configure_i2c2_dma(void);
-
 
 /**************************************************************************
  * Peripheral Task Declarations

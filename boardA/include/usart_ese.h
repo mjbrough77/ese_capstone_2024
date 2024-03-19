@@ -5,6 +5,6 @@
 
 void configure_usart3(void);
 void configure_usart3_dma(void);
-void send_wheelspeed_task(void*);
+void send_speed_task(void*);
 
 #endif

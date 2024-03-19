@@ -10,23 +10,23 @@
   *
  */
 
+#include "../../project_types.h"
 #include "../include/queues_ese.h"
 #include "../include/tasks_ese.h"
 
-#include "../../project_types.h"
 #include "../include/interrupts_ese.h"
 #include "../include/i2c_ese.h"
 
 
 /**
-  *@brief Buffer for storing MPU Data.
-  * ONLY ACCSSESED BY DMA1_Channel3_IRQHandler` and the DMA controller
+  *@brief Buffer for storing Ultrasonic Data.
+  * ONLY ACCSSESED BY DMA1_Channel3_IRQHandler()` and the DMA controller
  */
 static Distances_t ultrasonic_distances;
 
 /**
   *@brief Buffer for storing MPU Data.
-  * ONLY ACCSSESED BY DMA1_Channel5_IRQHandler` and the DMA controller
+  * ONLY ACCSSESED BY DMA1_Channel5_IRQHandler()` and the DMA controller
  */
 static uint8_t mpu_data[MPU_FIFO_READ];
 
@@ -64,6 +64,10 @@ void DMA1_Channel4_IRQHandler(void){
 
     /* Should only execute once */
     else if(reconfigure_for_eeprom == 1){
+        /* Initialize DMA1_Channel3 buffer location */
+        DMA1_Channel3->CMAR = (uint32_t)&ultrasonic_distances;
+        DMA1_Channel5->CCR |= DMA_CCR5_EN;
+        
         /* Reset DMA1_Channel4 (I2C2_Tx) for EEPROM write */
         DMA1_Channel4->CCR &= (uint16_t)0xFFFE; /* Disable Tx DMA */
         DMA1_Channel4->CNDTR = sizeof(LogData_t);
@@ -256,4 +260,10 @@ void TIM4_IRQHandler(void){
 
     /* Reset Encoder count */
     TIM3->EGR |= TIM_EGR_UG;
+}
+
+void USART3_IRQHandler(void){
+    USART3->CR3 &= ~USART_CR3_DMAT;     /* Stop DMA Transfers */
+    USART3->SR &= ~USART_SR_TC;         /* Clear interrupt */
+    vTaskNotifyGiveFromISR(send_speed_handle, NULL);
 }

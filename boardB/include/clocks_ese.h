@@ -15,15 +15,18 @@
 #include "stm32f10x.h"
 
 void sysclock_init(void);
+
+void clock_afio(void);
 void clock_gpioa(void);
 void clock_gpiob(void);
 void clock_gpioc(void);
+void clock_adc1(void);
+void clock_dma1(void);
+void clock_i2c2(void);
+void clock_tim1(void);
 void clock_tim2(void);
 void clock_tim3(void);
 void clock_tim4(void);
-void clock_adc1(void);
-void clock_dma(void);
-void clock_afio(void);
 void clock_usart3(void);
 
 #endif
