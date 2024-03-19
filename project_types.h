@@ -1,12 +1,16 @@
 #include "stdint.h"
 
+/* Macros to suspend tasks for debugging */
+#define EEPROM_TASK_SUSPEND
+#define MPU_TASK_SUSPEND
+
 #define ULTRASONIC_COUNT 2              /* Number of ultrasonics */
 #define HALF_SPEED_OF_SOUND 140         /* m/s */
-#define ULTRASONIC_LEFT_OFFSET  474     /* us, found during testing */
 #define ULTRASONIC_RIGHT_OFFSET 460     /* us, found during testing */
+#define ULTRASONIC_LEFT_OFFSET  474     /* us, found during testing */
 
-#define SPEED_SCALE 1000                /* Speed data stored as 10^4 km/h */
-#define VELOCITY_FACTOR = 146112;       /* See boardA/src/timers_ese.c */
+#define SPEED_SCALE 1000         /* Speed data stored as 10^4 km/h */
+#define VELOCITY_FACTOR 146112   /* See boardA/src/timers_ese.c */
 
 /**************************************************************************
  * Typedefs and structures
@@ -56,3 +60,8 @@ typedef struct{
     Gyro_t gyro_y_axis;             /* MPU6050 y-axis angular speed */
     Gyro_t gyro_z_axis;             /* MPU6050 z-axis angular speed */
 }MPUData_t;
+
+typedef struct{
+    Ultrasonic_t left_data;
+    Ultrasonic_t right_data;
+}UltrasonicDistances_t;

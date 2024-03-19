@@ -21,7 +21,7 @@
 
 /**
   *@brief Buffer for storing MPU Data.
-  * ONLY ACCSSESED BY `DMA1_Channel5_IRQHandler`
+  * ONLY ACCSSESED BY DMA1_Channel5_IRQHandler` and the DMA controller
  */
 static uint8_t mpu_data[MPU_FIFO_READ];
 
@@ -73,6 +73,10 @@ void DMA1_Channel4_IRQHandler(void){
 /**
   *@brief Sends the MPU6050 FIFO data to eeprom_write_task for logging.
   * This interrupt only executes on EOT for I2C2_Rx.
+  *
+  * Because I2C2 DMA are requests are disabled after a full Rx transfer,
+  * `mpu_data` cannot be modified by the DMA controller while inside this
+  * interrupt and hence, `mpu_data` has its access protected
   * 
   * The MPU FIFO data storage is as follows
   * ----------------------------------------------------------- *
@@ -88,7 +92,7 @@ void DMA1_Channel4_IRQHandler(void){
   *       5       |     GYRO_ZOUT[7:0]     |         72         *
   * ----------------------------------------------------------- *
   *
-  *@pre The queue `eeprom_logQ` has been created
+  *@pre The queue `eeprom_mpuQ` has been created
  */
 void DMA1_Channel5_IRQHandler(void){
     MPUData_t gyro_data;
@@ -104,7 +108,7 @@ void DMA1_Channel5_IRQHandler(void){
     gyro_data.gyro_z_axis =  (Gyro_t)(mpu_data[4]<<8);
     gyro_data.gyro_z_axis += (Gyro_t)mpu_data[5];
     
-    xQueueOverwriteFromISR(eeprom_logQ, &gyro_data, NULL);
+    xQueueOverwriteFromISR(mpu_dataQ, &gyro_data, NULL);
     
     DMA1->IFCR |= DMA_IFCR_CTCIF5; /* Clear interrupt */
 }
@@ -186,4 +190,62 @@ void I2C2_EV_IRQHandler(void){
 void EXTI9_5_IRQHandler(void){
     EXTI->PR |= EXTI_PR_PR6;
     vTaskNotifyGiveFromISR(mpu_read_handle, NULL);
+}
+
+/**
+  *@brief blah
+  * You'll notice TIM1 and TIM4 have near identical interrupts
+  * Keen future coders will have a more efficient implementation
+ */
+
+void TIM1_CC_IRQHandler(void){
+    int16_t encoder_count;      /* Encoder mode used a signed counting method */
+    int32_t signed_velocity;    /* Speed with direction */
+    uint16_t phaseZ_time;       /* Time for Z-phase to complete one rotation */
+    
+    phaseZ_time = TIM1->CCR1;
+    encoder_count = (int16_t)TIM2->CNT; 
+    
+    /* Timer overflow or timer = 0 cases */
+    if(TIM1->SR & TIM_SR_UIF || phaseZ_time == 0) signed_velocity = 0;
+    else signed_velocity = VELOCITY_FACTOR * encoder_count / phaseZ_time;
+    if(signed_velocity < 0) signed_velocity = -signed_velocity;
+    
+    xQueueOverwriteFromISR(left_wheel_dataQ, &signed_velocity, NULL);
+    
+    /* Reset Z-phase timer count */
+    TIM1->CR1 |= TIM_CR1_UDIS;
+    TIM1->EGR |= TIM_EGR_UG;
+    TIM1->CR1 &= ~TIM_CR1_UDIS;
+
+    /* Reset Encoder count */
+    TIM2->EGR |= TIM_EGR_UG;
+}
+
+/**
+  *@brief blah
+  *
+ */
+void TIM4_IRQHandler(void){
+    int16_t encoder_count;      /* Encoder mode used a signed counting method */
+    int32_t signed_velocity;    /* Speed with direction */
+    uint16_t phaseZ_time;       /* Time for Z-phase to complete one rotation */
+    
+    phaseZ_time = TIM4->CCR1;
+    encoder_count = (int16_t)TIM3->CNT; 
+    
+    /* Timer overflow or timer = 0 cases */
+    if(TIM4->SR & TIM_SR_UIF || phaseZ_time == 0) signed_velocity = 0; 
+    else signed_velocity = VELOCITY_FACTOR * encoder_count / phaseZ_time;
+    if(signed_velocity < 0) signed_velocity = -signed_velocity;
+    
+    xQueueOverwriteFromISR(right_wheel_dataQ, &signed_velocity, NULL);
+    
+    /* Reset Z-phase timer count */
+    TIM4->CR1 |= TIM_CR1_UDIS;
+    TIM4->EGR |= TIM_EGR_UG;
+    TIM4->CR1 &= ~TIM_CR1_UDIS;
+
+    /* Reset Encoder count */
+    TIM3->EGR |= TIM_EGR_UG;
 }

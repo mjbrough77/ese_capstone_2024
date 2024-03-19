@@ -45,20 +45,16 @@ static void board_init(void){
     clock_afio();
     clock_gpioa();
     clock_gpiob();
-//    clock_gpioc();
-//    clock_adc1();
+    clock_gpioc();
+    clock_adc1();
     clock_tim2();
-//    clock_tim3();
+    clock_tim3();
     clock_tim4();
-//    clock_usart3();
+    clock_usart3();
     
     configure_io();
     configure_tim2();
-//    configure_tim3();     /* Starts motor driver signals, init to stop */
+    configure_tim3();     /* Starts motor driver signals, init to stop */
     configure_tim4();
-//    configure_adc1();
-    
-    start_ultrasonics();
-    
-//    enable_tim3IRQ();
+    configure_adc1();
 }

@@ -10,8 +10,8 @@ April 6, 2024
 
 
 ## Info
-- Board A connects to the motor encoders, IMU, EEPROM, and weight sensor
-- Board B connects to the joystick, seven-segment displays, and ultrasonic sensor
+- Board B connects to the motor encoders, IMU, EEPROM, and weight sensor
+- Board T connects to the joystick, seven-segment displays, and ultrasonic sensor
 
 
 See schematics for further details

@@ -16,7 +16,10 @@ int main(void){
     board_init();
 
     i2c2Q = xQueueCreate(MPU_READ_ADDRS, sizeof(uint8_t));
-    eeprom_logQ = xQueueCreate(1, sizeof(MPUData_t));
+    mpu_dataQ = xQueueCreate(1, sizeof(MPUData_t));
+    right_wheel_dataQ = xQueueCreate(1, sizeof(WheelSpeed_t));
+    left_wheel_dataQ = xQueueCreate(1, sizeof(WheelSpeed_t));
+    ultrasonic_dataQ = xQueueCreate(1, sizeof(UltrasonicDistances_t));
 
     xTaskCreate(mpu_reset_task, "MPU Reset", 128, NULL, 0, NULL);
 

@@ -60,6 +60,21 @@
   * the final value stored as an integer (e.g. 3.2187km/h is stored as 32187)
  */
 
+void configure_tim1(void){
+    TIM1->CCMR1 |= TIM_CCMR1_CC1S_0;    /* TI1 mapped */
+    TIM1->CCER |= TIM_CCER_CC1E;        /* Enable input capture */
+    TIM1->PSC = 39;                     /* One count every 2us */
+
+    TIM1->DIER |= TIM_DIER_CC1IE;       /* Enable interrupt */
+    NVIC_SetPriority(TIM1_CC_IRQn, 5);  /* ISR Priority >= 5 (FreeRTOS) */
+    NVIC_EnableIRQ(TIM1_CC_IRQn);  
+}
+
+void configure_tim2(void){
+    TIM2->CCMR1 |= TIM_CCMR1_CC1S_0 | TIM_CCMR1_CC2S_0; /* TI1, TI2 mapped */
+    TIM2->SMCR |= TIM_SMCR_SMS_1 | TIM_SMCR_SMS_0;      /* Encoder mode 3 */
+}
+
 /**
   *@brief Configures TIM3 in encoder interface mode
   *
@@ -68,7 +83,6 @@
 void configure_tim3(void){
     TIM3->CCMR1 |= TIM_CCMR1_CC1S_0 | TIM_CCMR1_CC2S_0; /* TI1, TI2 mapped */
     TIM3->SMCR |= TIM_SMCR_SMS_1 | TIM_SMCR_SMS_0;      /* Encoder mode 3 */
-    TIM3->CR1 |= TIM_CR1_CEN;                           /* Counter enable */
 }
 
 /**
@@ -81,32 +95,7 @@ void configure_tim4(void){
     TIM4->CCER |= TIM_CCER_CC1E;        /* Enable input capture */
     TIM4->PSC = 39;                     /* One count every 2us */
 
-    TIM4->DIER |= TIM_DIER_CC1IE; /* Enable interrupt */
-    NVIC_EnableIRQ(TIM4_IRQn);
-
-    TIM4->CR1 |= TIM_CR1_CEN; /* Counter enable */
-}
-
-/**
-  *@brief blah
-  *
- */
-void TIM4_IRQHandler(void){
-    static uint16_t encoder_count;
-    static uint16_t phaseZ_time;
-    static uint32_t velocity;
-
-    phaseZ_time = TIM4->CCR1;
-    encoder_count = TIM3->CNT;
-
-    if(phaseZ_time == 0) velocity = 0;  /* Divide by zero condition */
-    else velocity = VELOCITY_FACTOR * encoder_count / phaseZ_time;
-
-    /* Reset Z-phase timer count */
-    TIM4->CR1 |= TIM_CR1_UDIS;
-    TIM4->EGR |= TIM_EGR_UG;
-    TIM4->CR1 &= ~TIM_CR1_UDIS;
-
-    /* Reset Encoder count */
-    TIM3->EGR |= TIM_EGR_UG;
+    TIM4->DIER |= TIM_DIER_CC1IE;   /* Enable interrupt */
+    NVIC_SetPriority(TIM4_IRQn, 5); /* ISR Priority >= 5 (FreeRTOS) */
+    NVIC_EnableIRQ(TIM4_IRQn);      
 }

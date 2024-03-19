@@ -23,7 +23,7 @@ void TIM3_IRQHandler(void) {
 	TIM3->SR &= ~TIM_SR_CC1IF; /* Clear interrupt */
 }
 
-/* Gives the new speed data to display tassk */
+/* Gives the new speed data to display task */
 void DMA1_Channel3_IRQHandler(void){
     xQueueOverwriteFromISR(speedQ, &speed_data, NULL);
     DMA1->IFCR |= DMA_IFCR_CTCIF3;

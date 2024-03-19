@@ -18,10 +18,6 @@
 #include "../include/tasks_ese.h"
 #include "../include/queues_ese.h"
 
-/* Macros to suspend tasks for debugging */
-//#define EEPROM_TASK_SUSPEND
-//#define MPU_TASK_SUSPEND
-
 
 /**************************************************************************
  * MPU RESET ARRAY (GLOBAL CONST, SAFE TO ACCESS)
@@ -145,13 +141,15 @@ _Noreturn void mpu_reset_task(void* param){
 /**
   *@brief Updates the log and starts a write to the EEPROM
   *
-  *
+  * DMA1_Channel4 has shared access to `eeprom_log` and therefore, the log
+  * information should not be updated until a complete write to the EEPROM has
+  * occured. Right now this is okay, because it is only updated before the
+  * the start of every transmission
   *
   *@param param unused
  */
 _Noreturn void eeprom_write_task(void* param){
     TickType_t xLastWakeTime = xTaskGetTickCount();
-
     const uint32_t LOG_SIZE = sizeof(LogData_t);
     const uint8_t CTRL_BLOCK = 0x2; /* Block bit of the control byte */
 
@@ -168,6 +166,9 @@ _Noreturn void eeprom_write_task(void* param){
 
     /* Initialize log data */
     MPUData_t last_mpu_data = {0,0,0};
+    WheelSpeed_t left_wheel_speed = 0;
+    WheelSpeed_t right_wheel_speed = 0;
+    UltrasonicDistances_t distance_data = {0,0};
     LogData_t eeprom_log = {address_high,address_low,0,0,0,0,0,0,0,0,0};
 
     /* Set log address for DMA */
@@ -191,19 +192,21 @@ _Noreturn void eeprom_write_task(void* param){
         }
 
         /**************************** UPDATE LOG ****************************/
-        /* MPU not read between write == error, suspend task*/
-        xQueueReceive(eeprom_logQ, &last_mpu_data, portMAX_DELAY);
-
+        xQueuePeek(mpu_dataQ, &last_mpu_data, NULL);
+        xQueuePeek(left_wheel_dataQ, &left_wheel_speed, NULL);
+        xQueuePeek(right_wheel_dataQ, &right_wheel_speed, NULL);
+        xQueuePeek(ultrasonic_dataQ, &distance_data, NULL);
+        
         eeprom_log.address_high = address_high;
         eeprom_log.address_low  = address_low;
-//        eeprom_log.weight_measure = (Weight_t)(ADC1->DR);
-//        eeprom_log.ultrasonic_left;
-//        eeprom_log.ultrasonic_right;
+        eeprom_log.weight_measure = (Weight_t)(ADC1->DR);
+        eeprom_log.ultrasonic_right = distance_data.right_data;
+        eeprom_log.ultrasonic_left = distance_data.left_data;
         eeprom_log.gyro_x_axis = last_mpu_data.gyro_x_axis;
         eeprom_log.gyro_y_axis = last_mpu_data.gyro_y_axis;
         eeprom_log.gyro_z_axis = last_mpu_data.gyro_z_axis;
-//        eeprom_log.left_wheel_speed;
-//        eeprom_log.right_wheel_speed;
+        eeprom_log.left_wheel_speed = left_wheel_speed;
+        eeprom_log.right_wheel_speed = right_wheel_speed;
 //        eeprom_log.event_flags;
 
         /**************************** START WRITE ***************************/
