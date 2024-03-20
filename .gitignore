@@ -1,7 +1,8 @@
-# Unused Keil assets
+# Unused Keil Assets
 DebugConfig
 Listings
 Objects
 *.uvguix.*
+*.uvgui.*
 *.scvd
 .vscode
