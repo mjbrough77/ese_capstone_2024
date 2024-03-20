@@ -5,6 +5,7 @@
 
 void configure_usart3(void);
 void prepare_usart3_dma(void);
+void send_ready_signal(void);
 void send_speed_task(void*);
 
 #endif

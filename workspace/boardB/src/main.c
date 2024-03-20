@@ -16,12 +16,14 @@ static void board_init(void);
 int main(void){
     board_init();
 
+    /* Queue creation */
     i2c2Q = xQueueCreate(MPU_READ_ADDRS, sizeof(uint8_t));
     mpu_dataQ = xQueueCreate(1, sizeof(MPUData_t));
     right_wheel_dataQ = xQueueCreate(1, sizeof(WheelVelocity_t));
     left_wheel_dataQ = xQueueCreate(1, sizeof(WheelVelocity_t));
     ultrasonic_dataQ = xQueueCreate(1, sizeof(Distances_t));
 
+    /* mpu_reset_task initializes/configures anything not done here */
     xTaskCreate(mpu_reset_task, "MPU Reset", 128, NULL, 0, NULL);
 
     vTaskStartScheduler();

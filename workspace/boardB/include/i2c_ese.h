@@ -27,6 +27,7 @@ extern const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE];
 **************************************************************************/
 void configure_i2c2(void);
 void configure_i2c2_dma(void);
+void enable_mpu_int_pin(void);
 
 /**************************************************************************
  * Peripheral Task Declarations

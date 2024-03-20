@@ -71,7 +71,6 @@ void configure_i2c2_dma(void){
     DMA1_Channel4->CNDTR = MPU_SINGLE_WRITE;
     DMA1_Channel4->CCR |= DMA_CCR4_TCIE | DMA_CCR4_DIR | DMA_CCR4_MINC;
     DMA1_Channel4->CCR |= DMA_CCR4_EN;
-
     NVIC_SetPriority(DMA1_Channel4_IRQn, 5); /* ISR Priority >= 5 (FreeRTOS) */
     NVIC_EnableIRQ(DMA1_Channel4_IRQn);
 
@@ -80,9 +79,12 @@ void configure_i2c2_dma(void){
     DMA1_Channel5->CNDTR = MPU_FIFO_READ;
     DMA1_Channel5->CCR |= DMA_CCR5_TCIE | DMA_CCR5_MINC | DMA_CCR5_CIRC;
     /* DMA1_Channel5 finished configuration in DMA1_Channel4_IRQHandler() */
-    
     NVIC_SetPriority(DMA1_Channel5_IRQn, 5); /* ISR Priority >= 5 (FreeRTOS) */
     NVIC_EnableIRQ(DMA1_Channel5_IRQn);
+}
+
+void enable_mpu_int_pin(void){
+    EXTI->IMR |= EXTI_IMR_MR6; /* mpu_read_task created, unmask INT */
 }
 
 
@@ -90,10 +92,7 @@ void configure_i2c2_dma(void){
  * I2C2 Peripheral Tasks
 **************************************************************************/
 /**
-  *@brief Task used to reset MPU
-  *
-  * The purpose of using a task to reset the MPU is the functionality of delays
-  * which make it much easier to give proper timings when resetting
+  *@brief Task used to reset MPU, finish system setup
   *
   *@param param unused
 */
@@ -105,22 +104,22 @@ _Noreturn void mpu_reset_task(void* param){
     while(1){
         vTaskDelay( pdMS_TO_TICKS( 200 ) );
 
-        #ifndef MPU_RESET_SKIP
+    #ifndef MPU_RESET_SKIP
             /* I2C2 bus assumed free, no other access to take place */
             for(i = 0; i < MPU_RESET_STEPS; i++){
                 xQueueSend(i2c2Q, &address, portMAX_DELAY);
                 I2C2->CR1 |= I2C_CR1_START;
                 vTaskDelay( pdMS_TO_TICKS( 100 ) );
             }
-        #endif
+    #endif
         
-        /* Create program tasks */
+        /* Create tasks, initialize rest of board */
         xTaskCreate(eeprom_write_task,"EEPROM",128,NULL,1,&eeprom_write_handle);
         xTaskCreate(mpu_read_task,"MPU Read",128,NULL,1,&mpu_read_handle);
         xTaskCreate(send_speed_task,"Speed",128,NULL,1,&send_speed_handle);
+        enable_mpu_int_pin();
+        send_ready_signal();
         
-        EXTI->IMR |= EXTI_IMR_MR6; /* mpu_read_task created, unmask INT */
-
         vTaskDelete(NULL); /* No further use for this task */
         taskYIELD();       /* Co-operative scheduler requires explicit yield */
 

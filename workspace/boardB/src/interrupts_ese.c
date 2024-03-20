@@ -30,8 +30,16 @@ static Distances_t ultrasonic_distances;
 static uint8_t mpu_data[MPU_FIFO_READ];
 
 void DMA1_Channel3_IRQHandler(void){
+    static uint8_t init = 1;
+    
     DMA1->IFCR |= DMA_IFCR_CTCIF3;
     xQueueOverwriteFromISR(ultrasonic_dataQ, &ultrasonic_distances, NULL);
+    
+    /* First recieved data means we can safely send speed data */
+    if(init == 1){
+        vTaskNotifyGiveFromISR(send_speed_handle, NULL);
+        init = 0;
+    }
 }
 
 /**
@@ -62,9 +70,9 @@ void DMA1_Channel4_IRQHandler(void){
 
     /* Should only execute once */
     else if(init == 1){
-        /* Start DMA_USART3_Rx, place received data in buffer at `ultrasonic_distances */
+        /* Start DMA_USART3_Rx, place received data in buffer at `ultrasonic_distances` */
         DMA1_Channel3->CMAR = (uint32_t)&ultrasonic_distances;
-        DMA1_Channel5->CCR |= DMA_CCR5_EN;
+        DMA1_Channel3->CCR |= DMA_CCR5_EN;
         
         /* Reset DMA1_Channel4 (I2C2_Tx) for EEPROM write */
         DMA1_Channel4->CCR &= (uint16_t)0xFFFE; /* Disable Tx DMA */
@@ -147,40 +155,41 @@ void DMA1_Channel5_IRQHandler(void){
   *
  */
 void I2C2_EV_IRQHandler(void){
-    volatile uint16_t status = I2C2->SR1;
-    volatile uint32_t delay = 0x2F; /* SEE BELOW */
+    uint16_t status = I2C2->SR1;
+    uint32_t delay = 0x2F;          /* SEE BELOW */
     static uint8_t restart = 0;     /* ReStart required on MPU read */
 
     uint8_t queue_size = (uint8_t)uxQueueMessagesWaitingFromISR(i2c2Q);
     uint8_t address_to_send = 0;
     uint8_t register_to_send = 0;
 
-    /* Full queue = read MPU, queue empty after each I2C stop condition */
+    /* MPU6050 unique, requires 3 addresses and a restart to read data */
     if(queue_size == MPU_READ_ADDRS){
         restart = 1;
-        I2C2->CR2 |= I2C_CR2_ITBUFEN; /* Enables interrupt on TxE */
+        I2C2->CR2 |= I2C_CR2_ITBUFEN; /* Enables interrupt on TxE (DMA off) */
     }
 
-    /* Interrupt will re-fire if queue is empty */
+    /* A start event is followed by a device address send */
     if(status & I2C_SR1_SB){
         if(xQueueReceiveFromISR(i2c2Q, &address_to_send, NULL) == pdPASS){
             I2C2->DR = address_to_send;
         }
     }
 
-    /* Clear ADDR flag, enable DMA transfers in I2C2 peripheral */
+    /* Address sent, enable DMA transfers in I2C2 peripheral */
     else if(status & I2C_SR1_ADDR){
         if(!restart) I2C2->CR2 |= I2C_CR2_DMAEN;
         (void)I2C2->SR2;
     }
 
-    /* End of transmission on Tx session */
+    /* Program stop (exectues only on a write) */
     else if(status & I2C_SR1_BTF){
         I2C2->CR1 |= I2C_CR1_STOP;
         I2C2->CR1 &= ~I2C_CR1_STOP;
     }
 
-    /* Only runs on MPU FIFO read */
+    /* MPU6050 requires a second start during transmission */
+    /* Only runs if we are reading data from the MPU6050 */
     else if(status & I2C_SR1_TXE){
         if(xQueueReceiveFromISR(i2c2Q, &register_to_send, NULL) == pdPASS){
             I2C2->CR2 &= ~I2C_CR2_ITBUFEN;
@@ -240,7 +249,7 @@ void TIM1_CC_IRQHandler(void){
  */
 void TIM4_IRQHandler(void){
     WheelVelocity_t velocity;   /* Speed with direction */
-    int16_t encoder_count;      /* Encoder mode used a signed counting method */
+    int16_t encoder_count;      /* Encoder mode uses a signed counting method */
     uint16_t phaseZ_time;       /* Time for Z-phase to complete one rotation */
     
     phaseZ_time = TIM4->CCR1;
@@ -262,8 +271,12 @@ void TIM4_IRQHandler(void){
     TIM3->EGR |= TIM_EGR_UG;
 }
 
+/* On initialization, wait until board T responds before sending speed data */
 void USART3_IRQHandler(void){
+    static uint8_t init = 1;
+    
     USART3->CR3 &= ~USART_CR3_DMAT;     /* Stop DMA Transfers */
     USART3->SR &= ~USART_SR_TC;         /* Clear interrupt */
-    vTaskNotifyGiveFromISR(send_speed_handle, NULL);
+    if(init == 0) vTaskNotifyGiveFromISR(send_speed_handle, NULL);
+    else init = 0;
 }
