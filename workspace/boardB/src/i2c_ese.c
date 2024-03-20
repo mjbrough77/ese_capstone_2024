@@ -85,20 +85,6 @@ void configure_i2c2_dma(void){
     NVIC_EnableIRQ(DMA1_Channel5_IRQn);
 }
 
-/**
-  *@brief Gives DMA_Channel4 (I2C2_Tx) the buffer location of the eeprom log
-  *
-  * Used exclusively by `eeprom_write_task` to give the DMA controller the
-  * address of the log in memory
-  *
-  *@param log The data to be saved on the EEPROM
-  *@pre MPU6050 has been reset
- */
-static void set_log_address_dma(LogData_t *log){
-    DMA1_Channel4->CMAR = (uint32_t)log;
-    DMA1_Channel4->CCR |= DMA_CCR4_EN;
-}
-
 
 /**************************************************************************
  * I2C2 Peripheral Tasks

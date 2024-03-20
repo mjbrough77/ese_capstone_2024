@@ -89,7 +89,7 @@
             <nStopA1X>0</nStopA1X>
             <nStopA2X>0</nStopA2X>
           </AfterMake>
-          <SelectedForBatchBuild>0</SelectedForBatchBuild>
+          <SelectedForBatchBuild>1</SelectedForBatchBuild>
           <SVCSIdString></SVCSIdString>
         </TargetCommonOption>
         <CommonProperty>
@@ -134,11 +134,11 @@
             <RunIndependent>0</RunIndependent>
             <UpdateFlashBeforeDebugging>1</UpdateFlashBeforeDebugging>
             <Capability>1</Capability>
-            <DriverSelection>-1</DriverSelection>
+            <DriverSelection>4096</DriverSelection>
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>BIN\UL2CM3.DLL</Flash2>
-          <Flash3></Flash3>
+          <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -390,29 +390,24 @@
               <FilePath>.\src\main.c</FilePath>
             </File>
             <File>
-              <FileName>adc_ese.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\adc_ese.c</FilePath>
-            </File>
-            <File>
               <FileName>clocks_ese.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\clocks_ese.c</FilePath>
             </File>
             <File>
-              <FileName>display_ese.c</FileName>
+              <FileName>i2c_ese.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\display_ese.c</FilePath>
-            </File>
-            <File>
-              <FileName>gpio_ese.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\gpio_ese.c</FilePath>
+              <FilePath>.\src\i2c_ese.c</FilePath>
             </File>
             <File>
               <FileName>interrupts_ese.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\interrupts_ese.c</FilePath>
+            </File>
+            <File>
+              <FileName>gpio_ese.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\gpio_ese.c</FilePath>
             </File>
             <File>
               <FileName>queues_ese.c</FileName>
@@ -445,29 +440,24 @@
               <FilePath>..\project_types.h</FilePath>
             </File>
             <File>
-              <FileName>adc_ese.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\include\adc_ese.h</FilePath>
-            </File>
-            <File>
               <FileName>clocks_ese.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\include\clocks_ese.h</FilePath>
             </File>
             <File>
-              <FileName>display_ese.h</FileName>
+              <FileName>i2c_ese.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\include\display_ese.h</FilePath>
-            </File>
-            <File>
-              <FileName>gpio_ese.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\include\gpio_ese.h</FilePath>
+              <FilePath>.\include\i2c_ese.h</FilePath>
             </File>
             <File>
               <FileName>interrupts_ese.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\include\interrupts_ese.h</FilePath>
+            </File>
+            <File>
+              <FileName>gpio_ese.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\include\gpio_ese.h</FilePath>
             </File>
             <File>
               <FileName>queues_ese.h</FileName>
@@ -573,5 +563,14 @@
       </file>
     </files>
   </RTE>
+
+  <LayerInfo>
+    <Layers>
+      <Layer>
+        <LayName>eseCapstone</LayName>
+        <LayPrjMark>1</LayPrjMark>
+      </Layer>
+    </Layers>
+  </LayerInfo>
 
 </Project>

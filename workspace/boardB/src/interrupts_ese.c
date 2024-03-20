@@ -17,15 +17,14 @@
 #include "../include/interrupts_ese.h"
 #include "../include/i2c_ese.h"
 
-
 /**
-  *@brief Buffer for storing Ultrasonic Data.
+  *@brief Buffer for storing Ultrasonic Data
   * ONLY ACCSSESED BY DMA1_Channel3_IRQHandler()` and the DMA controller
  */
 static Distances_t ultrasonic_distances;
 
 /**
-  *@brief Buffer for storing MPU Data.
+  *@brief Buffer for storing MPU Data
   * ONLY ACCSSESED BY DMA1_Channel5_IRQHandler()` and the DMA controller
  */
 static uint8_t mpu_data[MPU_FIFO_READ];
@@ -156,7 +155,7 @@ void I2C2_EV_IRQHandler(void){
     uint8_t address_to_send = 0;
     uint8_t register_to_send = 0;
 
-    /* Full queue indicates = read MPU, assumed empty queue after each stop */
+    /* Full queue = read MPU, queue empty after each I2C stop condition */
     if(queue_size == MPU_READ_ADDRS){
         restart = 1;
         I2C2->CR2 |= I2C_CR2_ITBUFEN; /* Enables interrupt on TxE */
@@ -223,7 +222,8 @@ void TIM1_CC_IRQHandler(void){
     if(TIM1->SR & TIM_SR_UIF || phaseZ_time == 0) velocity = 0; 
     else velocity = (WheelVelocity_t)(VELOCITY_FACTOR*encoder_count/phaseZ_time);
     
-    xQueueOverwriteFromISR(right_wheel_dataQ, &velocity, NULL);
+    /* Post updated velocity information */
+    xQueueOverwriteFromISR(left_wheel_dataQ, &velocity, NULL);
     
     /* Reset Z-phase timer count */
     TIM1->CR1 |= TIM_CR1_UDIS;
@@ -250,6 +250,7 @@ void TIM4_IRQHandler(void){
     if(TIM4->SR & TIM_SR_UIF || phaseZ_time == 0) velocity = 0; 
     else velocity = (WheelVelocity_t)(VELOCITY_FACTOR*encoder_count/phaseZ_time);
     
+    /* Post updated velocity information */
     xQueueOverwriteFromISR(right_wheel_dataQ, &velocity, NULL);
     
     /* Reset Z-phase timer count */

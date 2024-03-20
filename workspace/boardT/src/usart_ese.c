@@ -47,7 +47,6 @@ _Noreturn void ultrasonic_data_task(void* param){
         vTaskSuspend(NULL);
     #endif
         
-        
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* Unblocks by TIM2 */
         
         readings.right_data = (read_right_ultrasonic()-ULTRASONIC_RIGHT_OFFSET)

@@ -34,7 +34,6 @@ int main(void){
     xTaskCreate(print_speed_task,"Speed",128,NULL,1,&print_speed_handle);
     xTaskCreate(ultrasonic_data_task,"Ultra",128,NULL,1,&ultrasonic_handle);
     
-    /* Peripherals enabled in USART3_IRQHandler */
     vTaskStartScheduler();
 	while(1);
 }
@@ -59,4 +58,6 @@ static void board_init(void){
     configure_adc1();
     configure_usart3();
     prepare_usart3_dma();
+    
+    /* Peripherals fully enabled in USART3_IRQHandler() */
 }

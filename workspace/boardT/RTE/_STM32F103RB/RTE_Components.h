@@ -3,7 +3,7 @@
  * Auto generated Run-Time-Environment Configuration File
  *      *** Do not modify ! ***
  *
- * Project: 'boardA' 
+ * Project: 'boardT' 
  * Target:  'STM32F103RB' 
  */
 
