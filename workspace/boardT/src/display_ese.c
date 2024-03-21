@@ -144,11 +144,10 @@ void turn_off_display(void){
 }
 
 _Noreturn void print_speed_task(void* param){
-    TickType_t xLastWakeTime = xTaskGetTickCount();
     ChairSpeed_t current_speed = 0;
     
     while(1){
-        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS( 10 )); /* 100Hz */
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* New speed data unblocks */
         
         xQueuePeek(speedQ, &current_speed, portMAX_DELAY);
         send_to_display(current_speed/SPEED_SCALE);

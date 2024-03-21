@@ -38,11 +38,6 @@ void configure_io(void){
     /** PA9 as GPO Push-Pull @ 2MHz (D3-1) **/
     GPIOA->CRH |= GPIO_CRH_MODE9_1;
     GPIOA->CRH &= ~GPIO_CRH_CNF9;
-    
-    /** PC2 as GPO Push-Pull @ 2MHz (Decimal Point) **/
-    GPIOC->CRL |= GPIO_CRL_MODE2_1;
-    GPIOC->CRL &= ~GPIO_CRL_CNF2;
-    GPIOC->BSRR |= GPIO_BRR_BR2; /* MUST BE LOW TO PREVENT OVER CURRENT */
 
 
     /**************************************************************************

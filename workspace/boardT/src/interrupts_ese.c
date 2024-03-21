@@ -31,13 +31,14 @@ void DMA1_Channel2_IRQHandler(void){
 /* Gives the new speed data to display task */
 void DMA1_Channel3_IRQHandler(void){
     xQueueOverwriteFromISR(speedQ, &speed_data, NULL);
+    vTaskNotifyGiveFromISR(print_speed_handle, NULL);   /* Print new speed */
     DMA1->IFCR |= DMA_IFCR_CTCIF3;
 }
 
 /* Updates USART3_Rx channel with buffer info, stops DMA transfers */
 void USART3_IRQHandler(void){
-    uint32_t status = USART3->SR;
     static uint8_t init = 1;
+    uint32_t status = USART3->SR;
     
     /* Board B is ready, finish configuring USART on Board T */
     if(init == 1 && status & USART_SR_RXNE && USART3->DR == USART_READY){
@@ -47,13 +48,13 @@ void USART3_IRQHandler(void){
         USART3->CR3 |= USART_CR3_DMAR;               /* Enable USART3_Rx requests */
 
         start_joystick_read();
-        start_ultrasonics();
         turn_on_display();
+        start_ultrasonics();
         
         init = 0;
     }
     
     else if(status & USART_SR_TC){
-        USART3->SR &= ~USART_SR_TC;         /* Clear interrupt */
+        USART3->SR &= ~USART_SR_TC; /* Clear interrupt */
     }
 }

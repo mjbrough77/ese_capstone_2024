@@ -152,18 +152,18 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>32</LineNumber>
+          <LineNumber>65</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134218708</Address>
+          <Address>134226246</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>&lt;1&gt;.\src\interrupts_ese.c</Filename>
+          <Filename>&lt;1&gt;.\src\usart_ese.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\boardB\src/interrupts_ese.c\32</Expression>
+          <Expression>\\boardB\src/usart_ese.c\65</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -192,12 +192,22 @@
           <WinNumber>1</WinNumber>
           <ItemText>USART_READY</ItemText>
         </Ww>
+        <Ww>
+          <count>5</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>&amp;right_vel</ItemText>
+        </Ww>
+        <Ww>
+          <count>6</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>&amp;left_vel</ItemText>
+        </Ww>
       </WatchWindow1>
       <MemoryWindow1>
         <Mm>
           <WinNumber>1</WinNumber>
           <SubType>0</SubType>
-          <ItemText>0x20000078</ItemText>
+          <ItemText>0x20000ed4</ItemText>
           <AccSizeX>0</AccSizeX>
         </Mm>
       </MemoryWindow1>

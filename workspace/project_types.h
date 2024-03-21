@@ -22,10 +22,11 @@
 /**************************************************************************
  * Wheel Definitions
 **************************************************************************/
-#define SPEED_SCALE             1000    /* Speed data stored as [10^4 km/h] */
+#define SPEED_SCALE             1000    /* Speed data stored as 10^4 km/h */
 #define VELOCITY_FACTOR         146112  /* See boardA/src/timers_ese.c */
 #define WHEEL_COUNT             2
 #define MAX_SPEED               35000   /* [10^4 km/h] */
+#define SPEED_SAMPLE_MS         15      /* [ms], based on max z-phase period */
 
 /**************************************************************************
  * USART Flag Values

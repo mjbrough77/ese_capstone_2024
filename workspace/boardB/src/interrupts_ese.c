@@ -277,7 +277,7 @@ void TIM4_IRQHandler(void){
     TIM3->EGR |= TIM_EGR_UG;
 }
 
-/* On initialization, wait until board T responds before sending speed data */
+/* Only fires when TC is asserted */
 void USART3_IRQHandler(void){
     static uint8_t init = 1;
     

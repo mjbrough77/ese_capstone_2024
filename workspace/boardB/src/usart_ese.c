@@ -45,6 +45,7 @@ void send_ready_signal(void){
 /* No protected access of USART3_Tx bc no other tasks access it */
 _Noreturn void send_speed_task(void* param){
     ChairSpeed_t total_speed;
+    TickType_t xLastWakeTime = xTaskGetTickCount();
     WheelVelocity_t left_vel = 0;
     WheelVelocity_t right_vel = 0;
     
@@ -57,7 +58,7 @@ _Noreturn void send_speed_task(void* param){
     #ifdef SEND_SPEED_TASK_SUSPEND
         vTaskSuspend(NULL);
     #endif
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* Unblocks by USART3 TC */
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS( SPEED_SAMPLE_MS ));
         
         xQueuePeek(left_wheel_dataQ, &left_vel, NULL);
         xQueuePeek(right_wheel_dataQ, &right_vel, NULL);
