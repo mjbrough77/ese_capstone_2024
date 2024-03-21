@@ -84,12 +84,10 @@ void configure_io(void){
     /* Remap PC10 -> Tx, PC11 -> Rx, PC12 -> CK */
     AFIO->MAPR |= AFIO_MAPR_USART3_REMAP_PARTIALREMAP;
     
-    /** PC10 as AFO push-pull @ 10MHz (USART3_Tx) */
-    GPIOC->CRH |= GPIO_CRH_MODE10_0 | GPIO_CRH_CNF10_1;
+    /** PC10 as AFO push-pull @ 2MHz (USART3_Tx) */
+    GPIOC->CRH |= GPIO_CRH_MODE10_1 | GPIO_CRH_CNF10_1;
     GPIOC->CRH &= ~GPIO_CRH_CNF10_0;
     
     /** PC11 as Input w/pull-up (USART3_Rx) */
-    GPIOC->CRH |= GPIO_CRH_CNF11_1;
-    GPIOC->CRH &= ~GPIO_CRH_CNF11_0;
-    
+    /* Default config on reset */
 }

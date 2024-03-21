@@ -19,23 +19,29 @@
 
 /**
   *@brief Buffer for storing Ultrasonic Data
-  * ONLY ACCSSESED BY DMA1_Channel3_IRQHandler()` and the DMA controller
+  * ONLY ACCSSESED BY `DMA1_Channel3_IRQHandler()` and the DMA controller
  */
 static Distances_t ultrasonic_distances;
 
 /**
   *@brief Buffer for storing MPU Data
-  * ONLY ACCSSESED BY DMA1_Channel5_IRQHandler()` and the DMA controller
+  * ONLY ACCSSESED BY `DMA1_Channel5_IRQHandler()` and the DMA controller
  */
 static uint8_t mpu_data[MPU_FIFO_READ];
+
+
+void DMA1_Channel2_IRQHandler(void){
+    USART3->CR3 &= ~USART_CR3_DMAT;
+    DMA1->IFCR |= DMA_IFCR_CTCIF2;
+}
 
 void DMA1_Channel3_IRQHandler(void){
     static uint8_t init = 1;
     
-    DMA1->IFCR |= DMA_IFCR_CTCIF3;
     xQueueOverwriteFromISR(ultrasonic_dataQ, &ultrasonic_distances, NULL);
+    DMA1->IFCR |= DMA_IFCR_CTCIF3;
     
-    /* First recieved data means we can safely send speed data */
+    /* Only sends speed data if BoardT gave at least 1 ultrasonic data */
     if(init == 1){
         vTaskNotifyGiveFromISR(send_speed_handle, NULL);
         init = 0;
@@ -84,7 +90,7 @@ void DMA1_Channel4_IRQHandler(void){
         DMA1_Channel5->CMAR = (uint32_t)mpu_data;
         DMA1_Channel5->CCR |= DMA_CCR5_EN;
 
-        init = 0; /* Done initializing DMA controller */
+        init = 0;
     }
 
     DMA1->IFCR |= DMA_IFCR_CTCIF4; /* Clear interrupt */
@@ -275,9 +281,7 @@ void TIM4_IRQHandler(void){
 void USART3_IRQHandler(void){
     static uint8_t init = 1;
     
-    USART3->CR3 &= ~USART_CR3_DMAT;     /* Stop DMA Transfers */
-    USART3->SR &= ~USART_SR_TC;         /* Clear interrupt */
-    
-    if(init == 1){ USART3->DR = USART_READY; init = 0; }
+    USART3->SR &= ~USART_SR_TC; /* Clear interrupt */
+    if(init == 1){ USART3->DR = USART_READY; init = 0; } /* Start BoardT init */
     else vTaskNotifyGiveFromISR(send_speed_handle, NULL);
 }

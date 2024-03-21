@@ -136,6 +136,5 @@ void configure_io(void){
     GPIOC->CRH &= ~GPIO_CRH_CNF10_0;
     
     /** PC11 as Input w/pull-up (USART3_Rx) */
-    GPIOC->CRH |= GPIO_CRH_CNF11_1;
-    GPIOC->CRH &= ~GPIO_CRH_CNF11_0;
+    /* Default config on reset */
 }
