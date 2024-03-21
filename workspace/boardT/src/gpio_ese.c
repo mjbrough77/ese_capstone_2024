@@ -111,10 +111,10 @@ void configure_io(void){
     /**************************************************************************
      * ULTRASONIC SENSORS
     **************************************************************************/
-    /********** Configure TIM2 CH2 for PWM Output **********/
-    /** PA1 as AFO push-pull @ 2MHz (TRIG) **/
-    GPIOA->CRL |= GPIO_CRL_MODE1_1 | GPIO_CRL_CNF1_1;
-    GPIOA->CRL &= ~GPIO_CRL_CNF1_0;
+    /********** Configure TIM2 CH1 for PWM Output **********/
+    /** PA0 as AFO push-pull @ 2MHz (TRIG) **/
+    GPIOA->CRL |= GPIO_CRL_MODE0_1 | GPIO_CRL_CNF0_1;
+    GPIOA->CRL &= ~GPIO_CRL_CNF0_0;
 
     /********** Configure TIM4 CH1,2 for Input Capture **********/
     /** PB6 as Floating Input (RIGHT SENSOR ECHO) */
@@ -133,8 +133,9 @@ void configure_io(void){
     
     /** PC10 as AFO push-pull @ 2MHz (USART3_Tx) */
     GPIOC->CRH |= GPIO_CRH_MODE10_1 | GPIO_CRH_CNF10_1;
-    GPIOA->CRH &= ~GPIO_CRH_CNF10_0;
+    GPIOC->CRH &= ~GPIO_CRH_CNF10_0;
     
-    /** PB6 as Floating Input (USART3_Rx) */
-    /* Default config on reset */
+    /** PC11 as Input w/pull-up (USART3_Rx) */
+    GPIOC->CRH |= GPIO_CRH_CNF11_1;
+    GPIOC->CRH &= ~GPIO_CRH_CNF11_0;
 }

@@ -117,6 +117,7 @@ _Noreturn void mpu_reset_task(void* param){
         xTaskCreate(eeprom_write_task,"EEPROM",128,NULL,1,&eeprom_write_handle);
         xTaskCreate(mpu_read_task,"MPU Read",128,NULL,1,&mpu_read_handle);
         xTaskCreate(send_speed_task,"Speed",128,NULL,1,&send_speed_handle);
+        
         enable_mpu_int_pin();
         send_ready_signal();
         

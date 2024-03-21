@@ -277,6 +277,7 @@ void USART3_IRQHandler(void){
     
     USART3->CR3 &= ~USART_CR3_DMAT;     /* Stop DMA Transfers */
     USART3->SR &= ~USART_SR_TC;         /* Clear interrupt */
-    if(init == 0) vTaskNotifyGiveFromISR(send_speed_handle, NULL);
-    else init = 0;
+    
+    if(init == 1){ USART3->DR = USART_READY; init = 0; }
+    else vTaskNotifyGiveFromISR(send_speed_handle, NULL);
 }

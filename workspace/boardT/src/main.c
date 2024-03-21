@@ -46,6 +46,7 @@ static void board_init(void){
     clock_gpiob();
     clock_gpioc();
     clock_adc1();
+    clock_dma1();
     clock_tim2();
     clock_tim3();
     clock_tim4();

@@ -23,6 +23,11 @@ void TIM3_IRQHandler(void) {
 	TIM3->SR &= ~TIM_SR_CC1IF; /* Clear interrupt */
 }
 
+void DMA1_Channel2_IRQHandler(void){
+    USART3->CR3 &= ~USART_CR3_DMAT;
+    DMA1->IFCR |= DMA_IFCR_CTCIF2;
+}
+
 /* Gives the new speed data to display task */
 void DMA1_Channel3_IRQHandler(void){
     xQueueOverwriteFromISR(speedQ, &speed_data, NULL);
@@ -39,7 +44,6 @@ void USART3_IRQHandler(void){
         DMA1_Channel3->CMAR = (uint32_t)&speed_data; /* Received data buffer */
         DMA1_Channel3->CCR |= DMA_CCR3_EN;           /* Enable DMA_USART3_Rx */
         USART3->CR1 &= ~USART_CR1_RXNEIE;            /* Disable RxNE interrupt */
-        USART3->CR1 |= USART_CR1_TE;                 /* Enable transmitter */
         USART3->CR3 |= USART_CR3_DMAR;               /* Enable USART3_Rx requests */
 
         start_joystick_read();
@@ -50,7 +54,6 @@ void USART3_IRQHandler(void){
     }
     
     else if(status & USART_SR_TC){
-        USART3->CR3 &= ~USART_CR3_DMAT;     /* Stop DMA Transfers */
         USART3->SR &= ~USART_SR_TC;         /* Clear interrupt */
     }
 }

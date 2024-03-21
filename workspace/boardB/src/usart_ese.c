@@ -10,8 +10,10 @@ void configure_usart3(void){
     USART3->BRR = 0x10;             /* Baud Rate = 1.25Mbps, See RM0008 */
     
     USART3->CR3 |= USART_CR3_DMAR;  /* Enable DMA_USART3_Rx */
-    USART3->CR1 |= USART_CR1_TCIE;
-    USART3->CR1 |= USART_CR1_TE | USART_CR1_RE; /* Enable Tx, Rx */
+    NVIC_SetPriority(USART3_IRQn, 5);
+    NVIC_EnableIRQ(USART3_IRQn);
+    
+    USART3->CR1 |= USART_CR1_RE;    /* Enable Tx, Rx */
 }
 
 void prepare_usart3_dma(void){
@@ -33,17 +35,19 @@ void prepare_usart3_dma(void){
 }
 
 void send_ready_signal(void){
-    USART3->DR = USART_READY;
+    USART3->CR1 |= USART_CR1_TE;
+    USART3->CR1 |= USART_CR1_TCIE;
 }
 
+/* No protected access of USART3_Tx bc no other tasks access it */
 _Noreturn void send_speed_task(void* param){
     ChairSpeed_t total_speed;
-    WheelVelocity_t left_vel;
-    WheelVelocity_t right_vel;
+    WheelVelocity_t left_vel = 0;
+    WheelVelocity_t right_vel = 0;
     
     /* Finish configuring DMA_USART3_Tx */
     DMA1_Channel2->CMAR = (uint32_t)&total_speed;
-    DMA1_Channel2->CCR |= DMA_CCR2_EN;
+    //DMA1_Channel2->CCR |= DMA_CCR2_EN;
     
     /* Constantly transfers wheel speed data */
     while(1){

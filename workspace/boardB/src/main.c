@@ -35,10 +35,13 @@ static void board_init(void){
     sysclock_init();
 
     clock_afio();
+    clock_gpioa();
     clock_gpiob();
     clock_gpioc();
+    clock_adc1();
     clock_i2c2();
     clock_dma1();
+    clock_usart3();
 
     configure_io();
     configure_i2c2();
