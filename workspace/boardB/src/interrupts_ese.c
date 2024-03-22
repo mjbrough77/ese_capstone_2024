@@ -163,7 +163,6 @@ void DMA1_Channel5_IRQHandler(void){
  */
 void I2C2_EV_IRQHandler(void){
     uint16_t status = I2C2->SR1;
-    uint32_t delay = 0x2F;          /* SEE BELOW */
     static uint8_t restart = 0;     /* ReStart required on MPU read */
 
     uint8_t queue_size = (uint8_t)uxQueueMessagesWaitingFromISR(i2c2Q);
@@ -203,7 +202,6 @@ void I2C2_EV_IRQHandler(void){
             restart = 0;
             I2C2->DR = register_to_send;
             I2C2->CR1 |= I2C_CR1_START;
-            while(delay--); /* WARNING: SOME DELAY REQUIRED AFTER RESTART */
         }
     }
 }

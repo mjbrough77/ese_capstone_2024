@@ -6,9 +6,9 @@
 /**************************************************************************
  * Macros for debugging [Define to turn on]
 **************************************************************************/
-#define MPU_RESET_SKIP
+//#define MPU_RESET_SKIP
 #define EEPROM_TASK_SUSPEND
-#define MPU_TASK_SUSPEND
+//#define MPU_TASK_SUSPEND
 //#define SEND_SPEED_TASK_SUSPEND
 //#define SEND_ULTRASONIC_TASK_SUSPEND
 
