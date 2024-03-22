@@ -17,9 +17,13 @@ void TIM2_IRQHandler(void){
 
 /* Updates motor signals */
 void TIM3_IRQHandler(void) {
+    uint32_t joystick_y = read_joystick_y();
+    uint32_t joystick_x = read_joystick_x();
+    if(joystick_y < 0x800) joystick_x = (~joystick_x) & 0xFFF;
+    
     /* Values preloaded, they are applied on the next PWM period */
-	TIM3->CCR1 = (uint16_t)(10 + (read_joystick_x() * 11 / 4095));
-	TIM3->CCR2 = (uint16_t)(10 + (read_joystick_x() * 11 / 4095));
+	TIM3->CCR1 = (uint16_t)(10 + (joystick_x * 10 / 4095)); /* S2 */
+    TIM3->CCR2 = (uint16_t)(10 + (joystick_y * 10 / 4095)); /* S1 */
 	TIM3->SR &= ~TIM_SR_CC1IF; /* Clear interrupt */
 }
 
