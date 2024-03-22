@@ -16,6 +16,7 @@
 
 #include "../include/interrupts_ese.h"
 #include "../include/i2c_ese.h"
+#include "../include/timers_ese.h"
 
 /**
   *@brief Buffer for storing Ultrasonic Data
@@ -89,7 +90,7 @@ void DMA1_Channel4_IRQHandler(void){
         /* Data received over I2C2 placed in buffer at `mpu_data` */
         DMA1_Channel5->CMAR = (uint32_t)mpu_data;
         DMA1_Channel5->CCR |= DMA_CCR5_EN;
-
+        
         init = 0;
     }
 
@@ -227,15 +228,22 @@ void EXTI9_5_IRQHandler(void){
 
 void TIM1_CC_IRQHandler(void){
     WheelVelocity_t velocity;   /* Speed with direction */
+    int16_t negative_mask;      /* Used to find absolute speed */
     int16_t encoder_count;      /* Encoder mode used a signed counting method */
     uint16_t phaseZ_time;       /* Time for Z-phase to complete one rotation */
     
     phaseZ_time = TIM1->CCR1;
     encoder_count = (int16_t)TIM2->CNT; 
     
+    /* Calculate velocity using magnitude only */
+    negative_mask = encoder_count >> 15;
+    encoder_count ^= negative_mask;
+    encoder_count -= negative_mask;
+    
     /* Timer overflow or timer = 0 cases */
     if(TIM1->SR & TIM_SR_UIF || phaseZ_time == 0) velocity = 0; 
     else velocity = (WheelVelocity_t)(VELOCITY_FACTOR*encoder_count/phaseZ_time);
+    if(negative_mask) velocity = -velocity;
     
     /* Post updated velocity information */
     xQueueOverwriteFromISR(left_wheel_dataQ, &velocity, NULL);
@@ -247,6 +255,9 @@ void TIM1_CC_IRQHandler(void){
 
     /* Reset Encoder count */
     TIM2->EGR |= TIM_EGR_UG;
+    
+    /* Clear UIF flag if an overflow occured */
+    TIM1->SR &= ~TIM_SR_UIF;
 }
 
 /**
@@ -255,16 +266,23 @@ void TIM1_CC_IRQHandler(void){
  */
 void TIM4_IRQHandler(void){
     WheelVelocity_t velocity;   /* Speed with direction */
+    int16_t negative_mask;      /* Used to find absolute speed */
     int16_t encoder_count;      /* Encoder mode uses a signed counting method */
     uint16_t phaseZ_time;       /* Time for Z-phase to complete one rotation */
     
     phaseZ_time = TIM4->CCR1;
     encoder_count = (int16_t)TIM3->CNT; 
     
+    /* Calculate velocity using magnitude only */
+    negative_mask = encoder_count >> 15;
+    encoder_count ^= negative_mask;
+    encoder_count -= negative_mask;
+    
     /* Timer overflow or timer = 0 cases */
     if(TIM4->SR & TIM_SR_UIF || phaseZ_time == 0) velocity = 0; 
     else velocity = (WheelVelocity_t)(VELOCITY_FACTOR*encoder_count/phaseZ_time);
-    
+    if(negative_mask) velocity = -velocity;
+        
     /* Post updated velocity information */
     xQueueOverwriteFromISR(right_wheel_dataQ, &velocity, NULL);
     
@@ -275,6 +293,9 @@ void TIM4_IRQHandler(void){
 
     /* Reset Encoder count */
     TIM3->EGR |= TIM_EGR_UG;
+    
+    /* Clear UIF flag if an overflow occured */
+    TIM4->SR &= ~TIM_SR_UIF;
 }
 
 /* Only fires when TC is asserted */

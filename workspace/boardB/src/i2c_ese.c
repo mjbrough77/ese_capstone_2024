@@ -15,6 +15,7 @@
 #include "../include/queues_ese.h"
 
 #include "../include/i2c_ese.h"
+#include "../include/timers_ese.h"
 #include "../include/usart_ese.h"
 
 
@@ -118,6 +119,7 @@ _Noreturn void mpu_reset_task(void* param){
         xTaskCreate(mpu_read_task,"MPU Read",128,NULL,1,&mpu_read_handle);
         xTaskCreate(send_speed_task,"Speed",128,NULL,1,&send_speed_handle);
         
+        start_encoder_readings();
         enable_mpu_int_pin();
         send_ready_signal();
         

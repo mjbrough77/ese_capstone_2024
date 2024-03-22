@@ -99,3 +99,10 @@ void configure_tim4(void){
     NVIC_SetPriority(TIM4_IRQn, 5); /* ISR Priority >= 5 (FreeRTOS) */
     NVIC_EnableIRQ(TIM4_IRQn);      
 }
+
+void start_encoder_readings(void){
+    TIM1->CR1 |= TIM_CR1_CEN;
+    TIM2->CR1 |= TIM_CR1_CEN;
+    TIM3->CR1 |= TIM_CR1_CEN;
+    TIM4->CR1 |= TIM_CR1_CEN;
+}

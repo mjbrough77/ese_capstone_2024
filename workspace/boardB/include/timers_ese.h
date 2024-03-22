@@ -18,5 +18,6 @@ void configure_tim1(void);
 void configure_tim2(void);
 void configure_tim3(void);
 void configure_tim4(void);
+void start_encoder_readings(void);
 
 #endif

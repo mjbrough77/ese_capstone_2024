@@ -39,13 +39,22 @@ static void board_init(void){
     clock_gpiob();
     clock_gpioc();
     clock_adc1();
-    clock_i2c2();
     clock_dma1();
+    clock_i2c2();
+    clock_tim1();
+    clock_tim2();
+    clock_tim3();
+    clock_tim4();
     clock_usart3();
 
     configure_io();
     configure_i2c2();
+    configure_tim1();
+    configure_tim2();
+    configure_tim3();
+    configure_tim4();
     configure_usart3();
+    
     configure_i2c2_dma();
     prepare_usart3_dma();
 }
