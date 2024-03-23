@@ -178,10 +178,8 @@ _Noreturn void eeprom_write_task(void* param){
         /**************************** ERROR CHECK ****************************/
         if(I2C2->SR2 & I2C_SR2_BUSY){
             vTaskDelay( pdMS_TO_TICKS( 1 ) ); /* T_MPUREAD < 1ms */
-
-            /* Bus error, suspend scheduler */
             if(I2C2->SR2 & I2C_SR2_BUSY)
-                vTaskSuspendAll();
+                vTaskSuspendAll();            /* Unrecoverable bus error */
         }
 
         /**************************** UPDATE LOG ****************************/
@@ -243,15 +241,12 @@ _Noreturn void mpu_read_task(void* param){
     #ifdef MPU_TASK_SUSPEND
         vTaskSuspend(NULL);
     #endif
-
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
         if(I2C2->SR2 & I2C_SR2_BUSY){
             vTaskDelay( pdMS_TO_TICKS( 2 ) ); /* T_EEPROMW < 2ms */
-
-            /* Bus error, suspend scheduler */
             if(I2C2->SR2 & I2C_SR2_BUSY)
-                vTaskSuspendAll();
+                vTaskSuspendAll();            /* Unrecoverable bus error */
         }
 
         /* Assumes i2c2Q empty, task will block indefinitely otherwise */

@@ -23,7 +23,7 @@
   *@param num value from 0-9
   *@pre num has been type checked by send_to_display()
  */
-void write_ones_sevenseg(uint8_t num){
+void write_tens_sevenseg(uint8_t num){
 	switch(num){
 		case 0:
 			GPIOB->BSRR |= GPIO_BSRR_BR5 | GPIO_BSRR_BR4 | GPIO_BSRR_BR10;
@@ -77,7 +77,7 @@ void write_ones_sevenseg(uint8_t num){
   *@param num value from 0-9
   *@pre num has been type checked by send_to_display()
  */
-void write_tens_sevenseg(uint8_t num){
+void write_ones_sevenseg(uint8_t num){
 	switch(num){
 		case 0:
             GPIOA->BSRR |= GPIO_BSRR_BR4 | GPIO_BSRR_BR10;
@@ -131,8 +131,8 @@ void write_tens_sevenseg(uint8_t num){
  */
 void send_to_display(uint8_t digits){
     if(digits > 99) digits = 99;        /* Saturate digits to 99 */
+    write_tens_sevenseg(digits / 10);   /* Display tens digit */
 	write_ones_sevenseg(digits % 10);   /* Display ones digit */
-	write_tens_sevenseg(digits / 10);   /* Display tens digit */
 }
 
 void turn_on_display(void){
