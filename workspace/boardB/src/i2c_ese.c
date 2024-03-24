@@ -49,9 +49,12 @@ void configure_i2c2(void){
     I2C2->CCR |= I2C_CCR_FS | I2C_CCR_DUTY | 2; /* 400kHz Fm with 16/9 DC */
     I2C2->TRISE = 7;                            /* 300ns / 50ns = 6 + 1 = 7 */
     I2C2->CR2 |= I2C_CR2_ITEVTEN;               /* Event interrupt enable */
+    I2C2->CR2 |= I2C_CR2_ITERREN;               /* Error interrupt enable */
 
     NVIC_SetPriority(I2C2_EV_IRQn, 5); /* ISR Priority >= 5 (FreeRTOS) */
+    NVIC_SetPriority(I2C2_ER_IRQn, 5);
     NVIC_EnableIRQ(I2C2_EV_IRQn);
+    NVIC_EnableIRQ(I2C2_ER_IRQn);
 
     I2C2->CR1 |= I2C_CR1_PE;    /* Peripheral Enable */
     I2C2->CR1 |= I2C_CR1_ACK;   /* Acknowledge on Rx */
@@ -193,7 +196,7 @@ _Noreturn void eeprom_write_task(void* param){
 
         /**************************** Start Write ***************************/
         xSemaphoreTake(i2c2_mutex, portMAX_DELAY);
-            while(I2C2->SR2 & I2C_SR2_BUSY) taskYIELD(); /* Very short wait */
+            while(I2C2->SR2 & I2C_SR2_BUSY);
             xQueueSendToBack(i2c2Q, &control_byte, portMAX_DELAY);
             I2C2->CR1 |= I2C_CR1_START;
         xSemaphoreGive(i2c2_mutex);
@@ -237,7 +240,7 @@ _Noreturn void mpu_read_task(void* param){
 
         /* Assumes i2c2Q empty, task will block indefinitely otherwise */
         xSemaphoreTake(i2c2_mutex, portMAX_DELAY);
-            while(I2C2->SR2 & I2C_SR2_BUSY) taskYIELD(); /* Very short wait */
+            while(I2C2->SR2 & I2C_SR2_BUSY);
             xQueueSendToBack(i2c2Q, &MPU_WRITE_ADDR, portMAX_DELAY);
             xQueueSendToBack(i2c2Q, &MPU_FIFO_ADDR, portMAX_DELAY);
             xQueueSendToBack(i2c2Q, &MPU_READ_ADDR, portMAX_DELAY);

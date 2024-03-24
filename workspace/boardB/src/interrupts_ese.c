@@ -188,6 +188,13 @@ void I2C2_EV_IRQHandler(void){
     }
 }
 
+void I2C2_ER_IRQHandler(void){
+    if(I2C2->SR1 & I2C_SR1_AF){
+        I2C2->CR1 |= I2C_CR1_SWRST;
+        I2C2->CR1 &= ~I2C_CR1_SWRST;
+    }
+}
+
 /**
   *@brief Unblocks `mpu_read_task` which starts a read of the MPU6050.
   * This interrupt should only execute on the MPU6050 INT pin going high.
