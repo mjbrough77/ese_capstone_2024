@@ -37,16 +37,8 @@ void DMA1_Channel2_IRQHandler(void){
 }
 
 void DMA1_Channel3_IRQHandler(void){
-    static uint8_t init = 1;
-    
     xQueueOverwriteFromISR(ultrasonic_dataQ, &ultrasonic_distances, NULL);
     DMA1->IFCR |= DMA_IFCR_CTCIF3;
-    
-    /* Only sends speed data if BoardT gave at least 1 ultrasonic data */
-    if(init == 1){
-        vTaskNotifyGiveFromISR(send_speed_handle, NULL);
-        init = 0;
-    }
 }
 
 /**
@@ -77,17 +69,17 @@ void DMA1_Channel4_IRQHandler(void){
 
     /* Should only execute once */
     else if(init == 1){
-        /* Start DMA_USART3_Rx, place received data in buffer at `ultrasonic_distances` */
+        /* Enable DMA_USART3_Rx, assign buffer location */
         DMA1_Channel3->CMAR = (uint32_t)&ultrasonic_distances;
         DMA1_Channel3->CCR |= DMA_CCR5_EN;
         
-        /* Reset DMA1_Channel4 (I2C2_Tx) for EEPROM write */
+        /* Reset DMA1_I2C2_Tx for EEPROM write */
         DMA1_Channel4->CCR &= (uint16_t)0xFFFE; /* Disable Tx DMA */
         DMA1_Channel4->CNDTR = sizeof(LogData_t);
         DMA1_Channel4->CCR |= DMA_CCR4_CIRC;
-        /* DMA1_Channel 4 configuration finished in eeprom_write_task() */
+        /* DMA1_I2C2_Tx configuration finished in eeprom_write_task() */
         
-        /* Data received over I2C2 placed in buffer at `mpu_data` */
+        /* Enable DMA_I2C2_Rx, assign buffer location */
         DMA1_Channel5->CMAR = (uint32_t)mpu_data;
         DMA1_Channel5->CCR |= DMA_CCR5_EN;
         
@@ -128,12 +120,9 @@ void DMA1_Channel5_IRQHandler(void){
     I2C2->CR1 |= I2C_CR1_STOP;
     
     /* See above explanation */
-    gyro_data.gyro_x_axis =  (Gyro_t)(mpu_data[0]<<8);
-    gyro_data.gyro_x_axis += (Gyro_t)mpu_data[1];
-    gyro_data.gyro_y_axis =  (Gyro_t)(mpu_data[2]<<8);
-    gyro_data.gyro_y_axis += (Gyro_t)mpu_data[3];
-    gyro_data.gyro_z_axis =  (Gyro_t)(mpu_data[4]<<8);
-    gyro_data.gyro_z_axis += (Gyro_t)mpu_data[5];
+    gyro_data.gyro_x_axis =  (Gyro_t)((mpu_data[0]<<8) | mpu_data[1]);
+    gyro_data.gyro_y_axis =  (Gyro_t)((mpu_data[2]<<8) | mpu_data[3]);
+    gyro_data.gyro_z_axis =  (Gyro_t)((mpu_data[4]<<8) | mpu_data[5]);
     
     xQueueOverwriteFromISR(mpu_dataQ, &gyro_data, NULL);
     
@@ -142,15 +131,7 @@ void DMA1_Channel5_IRQHandler(void){
 
 /**
   *@brief Handles I2C2 events as defined in the reference manual.
-  * WARNING: There is a dead loop in this inerrupt.
-  *
-  * After preliminary testing, on a ReStart command (i.e. another start is
-  * programmed before a stop) there must be a ~30us delay before data can be
-  * loaded into the I2C2_DR register. The only quick and easy way to create
-  * this delay is with a dead loop.
-  *
-  * Based on our applications, 30us is much too short of a time for any process
-  * to be missed so this is deemed acceptable.
+  * WARNING: There is a dead loop in this inerrupt..
   *
   * On MPU6050 reads, we have to manually send the data register because DMA
   * cannot handle requests with length < 2. `ITBUFEN` triggers this interrupt
@@ -162,9 +143,8 @@ void DMA1_Channel5_IRQHandler(void){
   *
  */
 void I2C2_EV_IRQHandler(void){
-    uint16_t status = I2C2->SR1;
     static uint8_t restart = 0;     /* ReStart required on MPU read */
-
+    uint16_t status = I2C2->SR1;
     uint8_t queue_size = (uint8_t)uxQueueMessagesWaitingFromISR(i2c2Q);
     uint8_t address_to_send = 0;
     uint8_t register_to_send = 0;
@@ -177,9 +157,8 @@ void I2C2_EV_IRQHandler(void){
 
     /* A start event is followed by a device address send */
     if(status & I2C_SR1_SB){
-        if(xQueueReceiveFromISR(i2c2Q, &address_to_send, NULL) == pdPASS){
-            I2C2->DR = address_to_send;
-        }
+        xQueueReceiveFromISR(i2c2Q, &address_to_send, NULL);
+        I2C2->DR = address_to_send;
     }
 
     /* Address sent, enable DMA transfers in I2C2 peripheral */
@@ -197,12 +176,11 @@ void I2C2_EV_IRQHandler(void){
     /* MPU6050 requires a second start during transmission */
     /* Only runs if we are reading data from the MPU6050 */
     else if(status & I2C_SR1_TXE){
-        if(xQueueReceiveFromISR(i2c2Q, &register_to_send, NULL) == pdPASS){
-            I2C2->CR2 &= ~I2C_CR2_ITBUFEN;
-            restart = 0;
-            I2C2->DR = register_to_send;
-            I2C2->CR1 |= I2C_CR1_START;
-        }
+        xQueueReceiveFromISR(i2c2Q, &register_to_send, NULL);
+        I2C2->CR2 &= ~I2C_CR2_ITBUFEN;
+        restart = 0;
+        I2C2->DR = register_to_send;
+        I2C2->CR1 |= I2C_CR1_START;
     }
 }
 
@@ -225,82 +203,22 @@ void EXTI9_5_IRQHandler(void){
  */
 
 void TIM1_CC_IRQHandler(void){
-    WheelVelocity_t velocity;   /* Speed with direction */
-    int16_t negative_mask;      /* Used to find absolute speed */
-    int16_t encoder_count;      /* Encoder mode used a signed counting method */
-    uint16_t phaseZ_time;       /* Time for Z-phase to complete one rotation */
-    
-    phaseZ_time = TIM1->CCR1;
-    encoder_count = (int16_t)TIM2->CNT; 
-    
-    /* Calculate velocity using magnitude only */
-    negative_mask = encoder_count >> 15;
-    encoder_count ^= negative_mask;
-    encoder_count -= negative_mask;
-    
-    /* Timer overflow or timer = 0 cases */
-    if(TIM1->SR & TIM_SR_UIF || phaseZ_time == 0) velocity = 0; 
-    else velocity = (WheelVelocity_t)(VELOCITY_FACTOR*encoder_count/phaseZ_time);
-    if(negative_mask) velocity = -velocity;
-    
-    /* Post updated velocity information */
-    xQueueOverwriteFromISR(left_wheel_dataQ, &velocity, NULL);
-    
-    /* Reset Z-phase timer count */
-    TIM1->CR1 |= TIM_CR1_UDIS;
-    TIM1->EGR |= TIM_EGR_UG;
-    TIM1->CR1 &= ~TIM_CR1_UDIS;
-
-    /* Reset Encoder count */
-    TIM2->EGR |= TIM_EGR_UG;
-    
-    /* Clear UIF flag if an overflow occured */
-    TIM1->SR &= ~TIM_SR_UIF;
+    TIM1->SR &= ~TIM_SR_CC1IF;
+    vTaskNotifyGiveFromISR(find_velocity_left_handle, NULL);
 }
 
 /**
-  *@brief blah
+  *@brief Start conversion of the 
   *
  */
 void TIM4_IRQHandler(void){
-    WheelVelocity_t velocity;   /* Speed with direction */
-    int16_t negative_mask;      /* Used to find absolute speed */
-    int16_t encoder_count;      /* Encoder mode uses a signed counting method */
-    uint16_t phaseZ_time;       /* Time for Z-phase to complete one rotation */
-    
-    phaseZ_time = TIM4->CCR1;
-    encoder_count = (int16_t)TIM3->CNT; 
-    
-    /* Calculate velocity using magnitude only */
-    negative_mask = encoder_count >> 15;
-    encoder_count ^= negative_mask;
-    encoder_count -= negative_mask;
-    
-    /* Timer overflow or timer = 0 cases */
-    if(TIM4->SR & TIM_SR_UIF || phaseZ_time == 0) velocity = 0; 
-    else velocity = (WheelVelocity_t)(VELOCITY_FACTOR*encoder_count/phaseZ_time);
-    if(negative_mask) velocity = -velocity;
-        
-    /* Post updated velocity information */
-    xQueueOverwriteFromISR(right_wheel_dataQ, &velocity, NULL);
-    
-    /* Reset Z-phase timer count */
-    TIM4->CR1 |= TIM_CR1_UDIS;
-    TIM4->EGR |= TIM_EGR_UG;
-    TIM4->CR1 &= ~TIM_CR1_UDIS;
-
-    /* Reset Encoder count */
-    TIM3->EGR |= TIM_EGR_UG;
-    
-    /* Clear UIF flag if an overflow occured */
-    TIM4->SR &= ~TIM_SR_UIF;
+    TIM4->SR &= ~TIM_SR_CC1IF;
+    vTaskNotifyGiveFromISR(find_velocity_right_handle, NULL);
 }
 
 /* Only fires when TC is asserted */
 void USART3_IRQHandler(void){
     static uint8_t init = 1;
-    
     USART3->SR &= ~USART_SR_TC; /* Clear interrupt */
     if(init == 1){ USART3->DR = USART_READY; init = 0; } /* Start BoardT init */
-    else vTaskNotifyGiveFromISR(send_speed_handle, NULL);
 }

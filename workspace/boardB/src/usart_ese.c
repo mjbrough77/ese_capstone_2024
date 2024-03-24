@@ -48,6 +48,7 @@ _Noreturn void send_speed_task(void* param){
     TickType_t xLastWakeTime = xTaskGetTickCount();
     WheelVelocity_t left_vel = 0;
     WheelVelocity_t right_vel = 0;
+    WheelVelocity_t total_velocity = 0;
     
     /* Finish configuring DMA_USART3_Tx */
     DMA1_Channel2->CMAR = (uint32_t)&total_speed;
@@ -62,7 +63,10 @@ _Noreturn void send_speed_task(void* param){
         
         xQueuePeek(left_wheel_dataQ, &left_vel, NULL);
         xQueuePeek(right_wheel_dataQ, &right_vel, NULL);
-        total_speed = (ChairSpeed_t)(left_vel+right_vel)/2;
+        total_velocity = (left_vel+right_vel)/2;
+        if(total_velocity < 0) total_velocity = -total_velocity;
+        
+        total_speed = (ChairSpeed_t)total_velocity;
         
         USART3->CR3 |= USART_CR3_DMAT; /* Start transfer of ultrasonic data */
         

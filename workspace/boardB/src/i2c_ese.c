@@ -19,9 +19,6 @@
 #include "../include/usart_ese.h"
 
 
-/**************************************************************************
- * MPU RESET ARRAY (GLOBAL CONST, SAFE TO ACCESS)
-**************************************************************************/
 const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE] = {
     {REG_PWR_MGMT_1, 0x80},         /* Device Reset */
     {REG_SIGNAL_PATH_RESET, 0x07},  /* Sensor Reset */
@@ -37,7 +34,7 @@ const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE] = {
 
 
 /**************************************************************************
- * CONFIGURATION FUNCTIONS
+ * Configuration Functions
 **************************************************************************/
 /**
   *@brief Configures I2C2 for 400kHz Fast Mode with event interrupts.
@@ -102,9 +99,11 @@ _Noreturn void mpu_reset_task(void* param){
     uint32_t i;
     uint8_t address = ADDR_MPU << 1;
 #endif
+    EncoderTimers_t left_encoder_timers = {TIM1, TIM2, left_wheel_dataQ};
+    EncoderTimers_t right_encoder_timers = {TIM4, TIM3, right_wheel_dataQ};
+    
     while(1){
         vTaskDelay( pdMS_TO_TICKS( 200 ) );
-
     #ifndef MPU_RESET_SKIP
             /* I2C2 bus assumed free, no other access to take place */
             for(i = 0; i < MPU_RESET_STEPS; i++){
@@ -113,11 +112,14 @@ _Noreturn void mpu_reset_task(void* param){
                 vTaskDelay( pdMS_TO_TICKS( 100 ) );
             }
     #endif
-        
         /* Create tasks, initialize rest of board */
         xTaskCreate(eeprom_write_task,"EEPROM",128,NULL,1,&eeprom_write_handle);
         xTaskCreate(mpu_read_task,"MPU Read",128,NULL,1,&mpu_read_handle);
         xTaskCreate(send_speed_task,"Speed",128,NULL,1,&send_speed_handle);
+        xTaskCreate(find_velocity_task, "RightV",128,
+                    (void*)&right_encoder_timers,1,&find_velocity_right_handle);
+        xTaskCreate(find_velocity_task,"LeftV",128,
+                    (void*)&left_encoder_timers,1,&find_velocity_left_handle);
         
         start_encoder_readings();
         enable_mpu_int_pin();
@@ -125,7 +127,6 @@ _Noreturn void mpu_reset_task(void* param){
         
         vTaskDelete(NULL); /* No further use for this task */
         taskYIELD();       /* Co-operative scheduler requires explicit yield */
-
         (void)param;
     }
 }
@@ -145,15 +146,12 @@ _Noreturn void eeprom_write_task(void* param){
     const uint32_t LOG_SIZE = sizeof(LogData_t);
     const uint8_t CTRL_BLOCK = 0x2; /* Block bit of the control byte */
 
+    /* Initailize EEPROM locations */
     uint8_t control_byte = ADDR_EEPROM << 1;
     uint16_t address_to_write = 0x0000;
-
-    /* Big endian storage, have to break down otherwise address in reverse */
-    uint8_t address_high = 0x00;
+    uint8_t address_high = 0x00;    /* Cortex-M3 uses big endian */
     uint8_t address_low  = 0x00;
-
-    /* Used to check page bounds */
-    PageNum_t new_page_num = 0;
+    PageNum_t new_page_num = 0;     /* Used to check page boundaries */
     PageNum_t old_page_num = 0;
 
     /* Initialize log data */
@@ -172,17 +170,17 @@ _Noreturn void eeprom_write_task(void* param){
         vTaskSuspend(NULL);
     #endif
 
-        /**************************** PERIOD = 1s ****************************/
+        /**************************** Period = 1s ****************************/
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS( 1000 ));
 
-        /**************************** ERROR CHECK ****************************/
+        /**************************** Error Check ****************************/
         if(I2C2->SR2 & I2C_SR2_BUSY){
             vTaskDelay( pdMS_TO_TICKS( 1 ) ); /* T_MPUREAD < 1ms */
             if(I2C2->SR2 & I2C_SR2_BUSY)
                 vTaskSuspendAll();            /* Unrecoverable bus error */
         }
 
-        /**************************** UPDATE LOG ****************************/
+        /**************************** Update Log ****************************/
         xQueuePeek(mpu_dataQ, &last_mpu_data, NULL);
         xQueuePeek(left_wheel_dataQ, &left_wheel_speed, NULL);
         xQueuePeek(right_wheel_dataQ, &right_wheel_speed, NULL);
@@ -200,11 +198,11 @@ _Noreturn void eeprom_write_task(void* param){
         eeprom_log.right_wheel_speed = right_wheel_speed;
 //        eeprom_log.event_flags;
 
-        /**************************** START WRITE ***************************/
+        /**************************** Start Write ***************************/
         xQueueSendToBack(i2c2Q, &control_byte, portMAX_DELAY);
         I2C2->CR1 |= I2C_CR1_START;
 
-        /*********************** UPDATE WRITE ADDRESS ************************/
+        /*********************** Update Write Address ************************/
         address_to_write += LOG_SIZE;
 
         /* Will this write extend beyond the page bound? */
@@ -226,7 +224,7 @@ _Noreturn void eeprom_write_task(void* param){
 
         old_page_num = new_page_num;
 
-        /****************************** YIELD ********************************/
+        /****************************** Yield ********************************/
         taskYIELD(); /* Co-operative scheduler requires explicit yield */
         (void)param;
     }

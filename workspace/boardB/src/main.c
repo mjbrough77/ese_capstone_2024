@@ -23,7 +23,7 @@ int main(void){
     left_wheel_dataQ = xQueueCreate(1, sizeof(WheelVelocity_t));
     ultrasonic_dataQ = xQueueCreate(1, sizeof(Distances_t));
 
-    /* mpu_reset_task initializes/configures anything not done here */
+    /* Rest of tasks created inside `mpu_reset_task` */
     xTaskCreate(mpu_reset_task, "MPU Reset", 128, NULL, 0, NULL);
 
     vTaskStartScheduler();

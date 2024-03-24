@@ -76,7 +76,6 @@ void configure_io(void){
     NVIC_EnableIRQ(EXTI9_5_IRQn);             /* Line 6 still needs unmasking */
     
     
-    
     /**************************************************************************
      * USART (INTER-MCU COMMUNICATIONS)
     **************************************************************************/

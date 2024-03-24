@@ -1,7 +1,8 @@
 #ifndef PROJECT_TYPES_H
 #define PROJECT_TYPES_H
 
-#include "stdint.h"
+#include "FreeRTOS.h"
+#include "queue.h"
 
 /**************************************************************************
  * Macros for debugging [Define to turn on]
@@ -127,5 +128,13 @@ typedef struct{
     WheelVelocity_t left_speed;
     WheelVelocity_t right_speed;
 }Speeds_t;
+
+typedef struct{
+    TIM_TypeDef* z_phase_timer;
+    TIM_TypeDef* encoder_timer;
+    QueueHandle_t side;
+}EncoderTimers_t;
+
+
 
 #endif
