@@ -223,6 +223,10 @@
       <pMultCmdsp></pMultCmdsp>
       <SystemViewers>
         <Entry>
+          <Name>System Viewer\I2C2</Name>
+          <WinId>35903</WinId>
+        </Entry>
+        <Entry>
           <Name>System Viewer\TIM2</Name>
           <WinId>35905</WinId>
         </Entry>

@@ -131,7 +131,6 @@ void DMA1_Channel5_IRQHandler(void){
 
 /**
   *@brief Handles I2C2 events as defined in the reference manual.
-  * WARNING: There is a dead loop in this inerrupt..
   *
   * On MPU6050 reads, we have to manually send the data register because DMA
   * cannot handle requests with length < 2. `ITBUFEN` triggers this interrupt
@@ -151,7 +150,7 @@ void I2C2_EV_IRQHandler(void){
 
     /* MPU6050 unique, requires 3 addresses and a restart to read data */
     if(queue_size == MPU_READ_ADDRS){
-        restart = 1;
+        restart = 2;
         I2C2->CR2 |= I2C_CR2_ITBUFEN; /* Enables interrupt on TxE (DMA off) */
     }
 
@@ -167,20 +166,25 @@ void I2C2_EV_IRQHandler(void){
         (void)I2C2->SR2;
     }
 
-    /* Program stop (exectues only on a write) */
-    else if(status & I2C_SR1_BTF){
-        I2C2->CR1 |= I2C_CR1_STOP;
-        I2C2->CR1 &= ~I2C_CR1_STOP;
-    }
-
-    /* MPU6050 requires a second start during transmission */
-    /* Only runs if we are reading data from the MPU6050 */
-    else if(status & I2C_SR1_TXE){
+    /* MPU6050 FIFO read step one: send FIFO register address */
+    else if(restart == 2 && status & I2C_SR1_TXE){
         xQueueReceiveFromISR(i2c2Q, &register_to_send, NULL);
         I2C2->CR2 &= ~I2C_CR2_ITBUFEN;
-        restart = 0;
         I2C2->DR = register_to_send;
+        restart--;
+    }
+    
+    /* MPU6050 FIFO read step two: send repeated start */
+    else if(restart == 1 && status & I2C_SR1_BTF){
         I2C2->CR1 |= I2C_CR1_START;
+        I2C2->CR1 &= ~I2C_CR1_START; /* START needs manual clearing on BTF */
+        restart--;
+    }
+    
+    /* Send stop condition (only executes on a write) */
+    else if(status & I2C_SR1_BTF){
+        I2C2->CR1 |= I2C_CR1_STOP;
+        I2C2->CR1 &= ~I2C_CR1_STOP; /* STOP needs manually clearing on BTF */
     }
 }
 
