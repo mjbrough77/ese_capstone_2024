@@ -74,6 +74,8 @@ _Noreturn void find_velocity_task(void* timers){
     TIM_TypeDef* e_tim = timers_used->encoder_timer;
     
     while(1){
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        
         phaseZ_time = z_tim->CCR1;
         encoder_count = (int16_t)e_tim->CNT;
         
@@ -98,8 +100,6 @@ _Noreturn void find_velocity_task(void* timers){
 
         /* Reset Encoder count */
         e_tim->EGR |= TIM_EGR_UG;
-        
-        taskYIELD();
     }
 }
 

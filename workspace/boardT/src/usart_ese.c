@@ -61,7 +61,6 @@ _Noreturn void ultrasonic_data_task(void* param){
         
         USART3->CR3 |= USART_CR3_DMAT; /* Start transfer of ultrasonic data */
         
-        taskYIELD();
         (void)param;
     }
 }

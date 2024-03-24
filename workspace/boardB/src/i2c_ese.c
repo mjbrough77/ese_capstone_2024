@@ -13,6 +13,7 @@
 #include "../../project_types.h"
 #include "../include/tasks_ese.h"
 #include "../include/queues_ese.h"
+#include "../include/semaphore_ese.h"
 
 #include "../include/i2c_ese.h"
 #include "../include/timers_ese.h"
@@ -113,8 +114,8 @@ _Noreturn void mpu_reset_task(void* param){
             }
     #endif
         /* Create tasks, initialize rest of board */
-        xTaskCreate(eeprom_write_task,"EEPROM",128,NULL,1,&eeprom_write_handle);
-        xTaskCreate(mpu_read_task,"MPU Read",128,NULL,1,&mpu_read_handle);
+        xTaskCreate(eeprom_write_task,"EEPROM",128,NULL,2,&eeprom_write_handle);
+        xTaskCreate(mpu_read_task,"MPU Read",128,NULL,2,&mpu_read_handle);
         xTaskCreate(send_speed_task,"Speed",128,NULL,1,&send_speed_handle);
         xTaskCreate(find_velocity_task, "RightV",128,
                     (void*)&right_encoder_timers,1,&find_velocity_right_handle);
@@ -126,7 +127,6 @@ _Noreturn void mpu_reset_task(void* param){
         send_ready_signal();
         
         vTaskDelete(NULL); /* No further use for this task */
-        taskYIELD();       /* Co-operative scheduler requires explicit yield */
         (void)param;
     }
 }
@@ -173,13 +173,6 @@ _Noreturn void eeprom_write_task(void* param){
         /**************************** Period = 1s ****************************/
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS( 1000 ));
 
-        /**************************** Error Check ****************************/
-        if(I2C2->SR2 & I2C_SR2_BUSY){
-            vTaskDelay( pdMS_TO_TICKS( 1 ) ); /* T_MPUREAD < 1ms */
-            if(I2C2->SR2 & I2C_SR2_BUSY)
-                vTaskSuspendAll();            /* Unrecoverable bus error */
-        }
-
         /**************************** Update Log ****************************/
         xQueuePeek(mpu_dataQ, &last_mpu_data, NULL);
         xQueuePeek(left_wheel_dataQ, &left_wheel_speed, NULL);
@@ -199,8 +192,11 @@ _Noreturn void eeprom_write_task(void* param){
 //        eeprom_log.event_flags;
 
         /**************************** Start Write ***************************/
-        xQueueSendToBack(i2c2Q, &control_byte, portMAX_DELAY);
-        I2C2->CR1 |= I2C_CR1_START;
+        xSemaphoreTake(i2c2_mutex, portMAX_DELAY);
+            xQueueSendToBack(i2c2Q, &control_byte, portMAX_DELAY);
+            while(I2C2->SR2 & I2C_SR2_BUSY) taskYIELD(); /* Very short wait */
+            I2C2->CR1 |= I2C_CR1_START;
+        xSemaphoreGive(i2c2_mutex);
 
         /*********************** Update Write Address ************************/
         address_to_write += LOG_SIZE;
@@ -224,8 +220,6 @@ _Noreturn void eeprom_write_task(void* param){
 
         old_page_num = new_page_num;
 
-        /****************************** Yield ********************************/
-        taskYIELD(); /* Co-operative scheduler requires explicit yield */
         (void)param;
     }
 }
@@ -241,19 +235,15 @@ _Noreturn void mpu_read_task(void* param){
     #endif
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-        if(I2C2->SR2 & I2C_SR2_BUSY){
-            vTaskDelay( pdMS_TO_TICKS( 2 ) ); /* T_EEPROMW < 2ms */
-            if(I2C2->SR2 & I2C_SR2_BUSY)
-                vTaskSuspendAll();            /* Unrecoverable bus error */
-        }
-
         /* Assumes i2c2Q empty, task will block indefinitely otherwise */
-        xQueueSendToBack(i2c2Q, &MPU_WRITE_ADDR, portMAX_DELAY);
-        xQueueSendToBack(i2c2Q, &MPU_FIFO_ADDR, portMAX_DELAY);
-        xQueueSendToBack(i2c2Q, &MPU_READ_ADDR, portMAX_DELAY);
-        I2C2->CR1 |= I2C_CR1_START;
-
-        taskYIELD(); /* Co-operative scheduler requires explicit yield */
+        xSemaphoreTake(i2c2_mutex, portMAX_DELAY);
+            xQueueSendToBack(i2c2Q, &MPU_WRITE_ADDR, portMAX_DELAY);
+            xQueueSendToBack(i2c2Q, &MPU_FIFO_ADDR, portMAX_DELAY);
+            xQueueSendToBack(i2c2Q, &MPU_READ_ADDR, portMAX_DELAY);
+            while(I2C2->SR2 & I2C_SR2_BUSY) taskYIELD(); /* Very short wait */
+            I2C2->CR1 |= I2C_CR1_START;
+        xSemaphoreGive(i2c2_mutex);
+        
         (void)param;
     }
 }

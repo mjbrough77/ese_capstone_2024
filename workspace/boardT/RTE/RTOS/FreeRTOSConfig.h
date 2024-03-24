@@ -47,15 +47,15 @@
 /* Constants that describe the hardware and memory usage. */
 #define configCPU_CLOCK_HZ                    ((uint32_t)40000000)
 #define configTICK_RATE_HZ                    ((TickType_t)1000)
-#define configTOTAL_HEAP_SIZE                 ((size_t)4096)
+#define configTOTAL_HEAP_SIZE                 ((size_t)8192)
 #define configMINIMAL_STACK_SIZE              ((uint16_t)128)
 #define configSUPPORT_DYNAMIC_ALLOCATION      1
 #define configSUPPORT_STATIC_ALLOCATION       0
 
 /* Constants related to the behaviour or the scheduler. */
 #define configMAX_PRIORITIES                  5
-#define configUSE_PREEMPTION                  0 /* Co-operative scheduling */
-#define configUSE_TIME_SLICING                0 
+#define configUSE_PREEMPTION                  1
+#define configUSE_TIME_SLICING                1 
 #define configIDLE_SHOULD_YIELD               1
 #define configMAX_TASK_NAME_LEN               (10)
 #define configUSE_16_BIT_TICKS                0

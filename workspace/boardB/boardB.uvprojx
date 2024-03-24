@@ -415,6 +415,11 @@
               <FilePath>.\src\queues_ese.c</FilePath>
             </File>
             <File>
+              <FileName>semaphore_ese.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\semaphore_ese.c</FilePath>
+            </File>
+            <File>
               <FileName>tasks_ese.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\tasks_ese.c</FilePath>
@@ -463,6 +468,11 @@
               <FileName>queues_ese.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\include\queues_ese.h</FilePath>
+            </File>
+            <File>
+              <FileName>semaphore_ese.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\include\semaphore_ese.h</FilePath>
             </File>
             <File>
               <FileName>tasks_ese.h</FileName>

@@ -152,7 +152,6 @@ _Noreturn void print_speed_task(void* param){
         xQueuePeek(speedQ, &current_speed, portMAX_DELAY);
         send_to_display(current_speed/SPEED_SCALE);
         
-        taskYIELD();
         (void)param;
     }
 }

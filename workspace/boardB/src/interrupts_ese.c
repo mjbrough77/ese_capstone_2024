@@ -198,8 +198,7 @@ void EXTI9_5_IRQHandler(void){
 
 /**
   *@brief blah
-  * You'll notice TIM1 and TIM4 have near identical interrupts
-  * Keen future coders will have a more efficient implementation
+  *
  */
 
 void TIM1_CC_IRQHandler(void){
@@ -208,7 +207,7 @@ void TIM1_CC_IRQHandler(void){
 }
 
 /**
-  *@brief Start conversion of the 
+  *@brief blah
   *
  */
 void TIM4_IRQHandler(void){
