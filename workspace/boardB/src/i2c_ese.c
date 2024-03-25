@@ -28,7 +28,8 @@ const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE] = {
     {REG_SMPLRT_DIV, 0x07},         /* Sample rate = 125Hz (ready every 8ms) */
     {REG_CONFIG, 0x01},             /* DLPF setting 1 */
     {REG_GYRO_CONFIG, 0x08},        /* Gyro range +-500 degrees/s */
-    {REG_FIFO_EN, 0x70},            /* 3-axis gyro into FIFO */
+    {REG_ACCEL_CONFIG, 0x08},       /* Accel range +-4g */
+    {REG_FIFO_EN, 0x78},            /* 3-axis gyro, accel into FIFO */
     {REG_USER_CTRL, 0x40},          /* Enable FIFO */
     {REG_INT_ENABLE, 0x01}          /* Data ready interrupt enable */
 };
@@ -119,17 +120,57 @@ _Noreturn void mpu_reset_task(void* param){
         /* Create tasks, initialize rest of board */
         xTaskCreate(eeprom_write_task,"EEPROM",128,NULL,2,&eeprom_write_handle);
         xTaskCreate(mpu_read_task,"MPU Read",128,NULL,2,&mpu_read_handle);
+        xTaskCreate(find_rotation_task, "Rotate",128,NULL,1,&calc_rotation_handle);
         xTaskCreate(send_speed_task,"Speed",128,NULL,1,&send_speed_handle);
         xTaskCreate(find_velocity_task, "RightV",128,
                     (void*)&right_encoder_timers,1,&find_velocity_right_handle);
         xTaskCreate(find_velocity_task,"LeftV",128,
                     (void*)&left_encoder_timers,1,&find_velocity_left_handle);
-        
+            
         start_encoder_readings();
         enable_mpu_int_pin();
         send_ready_signal();
         
         vTaskDelete(NULL); /* No further use for this task */
+        (void)param;
+    }
+}
+
+_Noreturn void find_rotation_task(void* param){
+    float accel_x, accel_y, accel_z;    /* [g] acceleration */
+    float gyro_x, gyro_y, gyro_z;       /* [deg/s] rotational velocity */
+    float angle_x_gyro, angle_y_gyro;   /* [deg] angle from gyro */
+    float angle_x_accel, angle_y_accel; /* [deg] angle from accel */
+    float roll, pitch, yaw;             /* Angle about x, y, z-axis */
+    MPUData_t raw_mpu_data = {0,0,0,0,0,0};
+    angle_x_gyro = angle_y_gyro = 0.0f;
+    roll = pitch = yaw = 0.0f;
+    
+    while(1){
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        
+        xQueuePeek(mpu_dataQ, &raw_mpu_data, NULL);
+        accel_x = raw_mpu_data.accel_x_axis / ACCEL_SENSITIVITY;
+        accel_y = raw_mpu_data.accel_y_axis / ACCEL_SENSITIVITY;
+        accel_z = raw_mpu_data.accel_z_axis / ACCEL_SENSITIVITY;
+        gyro_x = raw_mpu_data.gyro_x_axis / GYRO_SENSITIVITY;
+        gyro_y = raw_mpu_data.gyro_y_axis / GYRO_SENSITIVITY;
+        gyro_z = raw_mpu_data.gyro_z_axis / GYRO_SENSITIVITY;
+        
+        angle_x_accel = fast_arctan( accel_y / 
+                        fast_hypotenuse( accel_x*accel_x, accel_z*accel_z ));
+        angle_y_accel = -fast_arctan( accel_x / 
+                        fast_hypotenuse( accel_y*accel_y, accel_z*accel_z ));
+        angle_x_gyro += gyro_x * MPU_SAMPLE_TIME;
+        angle_y_gyro += gyro_y * MPU_SAMPLE_TIME;
+        
+        roll = 0.95f * angle_x_gyro + (0.05f * angle_x_accel) * 180.0f/PI;
+        pitch = 0.95f * angle_y_gyro + (0.05f * angle_y_accel) * 180.0f/PI;
+        yaw += gyro_z * MPU_SAMPLE_TIME;
+        
+        if(roll > MAX_TILT || pitch > MAX_TILT || yaw > MAX_TILT)
+            xTaskNotifyGive(send_speed_handle);
+        
         (void)param;
     }
 }
@@ -152,17 +193,17 @@ _Noreturn void eeprom_write_task(void* param){
     /* Initailize EEPROM locations */
     uint8_t control_byte = ADDR_EEPROM << 1;
     uint16_t address_to_write = 0x0000;
-    uint8_t address_high = 0x00;    /* Cortex-M3 uses big endian */
+    uint8_t address_high = 0x00;
     uint8_t address_low  = 0x00;
-    PageNum_t new_page_num = 0;     /* Used to check page boundaries */
+    PageNum_t new_page_num = 0;
     PageNum_t old_page_num = 0;
 
     /* Initialize log data */
-    MPUData_t last_mpu_data = {0,0,0};
+    MPUData_t last_mpu_data = {0,0,0,0,0,0};
     WheelVelocity_t left_wheel_speed = 0;
     WheelVelocity_t right_wheel_speed = 0;
     Distances_t distance_data = {0,0};
-    LogData_t eeprom_log = {address_high,address_low,0,0,0,0,0,0,0,0,0};
+    LogData_t eeprom_log = {address_high,address_low,0,0,0,0,0,0,0,0,0,0,0,0};
 
     /* Set log address for DMA */
     DMA1_Channel4->CMAR = (uint32_t)&eeprom_log;

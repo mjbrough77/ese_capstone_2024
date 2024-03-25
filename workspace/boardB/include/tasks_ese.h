@@ -24,5 +24,7 @@ extern TaskHandle_t eeprom_write_handle;
 extern TaskHandle_t send_speed_handle;
 extern TaskHandle_t find_velocity_left_handle;
 extern TaskHandle_t find_velocity_right_handle;
+extern TaskHandle_t system_error_handle;
+extern TaskHandle_t calc_rotation_handle;
 
 #endif

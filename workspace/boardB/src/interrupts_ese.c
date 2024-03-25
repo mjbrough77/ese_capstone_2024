@@ -30,12 +30,18 @@ static Distances_t ultrasonic_distances;
  */
 static uint8_t mpu_data[MPU_FIFO_READ];
 
-
+/**
+  *@brief Executes before last byte is sent over USART
+ */
 void DMA1_Channel2_IRQHandler(void){
-    USART3->CR3 &= ~USART_CR3_DMAT;
+    USART3->CR3 &= ~USART_CR3_DMAT; /* Stop DMA transfer requests */
     DMA1->IFCR |= DMA_IFCR_CTCIF2;
 }
 
+/**
+  *@brief USART data from boardT recieved, place into queue
+  * Assumes only data coming to boardB is ultrasonic data
+ */
 void DMA1_Channel3_IRQHandler(void){
     xQueueOverwriteFromISR(ultrasonic_dataQ, &ultrasonic_distances, NULL);
     DMA1->IFCR |= DMA_IFCR_CTCIF3;
@@ -101,30 +107,44 @@ void DMA1_Channel4_IRQHandler(void){
   * ----------------------------------------------------------- *
   *     BYTE #    |         VALUE          |    Register (dec)  *
   * ----------------------------------------------------------- *
-  *       0       |     GYRO_XOUT[15:8]    |         67         *
-  *       1       |     GYRO_XOUT[7:0]     |         68         *
+  *       0       |     ACCEL_XOUT[15:8]   |         59         *
+  *       1       |     ACCEL_XOUT[7:0]    |         60         *
   * ----------------------------------------------------------- *
-  *       2       |     GYRO_YOUT[15:8]    |         69         *
-  *       3       |     GYRO_YOUT[7:0]     |         70         *
+  *       2       |     ACCEL_YOUT[15:8]   |         61         *
+  *       3       |     ACCEL_YOUT[7:0]    |         62         *
   * ----------------------------------------------------------- *
-  *       4       |     GYRO_ZOUT[15:8]    |         71         *
-  *       5       |     GYRO_ZOUT[7:0]     |         72         *
+  *       4       |     ACCEL_ZOUT[15:8]   |         63         *
+  *       5       |     ACCEL_ZOUT[7:0]    |         64         *
+  * ----------------------------------------------------------- *
+  *       6       |     GYRO_XOUT[15:8]    |         67         *
+  *       7       |     GYRO_XOUT[7:0]     |         68         *
+  * ----------------------------------------------------------- *
+  *       8       |     GYRO_YOUT[15:8]    |         69         *
+  *       9       |     GYRO_YOUT[7:0]     |         70         *
+  * ----------------------------------------------------------- *
+  *      10       |     GYRO_ZOUT[15:8]    |         71         *
+  *      11       |     GYRO_ZOUT[7:0]     |         72         *
   * ----------------------------------------------------------- *
   *
   *@pre The queue `eeprom_mpuQ` has been created
+  *@pre The task `calculate_rotation_task` has been created
  */
 void DMA1_Channel5_IRQHandler(void){
-    MPUData_t gyro_data;
+    MPUData_t fifo_data;
     
-    I2C2->CR2 &= ~I2C_CR2_DMAEN; /* Requests are disabled at every EOT */
-    I2C2->CR1 |= I2C_CR1_STOP;
+    I2C2->CR2 &= ~I2C_CR2_DMAEN;    /* Requests are disabled at every EOT */
+    I2C2->CR1 |= I2C_CR1_STOP;      /* Generate stop condition */
     
     /* See above explanation */
-    gyro_data.gyro_x_axis =  (Gyro_t)((mpu_data[0]<<8) | mpu_data[1]);
-    gyro_data.gyro_y_axis =  (Gyro_t)((mpu_data[2]<<8) | mpu_data[3]);
-    gyro_data.gyro_z_axis =  (Gyro_t)((mpu_data[4]<<8) | mpu_data[5]);
+    fifo_data.accel_x_axis = (Accel_t)((mpu_data[0]<<8) | mpu_data[1]);
+    fifo_data.accel_y_axis = (Accel_t)((mpu_data[2]<<8) | mpu_data[3]);
+    fifo_data.accel_z_axis = (Accel_t)((mpu_data[4]<<8) | mpu_data[5]);
+    fifo_data.gyro_x_axis =   (Gyro_t)((mpu_data[6]<<8) | mpu_data[7]);
+    fifo_data.gyro_y_axis =   (Gyro_t)((mpu_data[8]<<8) | mpu_data[9]);
+    fifo_data.gyro_z_axis =   (Gyro_t)((mpu_data[10]<<8) | mpu_data[11]);
     
-    xQueueOverwriteFromISR(mpu_dataQ, &gyro_data, NULL);
+    xQueueOverwriteFromISR(mpu_dataQ, &fifo_data, NULL);
+    vTaskNotifyGiveFromISR(calc_rotation_handle, NULL);
     
     DMA1->IFCR |= DMA_IFCR_CTCIF5; /* Clear interrupt */
 }
@@ -169,7 +189,7 @@ void I2C2_EV_IRQHandler(void){
     /* MPU6050 FIFO read step one: send FIFO register address */
     else if(restart == 2 && status & I2C_SR1_TXE){
         xQueueReceiveFromISR(i2c2Q, &register_to_send, NULL);
-        I2C2->CR2 &= ~I2C_CR2_ITBUFEN;
+        I2C2->CR2 &= ~I2C_CR2_ITBUFEN; /* Turn off for DMA transfers */
         I2C2->DR = register_to_send;
         restart--;
     }
@@ -188,11 +208,12 @@ void I2C2_EV_IRQHandler(void){
     }
 }
 
+/**
+  *@brief An error on the I2C2 bus is unrecoverable, start a system reset
+ */
 void I2C2_ER_IRQHandler(void){
-    if(I2C2->SR1 & I2C_SR1_AF){
-        I2C2->CR1 |= I2C_CR1_SWRST;
-        I2C2->CR1 &= ~I2C_CR1_SWRST;
-    }
+    //I2C2->SR1 &= ~0xDF00; /* Clear all error flags */
+    //vTaskNotifyGiveFromISR(system_error_handle, NULL);
 }
 
 /**
@@ -208,25 +229,29 @@ void EXTI9_5_IRQHandler(void){
 }
 
 /**
-  *@brief blah
+  *@brief Unblocks `find_velocity_task()` to find the left wheel speed
   *
+  *@pre A task with handle `find_velocity_left_handle` has been created
  */
-
 void TIM1_CC_IRQHandler(void){
     TIM1->SR &= ~TIM_SR_CC1IF;
     vTaskNotifyGiveFromISR(find_velocity_left_handle, NULL);
 }
 
 /**
-  *@brief blah
+  *@brief Unblocks `find_velocity_task()` to find the right wheel speed
   *
+  *@pre A task with handle `find_velocity_right_handle` has been created
  */
 void TIM4_IRQHandler(void){
     TIM4->SR &= ~TIM_SR_CC1IF;
     vTaskNotifyGiveFromISR(find_velocity_right_handle, NULL);
 }
 
-/* Only fires when TC is asserted */
+/**
+  *@brief Clears TC bit for multi-buffer USART using the DMA
+  * On initialization of boardB, sends a ready signal to boardT
+ */
 void USART3_IRQHandler(void){
     static uint8_t init = 1;
     USART3->SR &= ~USART_SR_TC; /* Clear interrupt */
