@@ -145,12 +145,17 @@ void turn_off_display(void){
 
 _Noreturn void print_speed_task(void* param){
     ChairSpeed_t current_speed = 0;
+    uint32_t notify_value = 0;
     
     while(1){
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* New speed data unblocks */
-        
-        xQueuePeek(speedQ, &current_speed, portMAX_DELAY);
-        send_to_display(current_speed/SPEED_SCALE);
+        notify_value = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        if(notify_value == DISPLAY_ERROR)
+            send_to_display(DISPLAY_ERROR);
+
+        else{
+            current_speed = (ChairSpeed_t)notify_value;
+            send_to_display(current_speed/SPEED_SCALE);
+        }
         
         (void)param;
     }

@@ -415,6 +415,11 @@
               <FilePath>.\src\interrupts_ese.c</FilePath>
             </File>
             <File>
+              <FileName>motor_ese.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\motor_ese.c</FilePath>
+            </File>
+            <File>
               <FileName>queues_ese.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\queues_ese.c</FilePath>
@@ -468,6 +473,11 @@
               <FileName>interrupts_ese.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\include\interrupts_ese.h</FilePath>
+            </File>
+            <File>
+              <FileName>motor_ese.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\include\motor_ese.h</FilePath>
             </File>
             <File>
               <FileName>queues_ese.h</FileName>

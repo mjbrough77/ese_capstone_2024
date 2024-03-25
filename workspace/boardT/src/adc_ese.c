@@ -18,9 +18,7 @@ void start_joystick_read(void){
 
 void stop_joystick_read(void){
     ADC1->CR2 &= ~ADC_CR2_ADON;     /* Stop ADC conversions */
-    NVIC_DisableIRQ(TIM3_IRQn);     /* Stop data conversions */
-    TIM3->CCR1 = 15;                /* Stop movement */
-    TIM3->CCR2 = 15;                
+    NVIC_DisableIRQ(TIM3_IRQn);     /* Stop data conversions */              
 }
 
 uint32_t read_joystick_x(void){

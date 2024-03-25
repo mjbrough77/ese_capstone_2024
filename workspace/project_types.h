@@ -42,11 +42,17 @@
 #define SPEED_SAMPLE_MS         15      /* [ms], based on max z-phase period */
 
 /**************************************************************************
- * USART Flag Values
+ * USART Flag Values (assume chair speed can never be > MAX_SPEED)
 **************************************************************************/
-#define USART_READY             0x52
-#define USART_SYS_FAIL          0xFFFF  /* Chair speed always < MAX_SPEED */
-#define USART_STOP_CHAIR        0xFFFE  /* Chair speed always < MAX_SPEED */
+#define USART_READY             0xFF
+#define USART_SYS_FAIL          0xFFFF
+#define USART_STOP_CHAIR        0xFFFE
+#define USART_CLEAR_ERROR       0xFF00 /* 256 error values, clear is lowest */
+
+/**************************************************************************
+ * Seven-segment display messages
+**************************************************************************/
+#define DISPLAY_ERROR           88      /* Display this if system error */
 
 /**************************************************************************
  * I2C Device Addresses
@@ -92,7 +98,8 @@
  * Typedefs and structures
 **************************************************************************/
 typedef int32_t  WheelVelocity_t;   /* Must record speeds > MAX_SPEED */
-typedef uint16_t ChairSpeed_t;      /* Must record speeds > MAX_SPEED */
+typedef uint16_t ChairSpeed_t;      /* Must record speeds > MAX_SPEED */ 
+typedef uint16_t UsartBuffer_t;     /* BoardT buffer holds 2 bytes */      
 typedef int16_t Gyro_t;             /* Gyroscope is 2 bytes per axis */
 typedef int16_t Accel_t;            /* Accel is 2 bytes per axis */
 typedef uint32_t Ultrasonic_t;      /* Ultrasonics use 4 bytes */
