@@ -21,7 +21,7 @@ void configure_usart3(void){
 void prepare_usart3_dma(void){
     /* USART3_Tx DMA Channel */
     DMA1_Channel2->CPAR = (uint32_t)&USART3->DR;
-    DMA1_Channel2->CNDTR = sizeof(ChairSpeed_t);
+    DMA1_Channel2->CNDTR = sizeof(UsartBuffer_t);
     DMA1_Channel2->CCR |= DMA_CCR2_TCIE | DMA_CCR2_MINC | DMA_CCR2_DIR;
     DMA1_Channel2->CCR |= DMA_CCR2_CIRC;
     NVIC_SetPriority(DMA1_Channel2_IRQn, 5);
@@ -44,7 +44,7 @@ void send_ready_signal(void){
 
 /* No protected access of USART3_Tx bc no other tasks access it */
 _Noreturn void send_speed_task(void* param){
-    ChairSpeed_t total_speed;
+    UsartBuffer_t total_speed;
     TickType_t xLastWakeTime = xTaskGetTickCount();
     WheelVelocity_t left_vel = 0;
     WheelVelocity_t right_vel = 0;
@@ -66,7 +66,7 @@ _Noreturn void send_speed_task(void* param){
         total_velocity = (left_vel+right_vel)/2;
         if(total_velocity < 0) total_velocity = -total_velocity;
         
-        total_speed = (ChairSpeed_t)total_velocity;
+        total_speed = (UsartBuffer_t)total_velocity;
         
         USART3->CR3 |= USART_CR3_DMAT; /* Start transfer of ultrasonic data */
         

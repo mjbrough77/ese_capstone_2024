@@ -153,57 +153,17 @@
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>roll</ItemText>
+          <ItemText>total_speed</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>pitch</ItemText>
+          <ItemText>left_vel</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>yaw</ItemText>
-        </Ww>
-        <Ww>
-          <count>3</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>gyro_x_error</ItemText>
-        </Ww>
-        <Ww>
-          <count>4</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>gyro_y_error</ItemText>
-        </Ww>
-        <Ww>
-          <count>5</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>gyro_z_error</ItemText>
-        </Ww>
-        <Ww>
-          <count>6</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>accel_x_error</ItemText>
-        </Ww>
-        <Ww>
-          <count>7</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>accel_y_error</ItemText>
-        </Ww>
-        <Ww>
-          <count>8</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>accel_x</ItemText>
-        </Ww>
-        <Ww>
-          <count>9</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>accel_y</ItemText>
-        </Ww>
-        <Ww>
-          <count>10</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>accel_z</ItemText>
+          <ItemText>right_vel</ItemText>
         </Ww>
       </WatchWindow1>
       <MemoryWindow1>
@@ -262,10 +222,6 @@
       <pSingCmdsp></pSingCmdsp>
       <pMultCmdsp></pMultCmdsp>
       <SystemViewers>
-        <Entry>
-          <Name>System Viewer\ADC1</Name>
-          <WinId>35902</WinId>
-        </Entry>
         <Entry>
           <Name>System Viewer\I2C2</Name>
           <WinId>35903</WinId>

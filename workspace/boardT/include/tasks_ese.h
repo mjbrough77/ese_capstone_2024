@@ -4,6 +4,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
+extern TaskHandle_t motor_control_handle;
 extern TaskHandle_t print_speed_handle;
 extern TaskHandle_t ultrasonic_handle;
 
