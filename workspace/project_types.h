@@ -33,6 +33,11 @@
 #define MPU_SAMPLE_TIME         8E-03f  /* [s], programmed sample rate */
 #define GYRO_SENSITIVITY        65.5f   /* From datasheet */
 #define ACCEL_SENSITIVITY       8192.0f /* From datasheet */
+#define GYRO_X_OFFSET           -1.49557137f
+#define GYRO_Y_OFFSET           -0.3351143f
+#define GYRO_Z_OFFSET           0.459440142f
+#define ACCEL_X_OFFSET          -88.1409912f
+#define ACCEL_Y_OFFSET          -0.196265712f
 
 /**************************************************************************
  * Wheel Definitions
@@ -161,7 +166,6 @@ typedef struct{
 /**************************************************************************
  * Useful functions
 **************************************************************************/
-extern float fast_arctan(float);
 extern float fast_hypotenuse(float, float);
 
 #endif

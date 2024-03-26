@@ -9,7 +9,8 @@
   *@copyright Copyright (c) 2024 Mitchell Brough
   *
  */
- 
+
+#include "math.h"
 #include "../../project_types.h"
 #include "../include/tasks_ese.h"
 #include "../include/queues_ese.h"
@@ -137,29 +138,52 @@ _Noreturn void mpu_reset_task(void* param){
 }
 
 _Noreturn void find_rotation_task(void* param){
+    float gyro_x_error, gyro_y_error, gyro_z_error;
+    float accel_x_error, accel_y_error, accel_z_error;
     float accel_x, accel_y, accel_z;    /* [g] acceleration */
     float gyro_x, gyro_y, gyro_z;       /* [deg/s] rotational velocity */
     float angle_x_gyro, angle_y_gyro;   /* [deg] angle from gyro */
     float angle_x_accel, angle_y_accel; /* [deg] angle from accel */
     float roll, pitch, yaw;             /* Angle about x, y, z-axis */
+    uint16_t error_count = 300;
+    
     MPUData_t raw_mpu_data = {0,0,0,0,0,0};
     angle_x_gyro = angle_y_gyro = 0.0f;
     roll = pitch = yaw = 0.0f;
+    gyro_x_error = gyro_y_error = gyro_z_error = 0.0f;
+    accel_x_error = accel_y_error = accel_z_error = 0.0f;
     
     while(1){
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         
         xQueuePeek(mpu_dataQ, &raw_mpu_data, NULL);
-        accel_x = raw_mpu_data.accel_x_axis / ACCEL_SENSITIVITY;
-        accel_y = raw_mpu_data.accel_y_axis / ACCEL_SENSITIVITY;
+        accel_x = raw_mpu_data.accel_x_axis / ACCEL_SENSITIVITY - ACCEL_X_OFFSET;
+        accel_y = raw_mpu_data.accel_y_axis / ACCEL_SENSITIVITY - ACCEL_Y_OFFSET;
         accel_z = raw_mpu_data.accel_z_axis / ACCEL_SENSITIVITY;
-        gyro_x = raw_mpu_data.gyro_x_axis / GYRO_SENSITIVITY;
-        gyro_y = raw_mpu_data.gyro_y_axis / GYRO_SENSITIVITY;
-        gyro_z = raw_mpu_data.gyro_z_axis / GYRO_SENSITIVITY;
+        gyro_x = raw_mpu_data.gyro_x_axis / GYRO_SENSITIVITY - GYRO_X_OFFSET;
+        gyro_y = raw_mpu_data.gyro_y_axis / GYRO_SENSITIVITY - GYRO_Y_OFFSET;
+        gyro_z = raw_mpu_data.gyro_z_axis / GYRO_SENSITIVITY - GYRO_Z_OFFSET;
         
-        angle_x_accel = fast_arctan( accel_y / 
+//        gyro_x_error += gyro_x;
+//        gyro_y_error += gyro_y;
+//        gyro_z_error += gyro_z;
+//        accel_x_error += atanf( accel_y / fast_hypotenuse( accel_x*accel_x, accel_z*accel_z )) * 180.0f/PI;
+//        accel_y_error += -atanf( accel_x / fast_hypotenuse( accel_y*accel_y, accel_z*accel_z )) * 180.0f/PI;
+//        
+//        error_count--;
+//        
+//        if(error_count == 0){
+//            gyro_x_error /= 300.0f;
+//            gyro_y_error /= 300.0f;
+//            gyro_z_error /= 300.0f;
+//            accel_x_error /= 300.0f;
+//            accel_y_error /= 300.0f;
+//            while(1);
+//        }
+        
+        angle_x_accel = atanf( accel_y / 
                         fast_hypotenuse( accel_x*accel_x, accel_z*accel_z ));
-        angle_y_accel = -fast_arctan( accel_x / 
+        angle_y_accel = -atanf( accel_x / 
                         fast_hypotenuse( accel_y*accel_y, accel_z*accel_z ));
         angle_x_gyro += gyro_x * MPU_SAMPLE_TIME;
         angle_y_gyro += gyro_y * MPU_SAMPLE_TIME;
@@ -168,8 +192,8 @@ _Noreturn void find_rotation_task(void* param){
         pitch = 0.95f * angle_y_gyro + (0.05f * angle_y_accel) * 180.0f/PI;
         yaw += gyro_z * MPU_SAMPLE_TIME;
         
-        if(roll > MAX_TILT || pitch > MAX_TILT || yaw > MAX_TILT)
-            xTaskNotifyGive(send_speed_handle);
+//        if(roll > MAX_TILT || pitch > MAX_TILT || yaw > MAX_TILT)
+//            while(1);
         
         (void)param;
     }
