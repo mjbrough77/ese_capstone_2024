@@ -395,6 +395,11 @@
               <FilePath>.\src\main.c</FilePath>
             </File>
             <File>
+              <FileName>adc_ese.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\adc_ese.c</FilePath>
+            </File>
+            <File>
               <FileName>clocks_ese.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\clocks_ese.c</FilePath>
@@ -448,6 +453,11 @@
               <FileName>project_types.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\project_types.h</FilePath>
+            </File>
+            <File>
+              <FileName>adc_ese.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\include\adc_ese.h</FilePath>
             </File>
             <File>
               <FileName>clocks_ese.h</FileName>

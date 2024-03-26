@@ -44,6 +44,10 @@ void DMA1_Channel2_IRQHandler(void){
  */
 void DMA1_Channel3_IRQHandler(void){
     xQueueOverwriteFromISR(ultrasonic_dataQ, &ultrasonic_distances, NULL);
+    if(ultrasonic_distances.left_data < MAX_DISTANCE 
+        || ultrasonic_distances.right_data < MAX_DISTANCE )
+        xTaskNotifyFromISR(eeprom_write_handle, DISTANCE_EV, eSetBits, NULL);
+    
     DMA1->IFCR |= DMA_IFCR_CTCIF3;
 }
 
@@ -212,8 +216,10 @@ void I2C2_EV_IRQHandler(void){
   *@brief An error on the I2C2 bus is unrecoverable, start a system reset
  */
 void I2C2_ER_IRQHandler(void){
-    //I2C2->SR1 &= ~0xDF00; /* Clear all error flags */
-    //vTaskNotifyGiveFromISR(system_error_handle, NULL);
+    BaseType_t wake = pdFALSE;
+    I2C2->SR1 &= ~0xDF00; /* Clear all error flags */
+    xTaskNotifyFromISR(system_error_handle, I2C2_NOTIFY, eSetBits, &wake);
+    portYIELD_FROM_ISR(wake);
 }
 
 /**

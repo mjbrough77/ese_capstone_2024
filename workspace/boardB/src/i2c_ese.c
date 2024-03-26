@@ -16,6 +16,7 @@
 #include "../include/queues_ese.h"
 #include "../include/semaphore_ese.h"
 
+#include "../include/adc_ese.h"
 #include "../include/i2c_ese.h"
 #include "../include/timers_ese.h"
 #include "../include/usart_ese.h"
@@ -111,23 +112,24 @@ _Noreturn void mpu_reset_task(void* param){
     while(1){
         vTaskDelay( pdMS_TO_TICKS( 200 ) );
     #ifndef MPU_RESET_SKIP
-            /* I2C2 bus assumed free, no other access to take place */
-            for(i = 0; i < MPU_RESET_STEPS; i++){
-                xQueueSend(i2c2Q, &address, portMAX_DELAY);
-                I2C2->CR1 |= I2C_CR1_START;
-                vTaskDelay( pdMS_TO_TICKS( 100 ) );
-            }
+        /* I2C2 bus assumed free, no other access to take place */
+        for(i = 0; i < MPU_RESET_STEPS; i++){
+            xQueueSend(i2c2Q, &address, portMAX_DELAY);
+            I2C2->CR1 |= I2C_CR1_START;
+            vTaskDelay( pdMS_TO_TICKS( 100 ) );
+        }
     #endif
         /* Create tasks, initialize rest of board */
         xTaskCreate(eeprom_write_task,"EEPROM",128,NULL,2,&eeprom_write_handle);
         xTaskCreate(mpu_read_task,"MPU Read",128,NULL,2,&mpu_read_handle);
         xTaskCreate(find_rotation_task, "Rotate",128,NULL,1,&calc_rotation_handle);
-        xTaskCreate(send_speed_task,"Speed",128,NULL,1,&send_speed_handle);
+        xTaskCreate(send_boardT_task,"Speed",128,NULL,1,&send_boardT_handle);
         xTaskCreate(find_velocity_task, "RightV",128,
                     (void*)&right_encoder_timers,1,&find_velocity_right_handle);
         xTaskCreate(find_velocity_task,"LeftV",128,
                     (void*)&left_encoder_timers,1,&find_velocity_left_handle);
-            
+        xTaskCreate(get_weight_task,"Weight",128,NULL,1,NULL);
+        
         start_encoder_readings();
         enable_mpu_int_pin();
         send_ready_signal();
@@ -142,8 +144,11 @@ _Noreturn void find_rotation_task(void* param){
     float gyro_x, gyro_z;               /* [deg/s] rotational velocity */
     float angle_x_gyro;                 /* [deg] angle from gyro */
     float angle_x_accel;                /* [deg] angle from accel */
+    float x_z_resultant;                /* [g] accel vector on x-z plane */
     float roll, yaw;                    /* [deg] angle about x, z-axis */
     
+    uint8_t tilt_exceeded_prev = 0;
+    uint8_t tilt_exceeded_next = 0;
     MPUData_t raw_mpu_data = {0,0,0,0,0,0};
     angle_x_gyro = 0.0f;
     roll  = yaw = 0.0f;
@@ -152,22 +157,34 @@ _Noreturn void find_rotation_task(void* param){
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         
         xQueuePeek(mpu_dataQ, &raw_mpu_data, NULL);
-        accel_x = raw_mpu_data.accel_x_axis / ACCEL_SENSITIVITY - ACCEL_X_OFFSET;
-        accel_y = raw_mpu_data.accel_y_axis / ACCEL_SENSITIVITY - ACCEL_Y_OFFSET;
+        accel_x = raw_mpu_data.accel_x_axis / ACCEL_SENSITIVITY;
+        accel_y = raw_mpu_data.accel_y_axis / ACCEL_SENSITIVITY;
         accel_z = raw_mpu_data.accel_z_axis / ACCEL_SENSITIVITY;
         gyro_x = raw_mpu_data.gyro_x_axis / GYRO_SENSITIVITY - GYRO_X_OFFSET;
         gyro_z = raw_mpu_data.gyro_z_axis / GYRO_SENSITIVITY - GYRO_Z_OFFSET;
         
-        angle_x_accel = atanf( accel_y / 
-                        fast_hypotenuse( accel_x*accel_x, accel_z*accel_z ));
+        x_z_resultant = fast_hypotenuse( accel_x*accel_x, accel_z*accel_z );
+        angle_x_accel = atanf( accel_y / x_z_resultant) * 180.0f/PI;
+        angle_x_accel -= ACCEL_X_OFFSET;
         angle_x_gyro += gyro_x * MPU_SAMPLE_TIME;
         
-        roll = 0.50f * angle_x_gyro + (0.50f * angle_x_accel) * 180.0f/PI;
+        roll = (0.50f * angle_x_gyro) + (0.50f * angle_x_accel);
         yaw += gyro_z * MPU_SAMPLE_TIME;
         
-        if(fabsf(roll) > MAX_TILT || fabsf(yaw) > MAX_TILT)
-            while(1);
+        if(fabsf(roll) > MAX_TILT || fabsf(yaw) > MAX_TILT){
+            xTaskNotify(system_error_handle, TILT_NOTIFY, eSetBits);
+            xTaskNotify(eeprom_write_handle, TILT_EV, eSetBits);
+            tilt_exceeded_next = 1;
+        }
         
+        else
+            tilt_exceeded_next = 0;
+        
+        if(tilt_exceeded_prev == 1 && tilt_exceeded_next == 0){
+            xTaskNotify(system_error_handle, CLEAR_NOTIFY, eSetBits);
+        }
+
+        tilt_exceeded_prev = tilt_exceeded_next;
         (void)param;
     }
 }
@@ -184,6 +201,7 @@ _Noreturn void find_rotation_task(void* param){
  */
 _Noreturn void eeprom_write_task(void* param){
     TickType_t xLastWakeTime = xTaskGetTickCount();
+    uint32_t last_event = 0;
     const uint32_t LOG_SIZE = sizeof(LogData_t);
     const uint8_t CTRL_BLOCK = 0x2; /* Block bit of the control byte */
 
@@ -215,22 +233,27 @@ _Noreturn void eeprom_write_task(void* param){
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS( 1000 ));
 
         /**************************** Update Log ****************************/
+        
         xQueuePeek(mpu_dataQ, &last_mpu_data, NULL);
         xQueuePeek(left_wheel_dataQ, &left_wheel_speed, NULL);
         xQueuePeek(right_wheel_dataQ, &right_wheel_speed, NULL);
         xQueuePeek(ultrasonic_dataQ, &distance_data, NULL);
+        xTaskNotifyWait(0,0xFFFFFFFF,&last_event,NULL);
         
         eeprom_log.address_high = address_high;
         eeprom_log.address_low  = address_low;
+        eeprom_log.event_flags = (uint8_t)last_event;
         eeprom_log.weight_measure = (Weight_t)(ADC1->DR);
-        eeprom_log.ultrasonic_right = distance_data.right_data;
         eeprom_log.ultrasonic_left = distance_data.left_data;
+        eeprom_log.ultrasonic_right = distance_data.right_data;
+        eeprom_log.left_wheel_speed = left_wheel_speed;
+        eeprom_log.right_wheel_speed = right_wheel_speed;
+        eeprom_log.accel_x_axis = last_mpu_data.accel_x_axis;
+        eeprom_log.accel_y_axis = last_mpu_data.accel_y_axis;
+        eeprom_log.accel_z_axis = last_mpu_data.accel_z_axis;
         eeprom_log.gyro_x_axis = last_mpu_data.gyro_x_axis;
         eeprom_log.gyro_y_axis = last_mpu_data.gyro_y_axis;
         eeprom_log.gyro_z_axis = last_mpu_data.gyro_z_axis;
-        eeprom_log.left_wheel_speed = left_wheel_speed;
-        eeprom_log.right_wheel_speed = right_wheel_speed;
-//        eeprom_log.event_flags;
 
         /**************************** Start Write ***************************/
         xSemaphoreTake(i2c2_mutex, portMAX_DELAY);

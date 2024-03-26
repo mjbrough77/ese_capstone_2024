@@ -26,7 +26,7 @@ void prepare_usart3_dma(void){
     DMA1_Channel2->CCR |= DMA_CCR2_CIRC;
     NVIC_SetPriority(DMA1_Channel2_IRQn, 5);
     NVIC_EnableIRQ(DMA1_Channel2_IRQn);
-    /* DMA1_Channel2 finished configuration in send_speed_task() */
+    /* DMA1_Channel2 finished configuration in send_boardT_task() */
     
     /* USART3_Rx DMA Channel */
     DMA1_Channel3->CPAR = (uint32_t)&USART3->DR;
@@ -43,32 +43,39 @@ void send_ready_signal(void){
 }
 
 /* No protected access of USART3_Tx bc no other tasks access it */
-_Noreturn void send_speed_task(void* param){
-    UsartBuffer_t total_speed;
+_Noreturn void send_boardT_task(void* param){
+    UsartBuffer_t usart_send;
+    uint32_t usart_flag_to_send = 0;
+    uint8_t wait_for_clear = 0;
     TickType_t xLastWakeTime = xTaskGetTickCount();
     WheelVelocity_t left_vel = 0;
     WheelVelocity_t right_vel = 0;
     WheelVelocity_t total_velocity = 0;
     
     /* Finish configuring DMA_USART3_Tx */
-    DMA1_Channel2->CMAR = (uint32_t)&total_speed;
+    DMA1_Channel2->CMAR = (uint32_t)&usart_send;
     DMA1_Channel2->CCR |= DMA_CCR2_EN;
     
     /* Constantly transfers wheel speed data */
     while(1){
-    #ifdef SEND_SPEED_TASK_SUSPEND
-        vTaskSuspend(NULL);
-    #endif
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS( SPEED_SAMPLE_MS ));
+        usart_flag_to_send = ulTaskNotifyTake(pdTRUE, NULL);
         
-        xQueuePeek(left_wheel_dataQ, &left_vel, NULL);
-        xQueuePeek(right_wheel_dataQ, &right_vel, NULL);
-        total_velocity = (left_vel+right_vel)/2;
-        if(total_velocity < 0) total_velocity = -total_velocity;
+        if(usart_flag_to_send >= USART_CLEAR_ERROR){
+            usart_send = (UsartBuffer_t)usart_flag_to_send;
+            if(usart_flag_to_send == USART_CLEAR_ERROR) wait_for_clear = 0;
+            else wait_for_clear = 1;
+            USART3->CR3 |= USART_CR3_DMAT; /* Send error code to boardT*/
+        }
         
-        total_speed = (UsartBuffer_t)total_velocity;
-        
-        USART3->CR3 |= USART_CR3_DMAT; /* Start transfer of ultrasonic data */
+        else if(wait_for_clear == 0){
+            xQueuePeek(left_wheel_dataQ, &left_vel, NULL);
+            xQueuePeek(right_wheel_dataQ, &right_vel, NULL);
+            total_velocity = (left_vel+right_vel)/2;
+            if(total_velocity < 0) total_velocity = -total_velocity;
+            usart_send = (UsartBuffer_t)total_velocity;
+            USART3->CR3 |= USART_CR3_DMAT; /* Send speed to boardT */
+        }
         
         (void)param;
     }

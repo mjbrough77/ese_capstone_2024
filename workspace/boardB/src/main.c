@@ -14,6 +14,7 @@
 #include "../include/usart_ese.h"
 
 static void board_init(void);
+_Noreturn static void error_control_task(void*);
 
 int main(void){
     board_init();
@@ -29,8 +30,9 @@ int main(void){
     ultrasonic_dataQ = xQueueCreate(1, sizeof(Distances_t));
 
     /* Rest of tasks created inside `mpu_reset_task` */
-    xTaskCreate(mpu_reset_task, "MPU Reset", 128, NULL, 4, NULL);
-
+    xTaskCreate(mpu_reset_task,"MPU Reset",128,NULL,4,NULL);
+    xTaskCreate(error_control_task, "Error",128,NULL,4,&system_error_handle);
+    
     vTaskStartScheduler();
 
     while(1);
@@ -62,4 +64,36 @@ static void board_init(void){
     
     configure_i2c2_dma();
     prepare_usart3_dma();
+}
+
+_Noreturn static void error_control_task(void* param){
+    uint32_t error_event = 0;
+    while(1){
+    #ifdef ERROR_TASK_SUSPEND
+        vTaskSuspend(NULL);
+    #endif
+        xTaskNotifyWait(0, 0xFFFFFFFF, &error_event, portMAX_DELAY);
+        
+        /* Error on I2C2 bus requires restart of peripheral */
+        if(error_event & I2C2_NOTIFY){
+            vTaskSuspend(eeprom_write_handle);
+            vTaskSuspend(mpu_read_handle);
+            I2C2->CR1 |= I2C_CR1_SWRST;
+            xQueueReset(i2c2Q);
+            I2C2->CR1 &= ~I2C_CR1_SWRST;
+            configure_i2c2();
+            vTaskResume(mpu_read_handle);
+            vTaskResume(eeprom_write_handle);
+        }
+        
+        else if(error_event & WEIGHT_NOTIFY || error_event & TILT_NOTIFY){
+            xTaskNotify(send_boardT_handle, USART_STOP_CHAIR, eSetValueWithOverwrite);
+        }
+        
+        else if(error_event & CLEAR_NOTIFY){
+            xTaskNotify(send_boardT_handle, USART_CLEAR_ERROR, eSetValueWithOverwrite);
+        }
+        
+        (void)param;
+    }
 }
