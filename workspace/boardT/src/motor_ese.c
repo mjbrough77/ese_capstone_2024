@@ -11,8 +11,6 @@ _Noreturn void motor_control_task(void* param){
     uint16_t s1_pulse = 15;
     uint16_t s2_pulse = 15;
     uint8_t stopped = 0;
-//    uint32_t movement_upper_limit = 20;
-//    uint32_t movement_lower_limit = 10;
     
     while(1){
         notify_value = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
@@ -27,6 +25,15 @@ _Noreturn void motor_control_task(void* param){
         else if(notify_value == USART_CLEAR_ERROR){
             start_joystick_read();
             stopped = 0;
+        }
+        
+        //play with values, see what works
+        else if(notify_value == SLOW_SPEED){
+            joystick_y = read_joystick_y();
+            joystick_x = read_joystick_x();
+            if(joystick_y < 0x800) joystick_x = (~joystick_x) & 0xFFF;
+            s1_pulse = (uint16_t)(14 + (joystick_y * 3 / 4095));
+            s2_pulse = (uint16_t)(14 + (joystick_x * 3 / 4095));
         }
         
         else if(stopped != 1){
