@@ -11,4 +11,6 @@ void start_ultrasonics(void);
 uint16_t read_right_ultrasonic(void);
 uint16_t read_left_ultrasonic(void);
 
+_Noreturn void ultrasonic_data_task(void*);
+
 #endif

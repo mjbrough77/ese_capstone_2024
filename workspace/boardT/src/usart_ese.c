@@ -38,29 +38,3 @@ void prepare_usart3_dma(void){
     NVIC_EnableIRQ(DMA1_Channel3_IRQn);
     /* Finished in DMA1_Channel3_IRQHandler() */
 }
-
-_Noreturn void ultrasonic_data_task(void* param){
-    Distances_t readings = {0,0}; /* Distances in um */
-    
-    /* Finish configuring DMA_USART3_Tx */
-    DMA1_Channel2->CMAR = (uint32_t)&readings;
-    DMA1_Channel2->CCR |= DMA_CCR2_EN;
-    
-    /* Transfer of distance data MUST take < 60ms */
-    /* Otherwise, DMA controller has concurrent access to `distances` */
-    while(1){
-    #ifdef SEND_ULTRASONIC_TASK_SUSPEND
-        vTaskSuspend(NULL);
-    #endif
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* Unblocks by TIM2 */
-        
-        readings.right_data = (read_right_ultrasonic()-ULTRASONIC_RIGHT_OFFSET)
-                            * HALF_SPEED_OF_SOUND;
-        readings.left_data = (read_left_ultrasonic()-ULTRASONIC_LEFT_OFFSET)
-                            * HALF_SPEED_OF_SOUND;
-        
-        USART3->CR3 |= USART_CR3_DMAT; /* Start transfer of ultrasonic data */
-        
-        (void)param;
-    }
-}

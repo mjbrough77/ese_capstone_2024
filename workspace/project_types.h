@@ -10,15 +10,15 @@
 //#define MPU_RESET_SKIP
 #define EEPROM_TASK_SUSPEND
 //#define MPU_TASK_SUSPEND
-//#define SEND_SPEED_TASK_SUSPEND
-//#define SEND_ULTRASONIC_TASK_SUSPEND
+//#define ERROR_TASK_SUSPEND
 
 /**************************************************************************
  * Hardware limits
 **************************************************************************/
-#define MAX_WEIGHT              250     /* [lbs] */
-#define MAX_SPEED               35000   /* [10^4 km/h] */
-#define MAX_TILT                15.0f   /* Degrees */
+#define MAX_WEIGHT              250         /* [lbs] */
+#define MAX_SPEED               35000       /* [10^4 km/h] */
+#define MAX_TILT                15.0f       /* [deg] */
+#define MAX_DISTANCE            0x0         /* [um] */
 
 /**************************************************************************
  * Ultrasonic Hardware Definitions
@@ -28,16 +28,22 @@
 #define ULTRASONIC_LEFT_OFFSET  474     /* [us], found during testing */
 
 /**************************************************************************
+ * Weight Sensor Definitions
+**************************************************************************/
+#define WEIGHT_SAMPLE_MS        10     /* [ms] arbitrary */
+#define ADC_RESOLUTION          8.056640625e-4f /* [V/LSB] */
+
+/**************************************************************************
  * MPU6050 Hardware Definitions
 **************************************************************************/
 #define MPU_SAMPLE_TIME         8E-03f  /* [s], programmed sample rate */
-#define GYRO_SENSITIVITY        65.5f   /* From datasheet */
-#define ACCEL_SENSITIVITY       8192.0f /* From datasheet */
-#define GYRO_X_OFFSET           -1.49557137f
-#define GYRO_Y_OFFSET           -0.3351143f
-#define GYRO_Z_OFFSET           0.459440142f
-#define ACCEL_X_OFFSET          -88.1409912f
-#define ACCEL_Y_OFFSET          -0.196265712f
+#define GYRO_SENSITIVITY        65.5f   /* [LSB/deg/s] From datasheet */
+#define ACCEL_SENSITIVITY       8192.0f /* [LSB/g] From datasheet */
+#define GYRO_X_OFFSET           -1.49557137f    /* [deg] average error */
+#define GYRO_Y_OFFSET           -0.3351143f     /* [deg] average error */
+#define GYRO_Z_OFFSET           0.459440142f    /* [deg] average error */
+#define ACCEL_X_OFFSET          -88.1409912f    /* [deg] average error */
+#define ACCEL_Y_OFFSET          -0.196265712f   /* [deg] average error */
 
 /**************************************************************************
  * Wheel Definitions
@@ -47,12 +53,30 @@
 #define SPEED_SAMPLE_MS         15      /* [ms], based on max z-phase period */
 
 /**************************************************************************
- * USART Flag Values (assume chair speed can never be > MAX_SPEED)
+ * Flag Values over USART (assume chair speed can never be > MAX_SPEED)
 **************************************************************************/
 #define USART_READY             0xFF
 #define USART_SYS_FAIL          0xFFFF
 #define USART_STOP_CHAIR        0xFFFE
 #define USART_CLEAR_ERROR       0xFF00 /* 256 error values, clear is lowest */
+
+
+/**************************************************************************
+ * Event and Notification Flags
+**************************************************************************/          
+#define SPEED_EV                0x8
+#define WEIGHT_EV               0x4
+#define DISTANCE_EV             0x2
+#define TILT_EV                 0x1
+
+#define SPEED_NOTIFY            0x8
+#define WEIGHT_NOTIFY           0x4
+#define I2C2_NOTIFY             0x2
+#define TILT_NOTIFY             0x1
+#define CLEAR_NOTIFY            0xFFFFFFFF
+
+#define TRIG_PULSE              0x10001
+#define SLOW_SPEED              0x10000
 
 /**************************************************************************
  * Seven-segment display messages

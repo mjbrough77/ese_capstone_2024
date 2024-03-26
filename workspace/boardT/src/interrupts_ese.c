@@ -28,10 +28,7 @@ void DMA1_Channel2_IRQHandler(void){
 
 /* Gives the new speed data to display task */
 void DMA1_Channel3_IRQHandler(void){
-    if(usart_buffer == USART_SYS_FAIL) 
-        NVIC_SystemReset();
-    
-    else if(usart_buffer >= USART_CLEAR_ERROR){
+    if(usart_buffer >= USART_CLEAR_ERROR){
         xTaskNotifyFromISR(print_speed_handle, DISPLAY_ERROR, 
                     eSetValueWithOverwrite, NULL);
         xTaskNotifyFromISR(motor_control_handle, usart_buffer,
