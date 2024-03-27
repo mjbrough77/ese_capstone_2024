@@ -154,6 +154,10 @@ _Noreturn void find_rotation_task(void* param){
     roll  = yaw = 0.0f;
     
     while(1){
+    #ifdef ROTATION_TASK_SUSPEND
+        vTaskSuspend(NULL);
+    #endif
+        
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         
         xQueuePeek(mpu_dataQ, &raw_mpu_data, NULL);
@@ -163,12 +167,12 @@ _Noreturn void find_rotation_task(void* param){
         gyro_x = raw_mpu_data.gyro_x_axis / GYRO_SENSITIVITY - GYRO_X_OFFSET;
         gyro_z = raw_mpu_data.gyro_z_axis / GYRO_SENSITIVITY - GYRO_Z_OFFSET;
         
-        x_z_resultant = fast_hypotenuse( accel_x*accel_x, accel_z*accel_z );
+        x_z_resultant = sqrtf( accel_x*accel_x + accel_z*accel_z );
         angle_x_accel = atanf( accel_y / x_z_resultant) * 180.0f/PI;
         angle_x_accel -= ACCEL_X_OFFSET;
         angle_x_gyro += gyro_x * MPU_SAMPLE_TIME;
         
-        roll = (0.50f * angle_x_gyro) + (0.50f * angle_x_accel);
+        roll = (0.0f * angle_x_gyro) + (1.0f * angle_x_accel);
         yaw += gyro_z * MPU_SAMPLE_TIME;
         
         if(fabsf(roll) > MAX_TILT || fabsf(yaw) > MAX_TILT){
