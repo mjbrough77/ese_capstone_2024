@@ -19,7 +19,7 @@
 #define MAX_WEIGHT              250         /* [lbs] */
 #define MAX_SPEED               35000       /* [10^4 km/h] */
 #define MAX_TILT                15.0f       /* [deg] */
-#define MAX_DISTANCE            0           /* [um] */
+#define MAX_DISTANCE            200000      /* [um] */
 
 /**************************************************************************
  * Ultrasonic Hardware Definitions
@@ -73,7 +73,8 @@
 #define SLOW_SPEED_NOTIFY       0x10
 #define TRIG_PULSE_NOTIFY       0x20
 #define I2C2_ERR_NOTIFY         0x40
-#define CLEAR_ERR_NOTIFY        0x80
+#define RESUME_SPEED_NOTIFY     0x80
+#define CLEAR_ERR_NOTIFY        0x100
 
 /**************************************************************************
  * Seven-segment display messages

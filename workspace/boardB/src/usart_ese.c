@@ -45,12 +45,12 @@ void send_ready_signal(void){
 /* No protected access of USART3_Tx bc no other tasks access it */
 _Noreturn void send_boardT_task(void* param){
     UsartBuffer_t usart_send;
-    uint32_t usart_flag_to_send = 0;
-    uint8_t wait_for_clear = 0;
     TickType_t xLastWakeTime = xTaskGetTickCount();
     WheelVelocity_t left_vel = 0;
     WheelVelocity_t right_vel = 0;
     WheelVelocity_t total_velocity = 0;
+    uint32_t usart_flag_to_send = 0;
+    uint8_t wait_for_clear = 0;
     
     /* Finish configuring DMA_USART3_Tx */
     DMA1_Channel2->CMAR = (uint32_t)&usart_send;

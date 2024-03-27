@@ -22,7 +22,7 @@ void configure_tim1(void){
 
     TIM1->DIER |= TIM_DIER_CC1IE;       /* Enable interrupt */
     NVIC_SetPriority(TIM1_CC_IRQn, 5);  /* ISR Priority >= 5 (FreeRTOS) */
-    NVIC_EnableIRQ(TIM1_CC_IRQn);  
+    NVIC_EnableIRQ(TIM1_CC_IRQn);
 }
 
 void configure_tim2(void){

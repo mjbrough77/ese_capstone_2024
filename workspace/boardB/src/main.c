@@ -35,7 +35,6 @@ int main(void){
     xTaskCreate(error_control_task, "Error",128,NULL,4,&system_error_handle);
     
     vTaskStartScheduler();
-
     while(1);
 }
 

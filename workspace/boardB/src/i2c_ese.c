@@ -122,13 +122,13 @@ _Noreturn void mpu_reset_task(void* param){
         /* Create tasks, initialize rest of board */
         xTaskCreate(eeprom_write_task,"EEPROM",128,NULL,2,&eeprom_write_handle);
         xTaskCreate(mpu_read_task,"MPU Read",128,NULL,2,&mpu_read_handle);
-        xTaskCreate(find_rotation_task, "Rotate",128,NULL,1,&calc_rotation_handle);
+        xTaskCreate(find_rotation_task,"Rotate",128,NULL,1,&calc_rotation_handle);
         xTaskCreate(send_boardT_task,"Speed",128,NULL,1,&send_boardT_handle);
+        xTaskCreate(get_weight_task,"Weight",128,NULL,1,NULL);
         xTaskCreate(find_velocity_task, "RightV",128,
                     (void*)&right_encoder_timers,1,&find_velocity_right_handle);
         xTaskCreate(find_velocity_task,"LeftV",128,
                     (void*)&left_encoder_timers,1,&find_velocity_left_handle);
-        xTaskCreate(get_weight_task,"Weight",128,NULL,1,NULL);
         
         start_encoder_readings();
         enable_mpu_int_pin();
