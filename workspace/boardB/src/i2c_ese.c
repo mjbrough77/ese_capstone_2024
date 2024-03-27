@@ -172,8 +172,8 @@ _Noreturn void find_rotation_task(void* param){
         yaw += gyro_z * MPU_SAMPLE_TIME;
         
         if(fabsf(roll) > MAX_TILT || fabsf(yaw) > MAX_TILT){
-            xTaskNotify(system_error_handle, TILT_NOTIFY, eSetBits);
-            xTaskNotify(eeprom_write_handle, TILT_EV, eSetBits);
+            xTaskNotify(system_error_handle, MAXTILT_NOTIFY, eSetBits);
+            xTaskNotify(eeprom_write_handle, MAXTILT_NOTIFY, eSetBits);
             tilt_exceeded_next = 1;
         }
         
@@ -181,7 +181,7 @@ _Noreturn void find_rotation_task(void* param){
             tilt_exceeded_next = 0;
         
         if(tilt_exceeded_prev == 1 && tilt_exceeded_next == 0){
-            xTaskNotify(system_error_handle, CLEAR_NOTIFY, eSetBits);
+            xTaskNotify(system_error_handle, CLEAR_ERR_NOTIFY, eSetBits);
         }
 
         tilt_exceeded_prev = tilt_exceeded_next;
@@ -200,10 +200,11 @@ _Noreturn void find_rotation_task(void* param){
   *@param param unused
  */
 _Noreturn void eeprom_write_task(void* param){
-    TickType_t xLastWakeTime = xTaskGetTickCount();
-    uint32_t last_event = 0;
     const uint32_t LOG_SIZE = sizeof(LogData_t);
     const uint8_t CTRL_BLOCK = 0x2; /* Block bit of the control byte */
+    
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    uint32_t last_event = 0;
 
     /* Initailize EEPROM locations */
     uint8_t control_byte = ADDR_EEPROM << 1;

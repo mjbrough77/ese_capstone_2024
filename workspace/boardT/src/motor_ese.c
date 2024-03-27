@@ -28,12 +28,12 @@ _Noreturn void motor_control_task(void* param){
         }
         
         //play with values, see what works
-        else if(notify_value == SLOW_SPEED){
+        else if(notify_value == SLOW_SPEED_NOTIFY){
             joystick_y = read_joystick_y();
             joystick_x = read_joystick_x();
             if(joystick_y < 0x800) joystick_x = (~joystick_x) & 0xFFF;
-            s1_pulse = (uint16_t)(14 + (joystick_y * 3 / 4095));
-            s2_pulse = (uint16_t)(14 + (joystick_x * 3 / 4095));
+            s1_pulse = (uint16_t)(13 + (joystick_y * 4 / 4095));
+            s2_pulse = (uint16_t)(13 + (joystick_x * 4 / 4095));
         }
         
         else if(stopped != 1){

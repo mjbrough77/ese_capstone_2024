@@ -88,13 +88,15 @@ _Noreturn void ultrasonic_data_task(void* param){
     while(1){
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY); /* Unblocks by TIM2 */
         
-        readings.right_data = (read_right_ultrasonic()-ULTRASONIC_RIGHT_OFFSET)
-                            * HALF_SPEED_OF_SOUND;
-        readings.left_data = (read_left_ultrasonic()-ULTRASONIC_LEFT_OFFSET)
-                            * HALF_SPEED_OF_SOUND;
-        if(readings.left_data < MAX_DISTANCE || 
-                readings.right_data < MAX_DISTANCE )
-            xTaskNotify(motor_control_handle,SLOW_SPEED,eSetValueWithOverwrite);
+        readings.right_data = (read_right_ultrasonic()-ULTRASONIC_RIGHT_OFFSET)*
+                                HALF_SPEED_OF_SOUND;
+        readings.left_data = (read_left_ultrasonic()-ULTRASONIC_LEFT_OFFSET)* 
+                                HALF_SPEED_OF_SOUND;
+        
+        if((readings.left_data < MAX_DISTANCE) || 
+           (readings.right_data < MAX_DISTANCE)){
+            xTaskNotify(motor_control_handle,SLOW_SPEED_NOTIFY,eSetValueWithOverwrite);
+        }
         
         USART3->CR3 |= USART_CR3_DMAT; /* Start transfer of ultrasonic data */
         

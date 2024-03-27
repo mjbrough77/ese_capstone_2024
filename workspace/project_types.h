@@ -7,10 +7,9 @@
 /**************************************************************************
  * Macros for debugging [Define to turn on]
 **************************************************************************/
-//#define MPU_RESET_SKIP
+#define MPU_RESET_SKIP
+#define MPU_TASK_SUSPEND
 #define EEPROM_TASK_SUSPEND
-//#define MPU_TASK_SUSPEND
-//#define ERROR_TASK_SUSPEND
 
 /**************************************************************************
  * Hardware limits
@@ -18,7 +17,7 @@
 #define MAX_WEIGHT              250         /* [lbs] */
 #define MAX_SPEED               35000       /* [10^4 km/h] */
 #define MAX_TILT                15.0f       /* [deg] */
-#define MAX_DISTANCE            0x0         /* [um] */
+#define MAX_DISTANCE            0           /* [um] */
 
 /**************************************************************************
  * Ultrasonic Hardware Definitions
@@ -30,15 +29,16 @@
 /**************************************************************************
  * Weight Sensor Definitions
 **************************************************************************/
-#define WEIGHT_SAMPLE_MS        10     /* [ms] arbitrary */
+#define WEIGHT_SAMPLE_MS        10              /* [ms] arbitrary */
 #define ADC_RESOLUTION          8.056640625e-4f /* [V/LSB] */
+#define WEIGHT_TARE             0
 
 /**************************************************************************
  * MPU6050 Hardware Definitions
 **************************************************************************/
-#define MPU_SAMPLE_TIME         8E-03f  /* [s], programmed sample rate */
-#define GYRO_SENSITIVITY        65.5f   /* [LSB/deg/s] From datasheet */
-#define ACCEL_SENSITIVITY       8192.0f /* [LSB/g] From datasheet */
+#define MPU_SAMPLE_TIME         8e-03f          /* [s], we programmed */
+#define GYRO_SENSITIVITY        65.5f           /* [LSB/deg/s] from datasheet */
+#define ACCEL_SENSITIVITY       8192.0f         /* [LSB/g] from datasheet */
 #define GYRO_X_OFFSET           -1.49557137f    /* [deg] average error */
 #define GYRO_Y_OFFSET           -0.3351143f     /* [deg] average error */
 #define GYRO_Z_OFFSET           0.459440142f    /* [deg] average error */
@@ -60,23 +60,17 @@
 #define USART_STOP_CHAIR        0xFFFE
 #define USART_CLEAR_ERROR       0xFF00 /* 256 error values, clear is lowest */
 
-
 /**************************************************************************
- * Event and Notification Flags
+ * Task Notification Flags
 **************************************************************************/          
-#define SPEED_EV                0x8
-#define WEIGHT_EV               0x4
-#define DISTANCE_EV             0x2
-#define TILT_EV                 0x1
-
-#define SPEED_NOTIFY            0x8
-#define WEIGHT_NOTIFY           0x4
-#define I2C2_NOTIFY             0x2
-#define TILT_NOTIFY             0x1
-#define CLEAR_NOTIFY            0xFFFFFFFF
-
-#define TRIG_PULSE              0x10001
-#define SLOW_SPEED              0x10000
+#define MAXTILT_NOTIFY          0x1
+#define DISTANCE_NOTIFY         0x2
+#define MAXWEIGHT_NOTIFY        0x4
+#define OVERSPEED_NOTIFY        0x8
+#define SLOW_SPEED_NOTIFY       0x10
+#define TRIG_PULSE_NOTIFY       0x20
+#define I2C2_ERR_NOTIFY         0x40
+#define CLEAR_ERR_NOTIFY        0x80
 
 /**************************************************************************
  * Seven-segment display messages
@@ -106,9 +100,9 @@
 /**************************************************************************
  * EEPROM Hardware Definitions
 **************************************************************************/
-#define PAGE_SIZE               128   /* ROM page width in bytes */
-#define PAGES_PER_BLOCK         200   /* Memory divided into blocks */
-#define TOTAL_PAGES             400   /* Total number of EEPROM pages */
+#define PAGE_SIZE               128 /* ROM page width in bytes */
+#define PAGES_PER_BLOCK         200 /* Memory divided into blocks */
+#define TOTAL_PAGES             400 /* Total number of EEPROM pages */
 
 /**************************************************************************
  * I2C Transmission Length Definitions
@@ -119,7 +113,7 @@
 #define MPU_READ_ADDRS          3   /* Addresses needed for MPU read */
 
 /**************************************************************************
- * Misc. Useful Constants
+ * Miscellaneous Useful Constants
 **************************************************************************/
 #define PI                      3.14159265f
 
@@ -127,11 +121,11 @@
  * Typedefs and structures
 **************************************************************************/
 typedef int32_t  WheelVelocity_t;   /* Must record speeds > MAX_SPEED */
-typedef uint16_t ChairSpeed_t;      /* Must record speeds > MAX_SPEED */ 
-typedef uint16_t UsartBuffer_t;     /* BoardT buffer holds 2 bytes */      
+typedef uint32_t Ultrasonic_t;      /* Ultrasonics use 4 bytes */
 typedef int16_t Gyro_t;             /* Gyroscope is 2 bytes per axis */
 typedef int16_t Accel_t;            /* Accel is 2 bytes per axis */
-typedef uint32_t Ultrasonic_t;      /* Ultrasonics use 4 bytes */
+typedef uint16_t ChairSpeed_t;      /* Must record speeds > MAX_SPEED */ 
+typedef uint16_t UsartBuffer_t;     /* BoardT buffer holds 2 bytes */      
 typedef uint16_t PageNum_t;         /* Size based on TOTAL_PAGES */
 typedef uint8_t  Weight_t;          /* Only using 8 bits of 12 bit ADC */
 
@@ -167,7 +161,6 @@ typedef struct{
 
 /**
   *@brief Container for FIFO data from the MPU6050
-  *
  */
 typedef struct{
     Accel_t accel_x_axis;   /* MPU6050 x-axis raw acceleration data */
@@ -178,21 +171,23 @@ typedef struct{
     Gyro_t gyro_z_axis;     /* MPU6050 z-axis raw angular speed data */
 }MPUData_t;
 
+/**
+  *@brief Container for Ultrasonic data from BoardT
+ */
 typedef struct{
-    Ultrasonic_t left_data;
-    Ultrasonic_t right_data;
+    Ultrasonic_t left_data;     /* [um] measurement from left ultrasonic */
+    Ultrasonic_t right_data;    /* [um] measurement from right ultrasonic */
 }Distances_t;
 
+/**
+  *@brief Parameter for `find_velocity_task()` to distinguish motor encoders
+ */
 typedef struct{
-    WheelVelocity_t left_speed;
-    WheelVelocity_t right_speed;
-}Speeds_t;
-
-typedef struct{
-    TIM_TypeDef* z_phase_timer;
-    TIM_TypeDef* encoder_timer;
-    QueueHandle_t side;
+    TIM_TypeDef* z_phase_timer; /* Timer used for input capture of z-phase */
+    TIM_TypeDef* encoder_timer; /* Timer used for a,b-phase capture */
+    QueueHandle_t side;         /* Queue holding left/right velocity data */
 }EncoderTimers_t;
+
 
 /**************************************************************************
  * Useful functions

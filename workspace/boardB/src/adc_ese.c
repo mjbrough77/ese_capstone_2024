@@ -4,11 +4,13 @@
 #include "../include/adc_ese.h"
 
 void configure_adc1(void){  
-	ADC1->CR2 |= ADC_CR2_ADON;      /* Enable ADC1 */
-    ADC1->CR2 |= ADC_CR2_CONT;      /* Perform continuous channel scanning */
+    ADC1->CR2 |= ADC_CR2_ADON;      /* Enable ADC1 */
+    ADC1->CR2 |= ADC_CR2_CONT;      /* Continuous conversion */
+    ADC1->SQR3 = 0xA;               /* Convert IN10 (PC0) */
     
 	ADC1->CR2 |= ADC_CR2_CAL;       /* Calibrate ADC1 */
     while(ADC1->CR2 & ADC_CR2_CAL);
+    
     ADC1->CR2 |= ADC_CR2_ADON;      /* Start ADC conversions */
 }
 
@@ -22,6 +24,7 @@ void get_weight_task(void* param){
     
     while(1){
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS( WEIGHT_SAMPLE_MS ));
+        
         adc_reading = ADC1->DR;
         voltage_reading = (float)adc_reading * ADC_RESOLUTION;
         
@@ -32,9 +35,6 @@ void get_weight_task(void* param){
             voltage_error /= 300.0f;
             while(1);
         }
-        
-        // Do testing to figure out calculations
-        
         (void)param;
     }
 }

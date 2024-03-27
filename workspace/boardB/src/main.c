@@ -4,6 +4,7 @@
 #include "semphr.h"
 
 #include "../../project_types.h"
+#include "../include/adc_ese.h"
 #include "../include/clocks_ese.h"
 #include "../include/gpio_ese.h"
 #include "../include/i2c_ese.h"
@@ -55,6 +56,7 @@ static void board_init(void){
     clock_usart3();
 
     configure_io();
+    configure_adc1();
     configure_i2c2();
     configure_tim1();
     configure_tim2();
@@ -69,13 +71,10 @@ static void board_init(void){
 _Noreturn static void error_control_task(void* param){
     uint32_t error_event = 0;
     while(1){
-    #ifdef ERROR_TASK_SUSPEND
-        vTaskSuspend(NULL);
-    #endif
         xTaskNotifyWait(0, 0xFFFFFFFF, &error_event, portMAX_DELAY);
         
         /* Error on I2C2 bus requires restart of peripheral */
-        if(error_event & I2C2_NOTIFY){
+        if(error_event & I2C2_ERR_NOTIFY){
             vTaskSuspend(eeprom_write_handle);
             vTaskSuspend(mpu_read_handle);
             I2C2->CR1 |= I2C_CR1_SWRST;
@@ -86,11 +85,11 @@ _Noreturn static void error_control_task(void* param){
             vTaskResume(eeprom_write_handle);
         }
         
-        else if(error_event & WEIGHT_NOTIFY || error_event & TILT_NOTIFY){
+        else if(error_event & MAXWEIGHT_NOTIFY || error_event & MAXTILT_NOTIFY){
             xTaskNotify(send_boardT_handle, USART_STOP_CHAIR, eSetValueWithOverwrite);
         }
         
-        else if(error_event & CLEAR_NOTIFY){
+        else if(error_event & CLEAR_ERR_NOTIFY){
             xTaskNotify(send_boardT_handle, USART_CLEAR_ERROR, eSetValueWithOverwrite);
         }
         

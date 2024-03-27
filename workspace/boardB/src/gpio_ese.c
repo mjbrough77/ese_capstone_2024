@@ -17,7 +17,6 @@
   *@pre The GPIOx lines used in this function have their clocks enabled
  */
 void configure_io(void){
-
     /**************************************************************************
      * LEFT ENCODER
     **************************************************************************/
@@ -61,8 +60,8 @@ void configure_io(void){
     /**************************************************************************
      * WEIGHT SENSOR
     **************************************************************************/
-    /** PA2 as Analog Input (ADC1_IN2) **/
-    GPIOA->CRL &= ~GPIO_CRL_CNF2 & ~GPIO_CRL_MODE2;
+    /** PC0 as Analog Input (ADC1_IN10) **/
+    GPIOC->CRL &= ~GPIO_CRL_CNF0 & ~GPIO_CRL_MODE0;
 
 
     /**************************************************************************
