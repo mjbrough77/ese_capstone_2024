@@ -152,18 +152,18 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>244</LineNumber>
+          <LineNumber>38</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134220134</Address>
+          <Address>134223706</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>&lt;1&gt;.\src\interrupts_ese.c</Filename>
+          <Filename>&lt;1&gt;.\src\adc_ese.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\boardB\src/interrupts_ese.c\244</Expression>
+          <Expression>\\boardB\src/adc_ese.c\38</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -260,6 +260,10 @@
         <Entry>
           <Name>System Viewer\TIM3</Name>
           <WinId>35904</WinId>
+        </Entry>
+        <Entry>
+          <Name>System Viewer\TIM4</Name>
+          <WinId>35902</WinId>
         </Entry>
       </SystemViewers>
       <DebugDescription>

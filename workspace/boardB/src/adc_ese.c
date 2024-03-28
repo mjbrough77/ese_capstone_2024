@@ -20,6 +20,8 @@ void get_weight_task(void* param){
     float user_weight;
     uint32_t adc_reading;
     float voltage_reading;
+    uint8_t over_weight_next = 0;
+    uint8_t over_weight_prev = 0;
     
     while(1){
     #ifdef WEIGHT_TASK_SUSPEND
@@ -30,6 +32,21 @@ void get_weight_task(void* param){
         adc_reading = ADC1->DR;
         voltage_reading = (float)adc_reading * ADC_RESOLUTION - WEIGHT_TARE;
         user_weight = voltage_reading / WEIGHT_RESOLUTION;
+        
+        if(user_weight > MAX_WEIGHT){
+            xTaskNotify(system_error_handle, MAXWEIGHT_NOTIFY, eSetBits);
+            xTaskNotify(eeprom_write_handle, MAXWEIGHT_NOTIFY, eSetBits);
+            over_weight_next = 1;
+        }
+        
+        else
+            over_weight_next = 0;
+        
+        if(over_weight_prev == 1 && over_weight_next == 0){
+            xTaskNotify(system_error_handle, CLEAR_ERR_NOTIFY, eSetBits);
+        }
+
+        over_weight_prev = over_weight_next;
         
         (void)param;
     }

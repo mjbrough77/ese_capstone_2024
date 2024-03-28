@@ -175,7 +175,7 @@ _Noreturn void find_rotation_task(void* param){
         roll = (0.0f * angle_x_gyro) + (1.0f * angle_x_accel);
         yaw += gyro_z * MPU_SAMPLE_TIME;
         
-        if(fabsf(roll) > MAX_TILT || fabsf(yaw) > MAX_TILT){
+        if(fabsf(roll) > MAX_TILT_ROLL || fabsf(yaw) > MAX_TILT_YAW ){
             xTaskNotify(system_error_handle, MAXTILT_NOTIFY, eSetBits);
             xTaskNotify(eeprom_write_handle, MAXTILT_NOTIFY, eSetBits);
             tilt_exceeded_next = 1;

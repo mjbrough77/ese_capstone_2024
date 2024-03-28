@@ -9,8 +9,8 @@
 **************************************************************************/
 //#define MPU_RESET_SKIP
 //#define MPU_TASK_SUSPEND
-#define ROTATION_TASK_SUSPEND
-#define WEIGHT_TASK_SUSPEND
+//#define ROTATION_TASK_SUSPEND
+//#define WEIGHT_TASK_SUSPEND
 #define EEPROM_TASK_SUSPEND
 
 /**************************************************************************
@@ -18,8 +18,9 @@
 **************************************************************************/
 #define MAX_WEIGHT              250         /* [lbs] */
 #define MAX_SPEED               35000       /* [10^4 km/h] */
-#define MAX_TILT                15.0f       /* [deg] */
-#define MAX_DISTANCE            200000      /* [um] */
+#define MAX_TILT_ROLL           15.0f       /* [deg] */
+#define MAX_TILT_YAW            10.0f       /* [deg] */
+#define MAX_DISTANCE            610000      /* [um] */
 
 /**************************************************************************
  * Ultrasonic Hardware Definitions
@@ -31,7 +32,7 @@
 /**************************************************************************
  * Weight Sensor Definitions
 **************************************************************************/
-#define WEIGHT_SAMPLE_MS        10              /* [ms] arbitrary */
+#define WEIGHT_SAMPLE_MS        100             /* [ms] arbitrary */
 #define ADC_RESOLUTION          8.056640625e-4f /* [V/LSB] */
 #define WEIGHT_TARE             1.51871431f
 #define WEIGHT_RESOLUTION       5.0e-4f         /* [V/lb] */
