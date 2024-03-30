@@ -15,7 +15,7 @@ void configure_adc1(void){
     ADC1->CR2 |= ADC_CR2_ADON;      /* Start ADC conversions */
 }
 
-void get_weight_task(void* param){
+void find_weight_task(void* param){
     TickType_t xLastWakeTime = xTaskGetTickCount();
     float user_weight;
     uint32_t adc_reading;

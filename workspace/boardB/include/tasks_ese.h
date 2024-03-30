@@ -25,6 +25,6 @@ extern TaskHandle_t send_boardT_handle;
 extern TaskHandle_t find_velocity_left_handle;
 extern TaskHandle_t find_velocity_right_handle;
 extern TaskHandle_t system_error_handle;
-extern TaskHandle_t calc_rotation_handle;
+extern TaskHandle_t find_tilt_handle;
 
 #endif

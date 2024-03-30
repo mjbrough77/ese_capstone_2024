@@ -193,10 +193,4 @@ typedef struct{
     QueueHandle_t side;         /* Queue holding left/right velocity data */
 }EncoderTimers_t;
 
-
-/**************************************************************************
- * Useful functions
-**************************************************************************/
-extern float fast_hypotenuse(float, float);
-
 #endif

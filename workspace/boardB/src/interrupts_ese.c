@@ -149,7 +149,7 @@ void DMA1_Channel5_IRQHandler(void){
     fifo_data.gyro_z_axis =   (Gyro_t)((mpu_data[10]<<8) | mpu_data[11]);
     
     xQueueOverwriteFromISR(mpu_dataQ, &fifo_data, NULL);
-    vTaskNotifyGiveFromISR(calc_rotation_handle, NULL);
+    vTaskNotifyGiveFromISR(find_tilt_handle, NULL);
     
     DMA1->IFCR |= DMA_IFCR_CTCIF5; /* Clear interrupt */
 }

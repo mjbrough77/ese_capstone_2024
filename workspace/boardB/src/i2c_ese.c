@@ -32,8 +32,8 @@ const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE] = {
     {REG_GYRO_CONFIG, 0x08},        /* Gyro range +-500 degrees/s */
     {REG_ACCEL_CONFIG, 0x08},       /* Accel range +-4g */
     {REG_FIFO_EN, 0x78},            /* 3-axis gyro, accel into FIFO */
-    {REG_USER_CTRL, 0x40},          /* Enable FIFO */
-    {REG_INT_ENABLE, 0x01}          /* Data ready interrupt enable */
+    {REG_INT_ENABLE, 0x01},         /* Data ready interrupt enable */    
+    {REG_USER_CTRL, 0x40}           /* Enable FIFO */
 };
 
 
@@ -41,7 +41,7 @@ const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE] = {
  * Configuration Functions
 **************************************************************************/
 /**
-  *@brief Configures I2C2 for 400kHz Fast Mode with event interrupts.
+  *@brief Configures I2C2 for 400kHz Fast Mode with error and event interrupts.
   *
   * MPU6050 requires I2C to run at 400kHz
   *
@@ -54,8 +54,8 @@ void configure_i2c2(void){
     I2C2->CR2 |= I2C_CR2_ITEVTEN;               /* Event interrupt enable */
     I2C2->CR2 |= I2C_CR2_ITERREN;               /* Error interrupt enable */
 
-    NVIC_SetPriority(I2C2_EV_IRQn, 5); /* ISR Priority >= 5 (FreeRTOS) */
     NVIC_SetPriority(I2C2_ER_IRQn, 5);
+    NVIC_SetPriority(I2C2_EV_IRQn, 6);
     NVIC_EnableIRQ(I2C2_EV_IRQn);
     NVIC_EnableIRQ(I2C2_ER_IRQn);
 
@@ -76,15 +76,16 @@ void configure_i2c2_dma(void){
     DMA1_Channel4->CNDTR = MPU_SINGLE_WRITE;
     DMA1_Channel4->CCR |= DMA_CCR4_TCIE | DMA_CCR4_DIR | DMA_CCR4_MINC;
     DMA1_Channel4->CCR |= DMA_CCR4_EN;
-    NVIC_SetPriority(DMA1_Channel4_IRQn, 5); /* ISR Priority >= 5 (FreeRTOS) */
+    NVIC_SetPriority(DMA1_Channel4_IRQn, 10);
     NVIC_EnableIRQ(DMA1_Channel4_IRQn);
 
     /* I2C2_Rx DMA channel, configured to read MPU6050 */
     DMA1_Channel5->CPAR = (uint32_t)&I2C2->DR;
     DMA1_Channel5->CNDTR = MPU_FIFO_READ;
     DMA1_Channel5->CCR |= DMA_CCR5_TCIE | DMA_CCR5_MINC | DMA_CCR5_CIRC;
+    DMA1_Channel5->CCR |= DMA_CCR5_PL_0; /* Medium priority */
     /* DMA1_Channel5 finished configuration in DMA1_Channel4_IRQHandler() */
-    NVIC_SetPriority(DMA1_Channel5_IRQn, 5); /* ISR Priority >= 5 (FreeRTOS) */
+    NVIC_SetPriority(DMA1_Channel5_IRQn, 7);
     NVIC_EnableIRQ(DMA1_Channel5_IRQn);
 }
 
@@ -114,21 +115,21 @@ _Noreturn void mpu_reset_task(void* param){
     #ifndef MPU_RESET_SKIP
         /* I2C2 bus assumed free, no other access to take place */
         for(i = 0; i < MPU_RESET_STEPS; i++){
+            vTaskDelay( pdMS_TO_TICKS( 100 ) );
             xQueueSend(i2c2Q, &address, portMAX_DELAY);
             I2C2->CR1 |= I2C_CR1_START;
-            vTaskDelay( pdMS_TO_TICKS( 100 ) );
         }
     #endif
         /* Create tasks, initialize rest of board */
-        xTaskCreate(eeprom_write_task,"EEPROM",128,NULL,2,&eeprom_write_handle);
-        xTaskCreate(mpu_read_task,"MPU Read",128,NULL,2,&mpu_read_handle);
-        xTaskCreate(find_rotation_task,"Rotate",128,NULL,1,&calc_rotation_handle);
-        xTaskCreate(send_boardT_task,"Speed",128,NULL,1,&send_boardT_handle);
-        xTaskCreate(get_weight_task,"Weight",128,NULL,1,NULL);
+        xTaskCreate(send_boardT_task,"sendtoT",128,NULL,3,&send_boardT_handle);
+        xTaskCreate(mpu_read_task,"MPU Read",128,NULL,3,&mpu_read_handle);
+        xTaskCreate(find_tilt_task,"Tilt",128,NULL,3,&find_tilt_handle);
         xTaskCreate(find_velocity_task, "RightV",128,
-                    (void*)&right_encoder_timers,1,&find_velocity_right_handle);
+            (void*)&right_encoder_timers,2,&find_velocity_right_handle);
         xTaskCreate(find_velocity_task,"LeftV",128,
-                    (void*)&left_encoder_timers,1,&find_velocity_left_handle);
+            (void*)&left_encoder_timers,2,&find_velocity_left_handle);
+        xTaskCreate(find_weight_task,"Weight",128,NULL,2,NULL);
+        xTaskCreate(eeprom_write_task,"EEPROM",128,NULL,1,&eeprom_write_handle);
         
         start_encoder_readings();
         enable_mpu_int_pin();
@@ -139,7 +140,7 @@ _Noreturn void mpu_reset_task(void* param){
     }
 }
 
-_Noreturn void find_rotation_task(void* param){
+_Noreturn void find_tilt_task(void* param){
     float accel_x, accel_y, accel_z;    /* [g] acceleration */
     float gyro_x, gyro_z;               /* [deg/s] rotational velocity */
     float angle_x_gyro;                 /* [deg] angle from gyro */
@@ -238,7 +239,6 @@ _Noreturn void eeprom_write_task(void* param){
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS( 1000 ));
 
         /**************************** Update Log ****************************/
-        
         xQueuePeek(mpu_dataQ, &last_mpu_data, NULL);
         xQueuePeek(left_wheel_dataQ, &left_wheel_speed, NULL);
         xQueuePeek(right_wheel_dataQ, &right_wheel_speed, NULL);

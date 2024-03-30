@@ -33,7 +33,7 @@ void enable_mpu_int_pin(void);
  * Peripheral Task Declarations
 **************************************************************************/
 _Noreturn void mpu_reset_task(void*);
-_Noreturn void find_rotation_task(void*);
+_Noreturn void find_tilt_task(void*);
 _Noreturn void eeprom_write_task(void*);
 _Noreturn void mpu_read_task(void*);
 

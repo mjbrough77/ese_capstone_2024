@@ -21,7 +21,7 @@ void configure_tim1(void){
     TIM1->PSC = 39;                     /* One count every 2us */
 
     TIM1->DIER |= TIM_DIER_CC1IE;       /* Enable interrupt */
-    NVIC_SetPriority(TIM1_CC_IRQn, 5);  /* ISR Priority >= 5 (FreeRTOS) */
+    NVIC_SetPriority(TIM1_CC_IRQn, 8);
     NVIC_EnableIRQ(TIM1_CC_IRQn);
 }
 
@@ -51,7 +51,7 @@ void configure_tim4(void){
     TIM4->PSC = 39;                     /* One count every 2us */
 
     TIM4->DIER |= TIM_DIER_CC1IE;       /* Enable interrupt */
-    NVIC_SetPriority(TIM4_IRQn, 5);     /* ISR Priority >= 5 (FreeRTOS) */
+    NVIC_SetPriority(TIM4_IRQn, 8);
     NVIC_EnableIRQ(TIM4_IRQn);      
 }
 

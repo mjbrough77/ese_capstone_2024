@@ -21,7 +21,7 @@ void configure_tim2(void){
     TIM2->EGR |= TIM_EGR_UG;   /* Initialize all registers */
     
     TIM2->DIER |= TIM_DIER_UIE;     /* Interrupt each PWM period */
-    NVIC_SetPriority(TIM2_IRQn, 5); /* Priority >= 5 (FreeRTOS) */
+    NVIC_SetPriority(TIM2_IRQn, 7); /* Priority >= 5 (FreeRTOS) */
 }
 
 /* Motor driver signal */
@@ -44,7 +44,7 @@ void configure_tim3(void){
     TIM3->EGR |= TIM_EGR_UG;        /* Initialize all registers */
     
     TIM3->DIER |= TIM_DIER_CC1IE;   /* Interrupt on falling edge of PWM */
-    NVIC_SetPriority(TIM3_IRQn, 5); /* Priority >= 5 (FreeRTOS) */
+    NVIC_SetPriority(TIM3_IRQn, 6); /* Priority >= 5 (FreeRTOS) */
     
     TIM3->CR1 |= TIM_CR1_CEN;       /* Start motor signal ASAP */ 
 }

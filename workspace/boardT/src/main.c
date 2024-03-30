@@ -30,9 +30,9 @@ static void board_init(void);
 int main(void){
     board_init();
     
-    xTaskCreate(print_speed_task,"Speed",128,NULL,1,&print_speed_handle);
+    xTaskCreate(print_speed_task,"Speed",128,NULL,3,&print_speed_handle);
+    xTaskCreate(motor_control_task,"Motor",128,NULL,2,&motor_control_handle);
     xTaskCreate(ultrasonic_data_task,"Ultra",128,NULL,1,&ultrasonic_handle);
-    xTaskCreate(motor_control_task,"Motor",128,NULL,1,&motor_control_handle);
     
     vTaskStartScheduler();
 	while(1);

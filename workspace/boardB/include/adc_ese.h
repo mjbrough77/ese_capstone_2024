@@ -4,6 +4,6 @@
 #include "stm32f10x.h"
 
 void configure_adc1(void);
-_Noreturn void get_weight_task(void*);
+_Noreturn void find_weight_task(void*);
 
 #endif
