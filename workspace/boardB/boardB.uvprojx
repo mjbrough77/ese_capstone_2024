@@ -385,11 +385,6 @@
           <GroupName>src</GroupName>
           <Files>
             <File>
-              <FileName>project_types.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\project_types.c</FilePath>
-            </File>
-            <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\main.c</FilePath>

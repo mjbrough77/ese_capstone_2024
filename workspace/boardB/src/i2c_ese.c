@@ -2,27 +2,34 @@
   *@file i2c_ese.c
   *@author Mitchell Brough
   *@brief Source file associated with the I2C bus and connected peripherals
-  * Contains tasks for peripherals on the bus (EEPROM and MPU)
+  *
+  * Contains tasks for all I2C2 connected devices and tasks for converting
+  * data obtained over I2C
+  *
   *@version 1.0
   *@date 2024-03-04
   *
   *@copyright Copyright (c) 2024 Mitchell Brough
-  *
  */
 
-#include "math.h"
-#include "../../project_types.h"
-#include "../include/tasks_ese.h"
-#include "../include/queues_ese.h"
-#include "../include/semaphore_ese.h"
+#include "math.h"                       /* sqrtf(), atanf(), and absf() */
+#include "../../project_types.h"        /* project macros */
+#include "../include/tasks_ese.h"       /* task handle access */
+#include "../include/queues_ese.h"      /* queue handle access */
+#include "../include/semaphore_ese.h"   /* mutex handle acces */
 
-#include "../include/adc_ese.h"
+#include "../include/adc_ese.h"         /* find_weight_task() */
 #include "../include/i2c_ese.h"
-#include "../include/timers_ese.h"
-#include "../include/usart_ese.h"
+#include "../include/timers_ese.h"      /* find_velocity_task() */
+#include "../include/usart_ese.h"       /* send_boardT_task() */
 
-
-const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE] = {
+/**
+  *@brief Array storing MPU6050 register addresses and write values.
+  *
+  * On intitailization, `mpu_init` will be stepped through to reset the MPU.
+  * Each row represents a seperate write instruction.
+ */
+static const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE] = {
     {REG_PWR_MGMT_1, 0x80},         /* Device Reset */
     {REG_SIGNAL_PATH_RESET, 0x07},  /* Sensor Reset */
     {REG_PWR_MGMT_1, 0x01},         /* PLL with x-axis gyro ref */
@@ -32,21 +39,13 @@ const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE] = {
     {REG_GYRO_CONFIG, 0x08},        /* Gyro range +-500 degrees/s */
     {REG_ACCEL_CONFIG, 0x08},       /* Accel range +-4g */
     {REG_FIFO_EN, 0x78},            /* 3-axis gyro, accel into FIFO */
-    {REG_INT_ENABLE, 0x01},         /* Data ready interrupt enable */    
+    {REG_INT_ENABLE, 0x01},         /* Data ready interrupt enable */
     {REG_USER_CTRL, 0x40}           /* Enable FIFO */
 };
-
 
 /**************************************************************************
  * Configuration Functions
 **************************************************************************/
-/**
-  *@brief Configures I2C2 for 400kHz Fast Mode with error and event interrupts.
-  *
-  * MPU6050 requires I2C to run at 400kHz
-  *
-  *@pre I2C2 clock should be enabled
- */
 void configure_i2c2(void){
     I2C2->CR2 |= 20;                            /* AHB_clk = 20MHz */
     I2C2->CCR |= I2C_CCR_FS | I2C_CCR_DUTY | 2; /* 400kHz Fm with 16/9 DC */
@@ -64,18 +63,13 @@ void configure_i2c2(void){
     I2C2->CR2 |= I2C_CR2_LAST;  /* NACK on next DMA EOT */
 }
 
-/**
-  *@brief Configures the I2C2 DMA channels for device initialization
-  *
-  *@pre DMA1 clock should be enabled
- */
 void configure_i2c2_dma(void){
     /* I2C2_Tx DMA channel, configured to reset MPU6050 */
     DMA1_Channel4->CPAR = (uint32_t)&I2C2->DR;
     DMA1_Channel4->CMAR = (uint32_t)mpu_init[0];
     DMA1_Channel4->CNDTR = MPU_SINGLE_WRITE;
     DMA1_Channel4->CCR |= DMA_CCR4_TCIE | DMA_CCR4_DIR | DMA_CCR4_MINC;
-    DMA1_Channel4->CCR |= DMA_CCR4_EN;
+    DMA1_Channel4->CCR |= DMA_CCR4_EN; /* Using DMA to reset the MPU6050 */
     NVIC_SetPriority(DMA1_Channel4_IRQn, 10);
     NVIC_EnableIRQ(DMA1_Channel4_IRQn);
 
@@ -84,43 +78,44 @@ void configure_i2c2_dma(void){
     DMA1_Channel5->CNDTR = MPU_FIFO_READ;
     DMA1_Channel5->CCR |= DMA_CCR5_TCIE | DMA_CCR5_MINC | DMA_CCR5_CIRC;
     DMA1_Channel5->CCR |= DMA_CCR5_PL_0; /* Medium priority */
-    /* DMA1_Channel5 finished configuration in DMA1_Channel4_IRQHandler() */
     NVIC_SetPriority(DMA1_Channel5_IRQn, 7);
     NVIC_EnableIRQ(DMA1_Channel5_IRQn);
+
+    /*
+     * DMA1_Channel5 finished configuration in `DMA1_Channel4_IRQHandler()`
+     */
 }
 
 void enable_mpu_int_pin(void){
-    EXTI->IMR |= EXTI_IMR_MR6; /* mpu_read_task created, unmask INT */
+    EXTI->IMR |= EXTI_IMR_MR6;
 }
 
 
 /**************************************************************************
  * I2C2 Peripheral Tasks
 **************************************************************************/
-/**
-  *@brief Task used to reset MPU, finish system setup
-  *
-  *@param param unused
-*/
 _Noreturn void mpu_reset_task(void* param){
 #ifndef MPU_RESET_SKIP
     uint32_t i;
     uint8_t address = ADDR_MPU << 1;
 #endif
+
     EncoderTimers_t left_encoder_timers = {TIM1, TIM2, left_wheel_dataQ};
     EncoderTimers_t right_encoder_timers = {TIM4, TIM3, right_wheel_dataQ};
-    
+
     while(1){
         vTaskDelay( pdMS_TO_TICKS( 200 ) );
+
     #ifndef MPU_RESET_SKIP
-        /* I2C2 bus assumed free, no other access to take place */
+        /* Assuming this task has exclusive access to the I2C bus */
         for(i = 0; i < MPU_RESET_STEPS; i++){
             vTaskDelay( pdMS_TO_TICKS( 100 ) );
             xQueueSend(i2c2Q, &address, portMAX_DELAY);
             I2C2->CR1 |= I2C_CR1_START;
         }
     #endif
-        /* Create tasks, initialize rest of board */
+
+        /* Create rest of tasks */
         xTaskCreate(send_boardT_task,"sendtoT",128,NULL,3,&send_boardT_handle);
         xTaskCreate(mpu_read_task,"MPU Read",128,NULL,3,&mpu_read_handle);
         xTaskCreate(find_tilt_task,"Tilt",128,NULL,3,&find_tilt_handle);
@@ -130,11 +125,11 @@ _Noreturn void mpu_reset_task(void* param){
             (void*)&left_encoder_timers,2,&find_velocity_left_handle);
         xTaskCreate(find_weight_task,"Weight",128,NULL,2,NULL);
         xTaskCreate(eeprom_write_task,"EEPROM",128,NULL,1,&eeprom_write_handle);
-        
+
         start_encoder_readings();
         enable_mpu_int_pin();
         send_ready_signal();
-        
+
         vTaskDelete(NULL); /* No further use for this task */
         (void)param;
     }
@@ -147,44 +142,45 @@ _Noreturn void find_tilt_task(void* param){
     float angle_x_accel;                /* [deg] angle from accel */
     float x_z_resultant;                /* [g] accel vector on x-z plane */
     float roll, yaw;                    /* [deg] angle about x, z-axis */
-    
+
     uint8_t tilt_exceeded_prev = 0;
     uint8_t tilt_exceeded_next = 0;
     MPUData_t raw_mpu_data = {0,0,0,0,0,0};
     angle_x_gyro = 0.0f;
     roll  = yaw = 0.0f;
-    
+
     while(1){
     #ifdef ROTATION_TASK_SUSPEND
         vTaskSuspend(NULL);
     #endif
-        
+
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        
+
         xQueuePeek(mpu_dataQ, &raw_mpu_data, NULL);
         accel_x = raw_mpu_data.accel_x_axis / ACCEL_SENSITIVITY;
         accel_y = raw_mpu_data.accel_y_axis / ACCEL_SENSITIVITY;
         accel_z = raw_mpu_data.accel_z_axis / ACCEL_SENSITIVITY;
         gyro_x = raw_mpu_data.gyro_x_axis / GYRO_SENSITIVITY - GYRO_X_OFFSET;
         gyro_z = raw_mpu_data.gyro_z_axis / GYRO_SENSITIVITY - GYRO_Z_OFFSET;
-        
+
         x_z_resultant = sqrtf( accel_x*accel_x + accel_z*accel_z );
         angle_x_accel = atanf( accel_y / x_z_resultant) * 180.0f/PI;
         angle_x_accel -= ACCEL_X_OFFSET;
         angle_x_gyro += gyro_x * MPU_SAMPLE_TIME;
-        
+
         roll = (0.0f * angle_x_gyro) + (1.0f * angle_x_accel);
         yaw += gyro_z * MPU_SAMPLE_TIME;
-        
+
         if(fabsf(roll) > MAX_TILT_ROLL || fabsf(yaw) > MAX_TILT_YAW ){
             xTaskNotify(system_error_handle, MAXTILT_NOTIFY, eSetBits);
             xTaskNotify(eeprom_write_handle, MAXTILT_NOTIFY, eSetBits);
             tilt_exceeded_next = 1;
         }
-        
+
         else
             tilt_exceeded_next = 0;
-        
+
+        /* Chair has returned to an acceptable angle */
         if(tilt_exceeded_prev == 1 && tilt_exceeded_next == 0){
             xTaskNotify(system_error_handle, CLEAR_ERR_NOTIFY, eSetBits);
         }
@@ -194,20 +190,10 @@ _Noreturn void find_tilt_task(void* param){
     }
 }
 
-/**
-  *@brief Updates the log and starts a write to the EEPROM
-  *
-  * DMA1_Channel4 has shared access to `eeprom_log` and therefore, the log
-  * information should not be updated until a complete write to the EEPROM has
-  * occured. Right now this is okay, because it is only updated before the
-  * the start of every transmission
-  *
-  *@param param unused
- */
 _Noreturn void eeprom_write_task(void* param){
     const uint32_t LOG_SIZE = sizeof(LogData_t);
     const uint8_t CTRL_BLOCK = 0x2; /* Block bit of the control byte */
-    
+
     TickType_t xLastWakeTime = xTaskGetTickCount();
     uint32_t last_event = 0;
 
@@ -235,16 +221,15 @@ _Noreturn void eeprom_write_task(void* param){
         vTaskSuspend(NULL);
     #endif
 
-        /**************************** Period = 1s ****************************/
-        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS( 1000 ));
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS( UPDATE_LOG_MS ));
 
-        /**************************** Update Log ****************************/
+        /* Update log */
         xQueuePeek(mpu_dataQ, &last_mpu_data, NULL);
         xQueuePeek(left_wheel_dataQ, &left_wheel_speed, NULL);
         xQueuePeek(right_wheel_dataQ, &right_wheel_speed, NULL);
         xQueuePeek(ultrasonic_dataQ, &distance_data, NULL);
         xTaskNotifyWait(0,0xFFFFFFFF,&last_event,NULL);
-        
+
         eeprom_log.address_high = address_high;
         eeprom_log.address_low  = address_low;
         eeprom_log.event_flags = (uint8_t)last_event;
@@ -260,14 +245,14 @@ _Noreturn void eeprom_write_task(void* param){
         eeprom_log.gyro_y_axis = last_mpu_data.gyro_y_axis;
         eeprom_log.gyro_z_axis = last_mpu_data.gyro_z_axis;
 
-        /**************************** Start Write ***************************/
+        /* Start write */
         xSemaphoreTake(i2c2_mutex, portMAX_DELAY);
             while(I2C2->SR2 & I2C_SR2_BUSY);
             xQueueSendToBack(i2c2Q, &control_byte, portMAX_DELAY);
             I2C2->CR1 |= I2C_CR1_START;
         xSemaphoreGive(i2c2_mutex);
 
-        /*********************** Update Write Address ************************/
+        /* Update write address */
         address_to_write += LOG_SIZE;
 
         /* Will this write extend beyond the page bound? */
@@ -288,7 +273,6 @@ _Noreturn void eeprom_write_task(void* param){
         address_low  = (address_to_write & 0xFF);
 
         old_page_num = new_page_num;
-
         (void)param;
     }
 }
@@ -304,7 +288,6 @@ _Noreturn void mpu_read_task(void* param){
     #endif
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-        /* Assumes i2c2Q empty, task will block indefinitely otherwise */
         xSemaphoreTake(i2c2_mutex, portMAX_DELAY);
             while(I2C2->SR2 & I2C_SR2_BUSY);
             xQueueSendToBack(i2c2Q, &MPU_WRITE_ADDR, portMAX_DELAY);
@@ -312,7 +295,7 @@ _Noreturn void mpu_read_task(void* param){
             xQueueSendToBack(i2c2Q, &MPU_READ_ADDR, portMAX_DELAY);
             I2C2->CR1 |= I2C_CR1_START;
         xSemaphoreGive(i2c2_mutex);
-        
+
         (void)param;
     }
 }

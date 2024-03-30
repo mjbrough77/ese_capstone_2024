@@ -1,52 +1,43 @@
 /**
   *@file clocks_ese.c
   *@author Mitchell Brough
-  *@brief Library concered with clock control on the F103RB
-  *@version 0.1
+  *@brief Library concerned with clock control
+  *@version 1.0
   *@date 2024-03-04
   *
   *@copyright Copyright (c) 2024 Mitchell Brough
   *
  */
+
+#include "stm32f10x.h"
 #include "../include/clocks_ese.h"
 
-/**************************************************************************
- * System Clock Initialization
-**************************************************************************/
-/**
-  *@brief Configures SYSCLK to 40MHz, AHB clock to 20MHz
-  *
- */
 void sysclock_init(void){
-    /** Enable HSE with Bypass and wait for it to be ready **/
+    /* Enable HSE with Bypass and wait for it to be ready */
     RCC->CR |= RCC_CR_HSEON | RCC_CR_HSEBYP;
     while (((RCC->CR) & (RCC_CR_HSEON | RCC_CR_HSEBYP | RCC_CR_HSERDY)) == 0);
 
-    /** Set HSE as SYSCLK and wait for it to be recognized **/
+    /* Set HSE as SYSCLK and wait for it to be recognized */
     RCC->CFGR = RCC_CFGR_SW_HSE;
     while (((RCC->CFGR) & (RCC_CFGR_SW_HSE | RCC_CFGR_SWS_HSE)) == 0);
 
-    /** Ensure PLL is disabled **/
+    /* Ensure PLL is disabled */
     RCC->CR &= ~RCC_CR_PLLON;
 
-    /** Sets CFGR register such that PLLMUL is 5 (8MHz * 5 = 40MHz) */
-    /** Sets CFGR register such that AHB Prescaler is 2 (40MHz / 2 = 20MHz) **/
-    /** PLLSRC = HSE **/
+    /* PLLSRC = HSE (HSE = 8MHz, see Nucleo datasheet) */
+    /* Sets CFGR register such that PLLMUL is 5 (8MHz * 5 = 40MHz) */
+    /* Sets CFGR register such that AHB Prescaler is 2 (40MHz / 2 = 20MHz) */
     RCC->CFGR = 0x000D0080;
 
-    /** Enable PLL and wait for it to be ready **/
+    /* Enable PLL and wait for it to be ready */
     RCC->CR |= RCC_CR_PLLON;
     while (((RCC->CR) & (RCC_CR_PLLON | RCC_CR_PLLRDY)) == 0);
 
-    /** Set PLL as SYSCLK and wait for it to be ready **/
+    /* Set PLL as SYSCLK and wait for it to be ready */
     RCC->CFGR |= RCC_CFGR_SW_PLL;
     while (((RCC->CFGR) & (RCC_CFGR_SW_PLL | RCC_CFGR_SWS_PLL)) == 0);
 }
 
-
-/**************************************************************************
- * Peripheral Clock Enable Functions
-**************************************************************************/
 void clock_afio(void){
     RCC->APB2ENR |= RCC_APB2ENR_AFIOEN;
 }

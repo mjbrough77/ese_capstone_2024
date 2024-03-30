@@ -66,7 +66,7 @@
 
 /**************************************************************************
  * Task Notification Flags
-**************************************************************************/          
+**************************************************************************/
 #define MAXTILT_NOTIFY          0x1
 #define DISTANCE_NOTIFY         0x2
 #define MAXWEIGHT_NOTIFY        0x4
@@ -105,9 +105,10 @@
 /**************************************************************************
  * EEPROM Hardware Definitions
 **************************************************************************/
-#define PAGE_SIZE               128 /* ROM page width in bytes */
-#define PAGES_PER_BLOCK         200 /* Memory divided into blocks */
-#define TOTAL_PAGES             400 /* Total number of EEPROM pages */
+#define UPDATE_LOG_MS           1000    /* How often the EEPROM is written */
+#define PAGE_SIZE               128     /* ROM page width in bytes */
+#define PAGES_PER_BLOCK         200     /* Memory divided into blocks */
+#define TOTAL_PAGES             400     /* Total number of EEPROM pages */
 
 /**************************************************************************
  * I2C Transmission Length Definitions
@@ -129,8 +130,8 @@ typedef int32_t  WheelVelocity_t;   /* Must record speeds > MAX_SPEED */
 typedef uint32_t Ultrasonic_t;      /* Ultrasonics use 4 bytes */
 typedef int16_t Gyro_t;             /* Gyroscope is 2 bytes per axis */
 typedef int16_t Accel_t;            /* Accel is 2 bytes per axis */
-typedef uint16_t ChairSpeed_t;      /* Must record speeds > MAX_SPEED */ 
-typedef uint16_t UsartBuffer_t;     /* BoardT buffer holds 2 bytes */      
+typedef uint16_t ChairSpeed_t;      /* Must record speeds > MAX_SPEED */
+typedef uint16_t UsartBuffer_t;     /* BoardT buffer holds 2 bytes */
 typedef uint16_t PageNum_t;         /* Size based on TOTAL_PAGES */
 typedef uint8_t  Weight_t;          /* Only using 8 bits of 12 bit ADC */
 

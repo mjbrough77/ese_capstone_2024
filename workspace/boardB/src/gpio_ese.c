@@ -9,13 +9,9 @@
   *
  */
 
+#include "stm32f10x.h"
 #include "../include/gpio_ese.h"
 
-/**
-  *@brief Uses GPIO, AFIO registers to configure IO pins
-  *
-  *@pre The GPIOx lines used in this function have their clocks enabled
- */
 void configure_io(void){
     /**************************************************************************
      * LEFT ENCODER
@@ -71,21 +67,21 @@ void configure_io(void){
     /* Default config on reset */
     AFIO->EXTICR[1] |= AFIO_EXTICR2_EXTI6_PC; /* EXTI6 source from PC6 */
     EXTI->RTSR |= EXTI_RTSR_TR6;              /* EXTI6 on falling edge */
-    NVIC_SetPriority(EXTI9_5_IRQn, 7);        
+    NVIC_SetPriority(EXTI9_5_IRQn, 7);
     NVIC_EnableIRQ(EXTI9_5_IRQn);             /* Line 6 still needs unmasking */
-    
-    
+
+
     /**************************************************************************
      * USART (INTER-MCU COMMUNICATIONS)
     **************************************************************************/
     /********** Configure USART3 **********/
     /* Remap PC10 -> Tx, PC11 -> Rx, PC12 -> CK */
     AFIO->MAPR |= AFIO_MAPR_USART3_REMAP_PARTIALREMAP;
-    
+
     /** PC10 as AFO push-pull @ 2MHz (USART3_Tx) */
     GPIOC->CRH |= GPIO_CRH_MODE10_1 | GPIO_CRH_CNF10_1;
     GPIOC->CRH &= ~GPIO_CRH_CNF10_0;
-    
+
     /** PC11 as Input w/pull-up (USART3_Rx) */
     /* Default config on reset */
 }
