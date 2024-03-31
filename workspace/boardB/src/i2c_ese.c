@@ -23,13 +23,10 @@
 #include "../include/timers_ese.h"      /* find_velocity_task() */
 #include "../include/usart_ese.h"       /* send_boardT_task() */
 
-/**
-  *@brief Array storing MPU6050 register addresses and write values.
-  *
-  * On intitailization, `mpu_init` will be stepped through to reset the MPU.
-  * Each row represents a seperate write instruction.
- */
-static const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE] = {
+/**************************************************************************
+ * MPU6050 Reset Vector
+**************************************************************************/
+const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE] = {
     {REG_PWR_MGMT_1, 0x80},         /* Device Reset */
     {REG_SIGNAL_PATH_RESET, 0x07},  /* Sensor Reset */
     {REG_PWR_MGMT_1, 0x01},         /* PLL with x-axis gyro ref */

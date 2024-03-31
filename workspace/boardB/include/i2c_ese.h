@@ -15,6 +15,16 @@
 #ifndef I2C_ESE
 #define I2C_ESE
 
+#include "../../project_types.h"
+
+/**
+  *@brief Array storing MPU6050 register addresses and write values.
+  *
+  * On intitailization, `mpu_init` will be stepped through to reset the MPU.
+  * Each row represents a seperate write instruction.
+ */
+extern const uint8_t mpu_init[MPU_RESET_STEPS][MPU_SINGLE_WRITE];
+
 /**************************************************************************
  * Configuration function prototypes
 **************************************************************************/

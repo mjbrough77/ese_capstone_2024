@@ -21,9 +21,9 @@
 /**************************************************************************
  * Macros for debugging [Uncomment to turn on]
 **************************************************************************/
-//#define MPU_RESET_SKIP
-//#define MPU_TASK_SUSPEND
-//#define ROTATION_TASK_SUSPEND
+#define MPU_RESET_SKIP
+#define MPU_TASK_SUSPEND
+#define ROTATION_TASK_SUSPEND
 //#define WEIGHT_TASK_SUSPEND
 #define EEPROM_TASK_SUSPEND
 
@@ -37,7 +37,7 @@
 /**************************************************************************
  * Sensor limits
 **************************************************************************/
-#define MAX_WEIGHT              250         /* [lbs] */
+#define MAX_WEIGHT              220         /* [lbs] */
 #define MAX_SPEED               65400       /* [10^4 km/h] */
 #define MAX_TILT_ROLL           15.0f       /* [deg] */
 #define MAX_TILT_YAW            10.0f       /* [deg] */
@@ -54,7 +54,7 @@
  * Weight Sensor Definitions
 **************************************************************************/
 #define ADC_RESOLUTION          8.056640625e-4f /* [V/LSB] */
-#define WEIGHT_TARE             1.51871431f     /* [V] */
+#define VOLTAGE_TARE            1.4962039f      /* [V] */
 #define WEIGHT_RESOLUTION       5.0e-4f         /* [V/lb] */
 
 /**************************************************************************

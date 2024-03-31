@@ -27,6 +27,7 @@ _Noreturn void motor_control_task(void* param){
         
         else if(notify_value == USART_CLEAR_ERROR){
             start_joystick_read();
+            ADC1->CR2 |= ADC_CR2_ADON;
             stopped = 0;
         }
         

@@ -33,7 +33,7 @@ void find_weight_task(void* param){
     float voltage_reading;
     uint8_t over_weight_next = 0;
     uint8_t over_weight_prev = 0;
-
+    
     while(1){
     #ifdef WEIGHT_TASK_SUSPEND
         vTaskSuspend(NULL);
@@ -41,16 +41,17 @@ void find_weight_task(void* param){
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS( WEIGHT_SAMPLE_MS ));
 
         adc_reading = ADC1->DR;
-        voltage_reading = (float)adc_reading * ADC_RESOLUTION - WEIGHT_TARE;
+        voltage_reading = (float)adc_reading * ADC_RESOLUTION - VOLTAGE_TARE;
+        
         user_weight = voltage_reading / WEIGHT_RESOLUTION;
-
-        if(user_weight > MAX_WEIGHT){
+        
+        if(user_weight > MAX_WEIGHT && over_weight_prev == 0){
             xTaskNotify(system_error_handle, MAXWEIGHT_NOTIFY, eSetBits);
             xTaskNotify(eeprom_write_handle, MAXWEIGHT_NOTIFY, eSetBits);
             over_weight_next = 1;
         }
 
-        else
+        else if(user_weight <= MAX_WEIGHT)
             over_weight_next = 0;
 
         if(over_weight_prev == 1 && over_weight_next == 0){
@@ -58,7 +59,6 @@ void find_weight_task(void* param){
         }
 
         over_weight_prev = over_weight_next;
-
         (void)param;
     }
 }
