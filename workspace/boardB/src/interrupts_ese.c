@@ -7,7 +7,6 @@
   *@date 2024-03-03
   *
   *@copyright Copyright (c) 2024 Mitchell Brough
-  *
  */
 
 #include "../../project_types.h"

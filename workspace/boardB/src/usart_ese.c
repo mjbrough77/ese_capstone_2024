@@ -1,28 +1,28 @@
 /**
   *@file usart_ese.c
   *@author Mitchell Brough
-  *@brief
+  *@brief Library for configuring USART3 and tasks related to transmitting
+  *       data over USART
+  *
   *@version 1.0
   *@date 2024-03-30
   *
   *@copyright Copyright (c) 2024
-  *
  */
 
-#include "../../project_types.h"
-#include "../include/tasks_ese.h"
-#include "../include/queues_ese.h"
+#include "../../project_types.h"        /* typedefs and macros */
+#include "../include/tasks_ese.h"       /* FreeRTOS task API functions */
+#include "../include/queues_ese.h"      /* Queue handles + API functions */
 
-#include "../include/timers_ese.h"
 #include "../include/usart_ese.h"
 
 void configure_usart3(void){
     USART3->CR1 |= USART_CR1_UE;    /* Enable USART3 */
-    USART3->BRR = 0x20;             /* Baud/bitrate = 625kbps, See RM0008 */
+    USART3->BRR = 0x20;             /* Baud = 625k, See RM0008 */
 
     USART3->CR3 |= USART_CR3_DMAR;  /* Enable DMA_USART3_Rx */
 
-    /* Configure interrupt, but wait until MPU6050 finished before enabling */
+    /* Configure interrupt, but wait until MPU6050 finished before unmask */
     NVIC_SetPriority(USART3_IRQn, 7);
     NVIC_EnableIRQ(USART3_IRQn);
 
@@ -37,7 +37,10 @@ void prepare_usart3_dma(void){
     DMA1_Channel2->CCR |= DMA_CCR2_CIRC;
     NVIC_SetPriority(DMA1_Channel2_IRQn, 7);
     NVIC_EnableIRQ(DMA1_Channel2_IRQn);
-    /* DMA1_Channel2 finished configuration in send_boardT_task() */
+
+    /*
+     *DMA1_Channel2 finished configuration in send_boardT_task()
+     */
 
     /* USART3_Rx DMA Channel */
     DMA1_Channel3->CPAR = (uint32_t)&USART3->DR;
@@ -46,14 +49,16 @@ void prepare_usart3_dma(void){
     DMA1_Channel3->CCR |= DMA_CCR3_CIRC;
     NVIC_SetPriority(DMA1_Channel3_IRQn, 9);
     NVIC_EnableIRQ(DMA1_Channel3_IRQn);
-    /* DMA1_Channel3 finished configuration in DMA1_Channel4_IRQHandler() */
+
+    /*
+     * DMA1_Channel3 finished configuration in DMA1_Channel4_IRQHandler()
+     */
 }
 
 void send_ready_signal(void){
     USART3->CR1 |= USART_CR1_TCIE;
 }
 
-/* No protected access of USART3_Tx bc no other tasks access it */
 _Noreturn void send_boardT_task(void* param){
     UsartBuffer_t usart_send;
     TickType_t xLastWakeTime = xTaskGetTickCount();

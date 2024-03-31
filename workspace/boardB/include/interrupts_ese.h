@@ -40,9 +40,9 @@ void DMA1_Channel3_IRQHandler(void);
   * During initialization, this interrupt will step through the initialization
   * of the MPU6050 as defined in mpu_init (see i2c_ese.h).
   *
-  * After initialization, I2C2_Tx DMA channel is reconfigured to write to the
-  * EEPROM. I2C2_Rx is also updated, now placing data in the local global
-  * buffer `mpu_data`
+  * After initialization, any DMA channels used for receiving data have their
+  * buffers assigned, since those buffers are statically allocated in
+  * interrupts_ese.c
  */
 void DMA1_Channel4_IRQHandler(void);
 

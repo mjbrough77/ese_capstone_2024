@@ -34,6 +34,9 @@ void configure_i2c2(void);
 /**
   *@brief Configures the I2C2 DMA channels for device initialization
   *
+  * DMA_Ch4 buffer points at the reset vector for the MPU6050, while
+  * DMA_Ch5 must wait to get it's buffer assigned in interrupts_ese.c
+  *
   *@pre DMA1 clock should be enabled
  */
 void configure_i2c2_dma(void);
