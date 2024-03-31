@@ -1,24 +1,26 @@
 /**
   *@file tasks_ese.h
   *@author Mitchell Brough
-  *@brief Library holding globally accessable task handles
+  *@brief Library containing task handles used in our program
   *
-  * We have enabled co-operative scheduling to better control reentrancy
-  * See RTE/RTOS/FreeRTOSConfig.h
+  * Because task handles are only modified once during task creation,
+  * global access is allowed
   *
   *@version 1.0
   *@date 2024-03-05
   *
   *@copyright Copyright (c) 2024 Mitchell Brough
-  *
  */
 
 #ifndef TASKS_ESE_H
 #define TASKS_ESE_H
 
-#include "FreeRTOS.h"
-#include "task.h"
+#include "FreeRTOS.h"   /* TaskHandle_t */
+#include "task.h"       /* TaskHandle_t */
 
+/*
+ * Task handles should reflect the task they are being used for
+ */
 extern TaskHandle_t mpu_read_handle;
 extern TaskHandle_t eeprom_write_handle;
 extern TaskHandle_t send_boardT_handle;

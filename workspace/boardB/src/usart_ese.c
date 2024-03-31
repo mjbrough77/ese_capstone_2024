@@ -1,3 +1,14 @@
+/**
+  *@file usart_ese.c
+  *@author Mitchell Brough
+  *@brief
+  *@version 1.0
+  *@date 2024-03-30
+  *
+  *@copyright Copyright (c) 2024
+  *
+ */
+
 #include "../../project_types.h"
 #include "../include/tasks_ese.h"
 #include "../include/queues_ese.h"
@@ -8,13 +19,13 @@
 void configure_usart3(void){
     USART3->CR1 |= USART_CR1_UE;    /* Enable USART3 */
     USART3->BRR = 0x20;             /* Baud/bitrate = 625kbps, See RM0008 */
-    
+
     USART3->CR3 |= USART_CR3_DMAR;  /* Enable DMA_USART3_Rx */
-    
+
     /* Configure interrupt, but wait until MPU6050 finished before enabling */
     NVIC_SetPriority(USART3_IRQn, 7);
     NVIC_EnableIRQ(USART3_IRQn);
-    
+
     USART3->CR1 |= USART_CR1_TE | USART_CR1_RE; /* Enable Tx, Rx */
 }
 
@@ -27,7 +38,7 @@ void prepare_usart3_dma(void){
     NVIC_SetPriority(DMA1_Channel2_IRQn, 7);
     NVIC_EnableIRQ(DMA1_Channel2_IRQn);
     /* DMA1_Channel2 finished configuration in send_boardT_task() */
-    
+
     /* USART3_Rx DMA Channel */
     DMA1_Channel3->CPAR = (uint32_t)&USART3->DR;
     DMA1_Channel3->CNDTR = sizeof(Distances_t);
@@ -51,23 +62,23 @@ _Noreturn void send_boardT_task(void* param){
     WheelVelocity_t total_velocity = 0;
     uint32_t usart_flag_to_send = 0;
     uint8_t wait_for_clear = 0;
-    
+
     /* Finish configuring DMA_USART3_Tx */
     DMA1_Channel2->CMAR = (uint32_t)&usart_send;
     DMA1_Channel2->CCR |= DMA_CCR2_EN;
-    
+
     /* Constantly transfers wheel speed data */
     while(1){
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS( SPEED_SAMPLE_MS ));
         usart_flag_to_send = ulTaskNotifyTake(pdTRUE, NULL);
-        
+
         if(usart_flag_to_send >= USART_CLEAR_ERROR){
             usart_send = (UsartBuffer_t)usart_flag_to_send;
             if(usart_flag_to_send == USART_CLEAR_ERROR) wait_for_clear = 0;
             else wait_for_clear = 1;
             USART3->CR3 |= USART_CR3_DMAT; /* Send error code to boardT*/
         }
-        
+
         else if(wait_for_clear == 0){
             xQueuePeek(left_wheel_dataQ, &left_vel, NULL);
             xQueuePeek(right_wheel_dataQ, &right_vel, NULL);
@@ -76,7 +87,7 @@ _Noreturn void send_boardT_task(void* param){
             usart_send = (UsartBuffer_t)total_velocity;
             USART3->CR3 |= USART_CR3_DMAT; /* Send speed to boardT */
         }
-        
+
         (void)param;
     }
 }
