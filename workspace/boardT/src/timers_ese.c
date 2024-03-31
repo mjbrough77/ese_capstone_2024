@@ -69,11 +69,11 @@ void start_ultrasonics(void){
 }
 
 uint16_t read_right_ultrasonic(void){
-    return TIM4->CCR1;
+    return TIM4->CCR2;
 }
 
 uint16_t read_left_ultrasonic(void){
-    return TIM4->CCR2;
+    return TIM4->CCR1;
 }
 
 _Noreturn void ultrasonic_data_task(void* param){

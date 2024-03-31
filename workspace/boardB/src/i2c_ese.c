@@ -97,8 +97,8 @@ _Noreturn void mpu_reset_task(void* param){
     uint8_t address = ADDR_MPU << 1;
 #endif
 
-    EncoderTimers_t left_encoder_timers = {TIM1, TIM2, left_wheel_dataQ};
-    EncoderTimers_t right_encoder_timers = {TIM4, TIM3, right_wheel_dataQ};
+    EncoderTimers_t left_encoder_timers = {TIM4, TIM3, left_wheel_dataQ};
+    EncoderTimers_t right_encoder_timers = {TIM1, TIM2, right_wheel_dataQ};
 
     while(1){
         vTaskDelay( pdMS_TO_TICKS( 200 ) );
@@ -134,20 +134,18 @@ _Noreturn void mpu_reset_task(void* param){
 
 _Noreturn void find_tilt_task(void* param){
     float accel_x, accel_y, accel_z;    /* [g] acceleration */
-    float gyro_x, gyro_z;               /* [deg/s] rotational velocity */
-    float angle_x_gyro;                 /* [deg] angle from gyro */
-    float angle_x_accel;                /* [deg] angle from accel */
+    float gyro_z;                       /* [deg/s] rotational velocity */
+    float accel_x_angle;                /* [deg] angle from accel */
     float x_z_resultant;                /* [g] accel vector on x-z plane */
     float roll, yaw;                    /* [deg] angle about x, z-axis */
 
     uint8_t tilt_exceeded_prev = 0;
     uint8_t tilt_exceeded_next = 0;
     MPUData_t raw_mpu_data = {0,0,0,0,0,0};
-    angle_x_gyro = 0.0f;
     roll  = yaw = 0.0f;
-
+    
     while(1){
-    #ifdef ROTATION_TASK_SUSPEND
+    #ifdef TILT_TASK_SUSPEND
         vTaskSuspend(NULL);
     #endif
 
@@ -157,15 +155,13 @@ _Noreturn void find_tilt_task(void* param){
         accel_x = raw_mpu_data.accel_x_axis / ACCEL_SENSITIVITY;
         accel_y = raw_mpu_data.accel_y_axis / ACCEL_SENSITIVITY;
         accel_z = raw_mpu_data.accel_z_axis / ACCEL_SENSITIVITY;
-        gyro_x = raw_mpu_data.gyro_x_axis / GYRO_SENSITIVITY - GYRO_X_OFFSET;
         gyro_z = raw_mpu_data.gyro_z_axis / GYRO_SENSITIVITY - GYRO_Z_OFFSET;
 
         x_z_resultant = sqrtf( accel_x*accel_x + accel_z*accel_z );
-        angle_x_accel = atanf( accel_y / x_z_resultant) * 180.0f/PI;
-        angle_x_accel -= ACCEL_X_OFFSET;
-        angle_x_gyro += gyro_x * MPU_SAMPLE_TIME;
+        accel_x_angle = atanf( accel_y / x_z_resultant) * 180.0f/PI;
+        accel_x_angle -= ACCEL_X_OFFSET;
 
-        roll = (0.0f * angle_x_gyro) + (1.0f * angle_x_accel);
+        roll = accel_x_angle;
         yaw += gyro_z * MPU_SAMPLE_TIME;
 
         if(fabsf(roll) > MAX_TILT_ROLL || fabsf(yaw) > MAX_TILT_YAW ){

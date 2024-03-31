@@ -21,9 +21,9 @@
 /**************************************************************************
  * Macros for debugging [Uncomment to turn on]
 **************************************************************************/
-#define MPU_RESET_SKIP
-#define MPU_TASK_SUSPEND
-#define ROTATION_TASK_SUSPEND
+//#define MPU_RESET_SKIP
+//#define MPU_TASK_SUSPEND
+//#define TILT_TASK_SUSPEND
 //#define WEIGHT_TASK_SUSPEND
 #define EEPROM_TASK_SUSPEND
 
@@ -41,7 +41,7 @@
 #define MAX_SPEED               65400       /* [10^4 km/h] */
 #define MAX_TILT_ROLL           15.0f       /* [deg] */
 #define MAX_TILT_YAW            10.0f       /* [deg] */
-#define MAX_DISTANCE            610000      /* [um] */
+#define MAX_DISTANCE            500000      /* [um] */
 
 /**************************************************************************
  * Ultrasonic Definitions
@@ -68,10 +68,10 @@
 **************************************************************************/
 #define GYRO_SENSITIVITY        65.5f           /* [LSB/deg/s] from datasheet */
 #define ACCEL_SENSITIVITY       8192.0f         /* [LSB/g] from datasheet */
-#define GYRO_X_OFFSET           -1.49557137f    /* [deg] average error */
+#define GYRO_X_OFFSET           -1.59863269f    /* [deg] average error */
 #define GYRO_Y_OFFSET           -0.3351143f     /* [deg] average error */
-#define GYRO_Z_OFFSET           0.459440142f    /* [deg] average error */
-#define ACCEL_X_OFFSET          -88.1409912f    /* [deg] average error */
+#define GYRO_Z_OFFSET           0.453847766f    /* [deg] average error */
+#define ACCEL_X_OFFSET          -78.4758759f    /* [deg] average error */
 #define ACCEL_Y_OFFSET          -0.196265712f   /* [deg] average error */
 
 /**************************************************************************
