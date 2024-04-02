@@ -84,7 +84,7 @@ _Noreturn static void error_control_task(void* param){
             vTaskResume(eeprom_write_handle);
         }
         
-        else if(error_event & MAXWEIGHT_NOTIFY || error_event & MAXTILT_NOTIFY){
+        else if(error_event & WEIGHT_NOTIFY || error_event & MAXTILT_NOTIFY){
             xTaskNotify(send_boardT_handle, USART_STOP_CHAIR, eSetValueWithOverwrite);
         }
         

@@ -42,7 +42,8 @@
 #define MAX_SPEED               65400       /* [10^4 km/h] */
 #define MAX_TILT_ROLL           15.0f       /* [deg] */
 #define MAX_TILT_YAW            10.0f       /* [deg] */
-#define MAX_DISTANCE            500000      /* [um] */
+#define SLOW_DISTANCE           304800      /* [um] */
+#define STOP_DISTANCE            50000      /* [um] */
 
 /**************************************************************************
  * Ultrasonic Definitions
@@ -86,17 +87,16 @@
 /**************************************************************************
  * Flag Values over USART (assume chair speed can never be > MAX_SPEED)
 **************************************************************************/
+#define USART_STOP_CHAIR        0xFFFFFFF1
+#define USART_CLEAR_ERROR       0xFFFFFFF0
 #define USART_READY             0xFF
-#define USART_SYS_FAIL          0xFFFF
-#define USART_STOP_CHAIR        0xFFFE
-#define USART_CLEAR_ERROR       0xFFF0 /* 16 error values, clear is lowest */
 
 /**************************************************************************
  * Task Notification Flags (Maximum of 32--see FreeRTOS reference manual)
 **************************************************************************/
 #define MAXTILT_NOTIFY          0x1
 #define DISTANCE_NOTIFY         0x2
-#define MAXWEIGHT_NOTIFY        0x4
+#define WEIGHT_NOTIFY           0x4
 #define OVERSPEED_NOTIFY        0x8
 #define SLOW_SPEED_NOTIFY       0x10
 #define TRIG_PULSE_NOTIFY       0x20
@@ -147,10 +147,10 @@
 **************************************************************************/
 typedef int32_t  WheelVelocity_t;   /* Must record speeds > MAX_SPEED */
 typedef uint32_t Ultrasonic_t;      /* Ultrasonics use 4 bytes */
+typedef uint32_t UsartBuffer_t;     /* Buffer size for USART data in boardT */
 typedef int16_t Gyro_t;             /* Gyroscope is 2 bytes per axis */
 typedef int16_t Accel_t;            /* Accel is 2 bytes per axis */
 typedef uint16_t ChairSpeed_t;      /* Must record speeds > MAX_SPEED */
-typedef uint16_t UsartBuffer_t;     /* BoardT buffer holds 2 bytes */
 typedef uint16_t PageNum_t;         /* Size based on TOTAL_PAGES */
 typedef uint8_t  Weight_t;          /* Only using 8 bits of 12 bit ADC */
 

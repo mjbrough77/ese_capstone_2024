@@ -11,14 +11,22 @@
 static UsartBuffer_t usart_buffer = 0;
 
 void TIM2_IRQHandler(void){
-    vTaskNotifyGiveFromISR(ultrasonic_handle, NULL);
+    BaseType_t wake = pdFALSE;
+    
+    vTaskNotifyGiveFromISR(ultrasonic_handle, &wake);
     TIM2->SR &= ~TIM_SR_UIF;
+    
+    portYIELD_FROM_ISR(wake);
 }
 
 /* Updates motor signals */
-void TIM3_IRQHandler(void) {
-    vTaskNotifyGiveFromISR(motor_control_handle, NULL);
+void TIM3_IRQHandler(void){
+    BaseType_t wake = pdFALSE;
+    
+    vTaskNotifyGiveFromISR(motor_control_handle, &wake);
     TIM3->SR &= ~TIM_SR_CC1IF; /* Clear interrupt */
+    
+    portYIELD_FROM_ISR(wake);
 }
 
 void DMA1_Channel2_IRQHandler(void){
@@ -28,18 +36,22 @@ void DMA1_Channel2_IRQHandler(void){
 
 /* Gives the new speed data to display task */
 void DMA1_Channel3_IRQHandler(void){
+    BaseType_t wake = pdFALSE;
+    
     if(usart_buffer >= USART_CLEAR_ERROR){
         xTaskNotifyFromISR(print_speed_handle, DISPLAY_ERROR, 
-                    eSetValueWithOverwrite, NULL);
+                    eSetValueWithOverwrite, &wake);
         xTaskNotifyFromISR(motor_control_handle, usart_buffer,
-                    eSetValueWithOverwrite, NULL);
+                    eSetValueWithOverwrite, &wake);
     }
     
     else
         xTaskNotifyFromISR(print_speed_handle, usart_buffer, 
-                        eSetValueWithOverwrite, NULL);
+                        eSetValueWithOverwrite, &wake);
     
     DMA1->IFCR |= DMA_IFCR_CTCIF3;
+    
+    portYIELD_FROM_ISR(wake);
 }
 
 /* Updates USART3_Rx channel with buffer info, stops DMA transfers */

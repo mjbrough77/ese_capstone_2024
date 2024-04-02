@@ -39,8 +39,8 @@ void DMA1_Channel3_IRQHandler(void){
     xQueueOverwriteFromISR(ultrasonic_dataQ, &ultrasonic_distances, NULL);
     DMA1->IFCR |= DMA_IFCR_CTCIF3;
 
-    if((ultrasonic_distances.left_data < MAX_DISTANCE) ||
-       (ultrasonic_distances.right_data < MAX_DISTANCE)){
+    if((ultrasonic_distances.left_data < SLOW_DISTANCE) ||
+       (ultrasonic_distances.right_data < SLOW_DISTANCE)){
        xTaskNotifyFromISR(eeprom_write_handle, DISTANCE_NOTIFY, eSetBits, NULL);
     }
 }
@@ -86,7 +86,8 @@ void DMA1_Channel4_IRQHandler(void){
 
 void DMA1_Channel5_IRQHandler(void){
     MPUData_t fifo_data;
-
+    BaseType_t wake = pdFALSE;
+    
     I2C2->CR2 &= ~I2C_CR2_DMAEN;    /* Requests are disabled at every EOT */
     I2C2->CR1 |= I2C_CR1_STOP;      /* Generate stop condition */
 
@@ -99,9 +100,11 @@ void DMA1_Channel5_IRQHandler(void){
     fifo_data.gyro_z_axis =   (Gyro_t)((mpu_data[10]<<8) | mpu_data[11]);
 
     xQueueOverwriteFromISR(mpu_dataQ, &fifo_data, NULL);
-    vTaskNotifyGiveFromISR(find_tilt_handle, NULL);
+    vTaskNotifyGiveFromISR(find_tilt_handle, &wake);
 
     DMA1->IFCR |= DMA_IFCR_CTCIF5; /* Clear interrupt */
+    
+    portYIELD_FROM_ISR(wake);
 }
 
 void I2C2_EV_IRQHandler(void){
@@ -153,24 +156,38 @@ void I2C2_EV_IRQHandler(void){
 
 void I2C2_ER_IRQHandler(void){
     BaseType_t wake = pdFALSE;
+    
     I2C2->SR1 &= ~0xDF00; /* Clear all error flags */
     xTaskNotifyFromISR(system_error_handle, I2C2_ERR_NOTIFY, eSetBits, &wake);
+    
     portYIELD_FROM_ISR(wake);
 }
 
 void EXTI9_5_IRQHandler(void){
+    BaseType_t wake = pdFALSE;
+    
     EXTI->PR |= EXTI_PR_PR6;
-    vTaskNotifyGiveFromISR(mpu_read_handle, NULL);
+    vTaskNotifyGiveFromISR(mpu_read_handle, &wake);
+    
+    portYIELD_FROM_ISR(wake);
 }
 
 void TIM1_CC_IRQHandler(void){
+    BaseType_t wake = pdFALSE;
+    
     TIM1->SR &= ~TIM_SR_CC1IF;
-    vTaskNotifyGiveFromISR(find_velocity_right_handle, NULL);
+    vTaskNotifyGiveFromISR(find_velocity_right_handle, &wake);
+    
+    portYIELD_FROM_ISR(wake);
 }
 
 void TIM4_IRQHandler(void){
+    BaseType_t wake = pdFALSE;
+    
     TIM4->SR &= ~TIM_SR_CC1IF;
-    vTaskNotifyGiveFromISR(find_velocity_left_handle, NULL);
+    vTaskNotifyGiveFromISR(find_velocity_left_handle, &wake);
+    
+    portYIELD_FROM_ISR(wake);
 }
 
 void USART3_IRQHandler(void){

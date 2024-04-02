@@ -93,15 +93,18 @@ _Noreturn void ultrasonic_data_task(void* param){
         readings.left_data = (read_left_ultrasonic()-ULTRASONIC_LEFT_OFFSET)* 
                                 HALF_SPEED_OF_SOUND;
         
-        if((readings.left_data < MAX_DISTANCE) || 
-           (readings.right_data < MAX_DISTANCE)){
+        if((readings.left_data < SLOW_DISTANCE && readings.left_data >= STOP_DISTANCE) || 
+           (readings.right_data < SLOW_DISTANCE && readings.left_data >= STOP_DISTANCE)){
             xTaskNotify(motor_control_handle,SLOW_SPEED_NOTIFY,eSetValueWithOverwrite);
         }
         
-        else if((readings.left_data >= MAX_DISTANCE) && 
-                (readings.right_data >= MAX_DISTANCE)){
-            xTaskNotify(motor_control_handle,RESUME_SPEED_NOTIFY,eSetValueWithOverwrite);
+        else if((readings.left_data < STOP_DISTANCE) || 
+                (readings.right_data < STOP_DISTANCE)){
+            xTaskNotify(motor_control_handle,USART_STOP_CHAIR,eSetValueWithOverwrite);        
         }
+        
+        else
+            xTaskNotify(motor_control_handle,RESUME_SPEED_NOTIFY,eSetValueWithOverwrite);
         
         USART3->CR3 |= USART_CR3_DMAT; /* Start transfer of ultrasonic data */
         

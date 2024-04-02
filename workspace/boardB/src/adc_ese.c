@@ -47,8 +47,8 @@ void find_weight_task(void* param){
         
         if(( (user_weight > MAX_WEIGHT) || (user_weight < MIN_WEIGHT) ) && 
              (weight_error_prev == 0) ){
-            xTaskNotify(system_error_handle, MAXWEIGHT_NOTIFY, eSetBits);
-            xTaskNotify(eeprom_write_handle, MAXWEIGHT_NOTIFY, eSetBits);
+            xTaskNotify(system_error_handle, WEIGHT_NOTIFY, eSetBits);
+            xTaskNotify(eeprom_write_handle, WEIGHT_NOTIFY, eSetBits);
             weight_error_next = 1;
         }
 

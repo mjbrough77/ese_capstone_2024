@@ -99,6 +99,10 @@ void DMA1_Channel5_IRQHandler(void);
   * no task can write to the queue until it is empty. The interrupt uses the
   * length of the queue to identify the type of transfer it is completing, hence
   * the need for this control
+  *
+  * Makes use of pxHigherPriorityTaskWoken parameter because a notification to
+  * `find_tilt_task()` will unblock it
+  *
  */
 void I2C2_EV_IRQHandler(void);
 
@@ -110,6 +114,9 @@ void I2C2_EV_IRQHandler(void);
   *
   * The I2C2 bus is never expected to have errors during transmission, so an
   * execution of this interrupt at anytime warrants review
+  *
+  * Makes use of pxHigherPriorityTaskWoken parameter because a notification to
+  * `error_control_task()` will unblock it
  */
 void I2C2_ER_IRQHandler(void);
 
@@ -118,6 +125,9 @@ void I2C2_ER_IRQHandler(void);
   *
   * This interrupt should only execute on the MPU6050 INT pin going high.
   * INT indicates the MPU6050 data is ready.
+  *
+  * Makes use of pxHigherPriorityTaskWoken parameter because a notification to
+  * `mpu_read_task()` will unblock it
   *
   *@pre `mpu_read_task()` has been created with task handle `mpu_read_handle`
  */
@@ -128,6 +138,9 @@ void EXTI9_5_IRQHandler(void);
   *
   * This interrupt is triggered on the z-phase of the right encoder going high
   *
+  * Makes use of pxHigherPriorityTaskWoken parameter because a notification to
+  * `find_velocity_task()` will unblock it
+  *
   *@pre A task with handle `find_velocity_right_handle` has been created
  */
 void TIM1_CC_IRQHandler(void);
@@ -136,6 +149,9 @@ void TIM1_CC_IRQHandler(void);
   *@brief Unblocks `find_velocity_task()` to find the left wheel speed
   *
   * This interrupt is triggered on the z-phase of the left encoder going high
+  *
+  * Makes use of pxHigherPriorityTaskWoken parameter because a notification to
+  * `find_velocity_task()` will unblock it
   *
   *@pre A task with handle `find_velocity_left_handle` has been created
  */

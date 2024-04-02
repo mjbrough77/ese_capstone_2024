@@ -72,7 +72,6 @@ _Noreturn void send_boardT_task(void* param){
     DMA1_Channel2->CMAR = (uint32_t)&usart_send;
     DMA1_Channel2->CCR |= DMA_CCR2_EN;
 
-    /* Constantly transfers wheel speed data */
     while(1){
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS( SPEED_SAMPLE_MS ));
         usart_flag_to_send = ulTaskNotifyTake(pdTRUE, NULL);
@@ -84,6 +83,7 @@ _Noreturn void send_boardT_task(void* param){
             USART3->CR3 |= USART_CR3_DMAT; /* Send error code to boardT*/
         }
 
+        /* On an error, no speed information is sent until error is cleared */
         else if(wait_for_clear == 0){
             xQueuePeek(left_wheel_dataQ, &left_vel, NULL);
             xQueuePeek(right_wheel_dataQ, &right_vel, NULL);
