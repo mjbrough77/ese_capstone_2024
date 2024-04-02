@@ -28,11 +28,11 @@ void configure_adc1(void){
 
 void find_weight_task(void* param){
     TickType_t xLastWakeTime = xTaskGetTickCount();
-    float user_weight;
     uint32_t adc_reading;
     float voltage_reading;
-    uint8_t over_weight_next = 0;
-    uint8_t over_weight_prev = 0;
+    float user_weight;
+    uint8_t weight_error_next = 0;
+    uint8_t weight_error_prev = 0;
     
     while(1){
     #ifdef WEIGHT_TASK_SUSPEND
@@ -45,20 +45,21 @@ void find_weight_task(void* param){
         
         user_weight = voltage_reading / WEIGHT_RESOLUTION;
         
-        if(user_weight > MAX_WEIGHT && over_weight_prev == 0){
+        if(( (user_weight > MAX_WEIGHT) || (user_weight < MIN_WEIGHT) ) && 
+             (weight_error_prev == 0) ){
             xTaskNotify(system_error_handle, MAXWEIGHT_NOTIFY, eSetBits);
             xTaskNotify(eeprom_write_handle, MAXWEIGHT_NOTIFY, eSetBits);
-            over_weight_next = 1;
+            weight_error_next = 1;
         }
 
-        else if(user_weight <= MAX_WEIGHT)
-            over_weight_next = 0;
+        else if(user_weight <= MAX_WEIGHT && user_weight >= MIN_WEIGHT)
+            weight_error_next = 0;
 
-        if(over_weight_prev == 1 && over_weight_next == 0){
+        if(weight_error_prev == 1 && weight_error_next == 0){
             xTaskNotify(system_error_handle, CLEAR_ERR_NOTIFY, eSetBits);
         }
 
-        over_weight_prev = over_weight_next;
+        weight_error_prev = weight_error_next;
         (void)param;
     }
 }
