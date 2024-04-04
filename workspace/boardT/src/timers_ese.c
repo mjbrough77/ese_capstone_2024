@@ -94,7 +94,7 @@ _Noreturn void ultrasonic_data_task(void* param){
                                 HALF_SPEED_OF_SOUND;
         
         if((readings.left_data < SLOW_DISTANCE && readings.left_data >= STOP_DISTANCE) || 
-           (readings.right_data < SLOW_DISTANCE && readings.left_data >= STOP_DISTANCE)){
+           (readings.right_data < SLOW_DISTANCE && readings.right_data >= STOP_DISTANCE)){
             xTaskNotify(motor_control_handle,SLOW_SPEED_NOTIFY,eSetValueWithOverwrite);
         }
         

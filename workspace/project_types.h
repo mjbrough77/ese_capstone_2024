@@ -25,7 +25,7 @@
 //#define MPU_TASK_SUSPEND
 //#define TILT_TASK_SUSPEND
 //#define WEIGHT_TASK_SUSPEND
-#define EEPROM_TASK_SUSPEND
+//#define EEPROM_TASK_SUSPEND
 
 /**************************************************************************
  * Sample times
@@ -33,6 +33,7 @@
 #define MPU_SAMPLE_TIME         8e-03f  /* [s], programmed in reset vector */
 #define SPEED_SAMPLE_MS         8       /* [ms], based on max z-phase period */
 #define WEIGHT_SAMPLE_MS        200     /* [ms] arbitrary */
+#define STARTUP_TIME_MS         500     /* [ms] let system 'warm up' */
 
 /**************************************************************************
  * Sensor limits
@@ -41,7 +42,7 @@
 #define MAX_WEIGHT              220         /* [lbs] */
 #define MAX_SPEED               65400       /* [10^4 km/h] */
 #define MAX_TILT_ROLL           15.0f       /* [deg] */
-#define MAX_TILT_YAW            10.0f       /* [deg] */
+#define MAX_TILT_YAW             9.0f       /* [deg] */
 #define SLOW_DISTANCE           304800      /* [um] */
 #define STOP_DISTANCE            50000      /* [um] */
 

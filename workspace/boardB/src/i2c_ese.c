@@ -101,7 +101,7 @@ _Noreturn void mpu_reset_task(void* param){
     EncoderTimers_t right_encoder_timers = {TIM1, TIM2, right_wheel_dataQ};
 
     while(1){
-        vTaskDelay( pdMS_TO_TICKS( 200 ) );
+        vTaskDelay( pdMS_TO_TICKS( STARTUP_TIME_MS ) );
 
     #ifndef MPU_RESET_SKIP
         /* Assuming this task has exclusive access to the I2C bus */
