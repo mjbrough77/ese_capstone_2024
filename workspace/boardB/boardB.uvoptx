@@ -160,6 +160,16 @@
           <WinNumber>1</WinNumber>
           <ItemText>voltage_reading</ItemText>
         </Ww>
+        <Ww>
+          <count>2</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>roll</ItemText>
+        </Ww>
+        <Ww>
+          <count>3</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>\\boardB\src/i2c_ese.c\find_tilt_task\pitch</ItemText>
+        </Ww>
       </WatchWindow1>
       <MemoryWindow1>
         <Mm>

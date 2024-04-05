@@ -41,7 +41,7 @@
 #define MIN_WEIGHT              40          /* [lbs] */
 #define MAX_WEIGHT              220         /* [lbs] */
 #define MAX_SPEED               65400       /* [10^4 km/h] */
-#define MAX_TILT_ROLL           15.0f       /* [deg] */
+#define MAX_TILT_ROLL           10.0f       /* [deg] */
 #define MAX_TILT_PITCH           9.0f       /* [deg] */
 #define SLOW_DISTANCE          304800       /* [um] */
 #define STOP_DISTANCE           50000       /* [um] */
