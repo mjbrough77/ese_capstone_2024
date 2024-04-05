@@ -39,15 +39,24 @@ void DMA1_Channel3_IRQHandler(void){
     BaseType_t wake = pdFALSE;
     
     if(usart_buffer >= USART_CLEAR_ERROR){
-        xTaskNotifyFromISR(print_speed_handle, DISPLAY_ERROR, 
-                    eSetValueWithOverwrite, &wake);
-        xTaskNotifyFromISR(motor_control_handle, usart_buffer,
+        xTaskNotifyFromISR(display_handle, DISPLAY_ERROR, 
                     eSetValueWithOverwrite, &wake);
     }
     
-    else
-        xTaskNotifyFromISR(print_speed_handle, usart_buffer, 
-                        eSetValueWithOverwrite, &wake);
+    else{
+        xTaskNotifyFromISR(display_handle, usart_buffer, 
+                    eSetValueWithOverwrite, &wake);
+    }
+        
+    if(usart_buffer == USART_CLEAR_ERROR){
+        xTaskNotifyFromISR(motor_control_handle, CLEAR_ERR_NOTIFY, 
+                    eSetBits, &wake);
+    }
+    
+    else if(usart_buffer == USART_STOP_CHAIR){
+        xTaskNotifyFromISR(motor_control_handle, STOP_CHAIR_NOTIFY, 
+                    eSetBits, &wake);  
+    }
     
     DMA1->IFCR |= DMA_IFCR_CTCIF3;
     

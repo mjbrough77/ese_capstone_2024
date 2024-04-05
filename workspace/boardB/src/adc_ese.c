@@ -45,17 +45,19 @@ void find_weight_task(void* param){
         
         user_weight = voltage_reading / WEIGHT_RESOLUTION;
         
-        if(( (user_weight > MAX_WEIGHT) || (user_weight < MIN_WEIGHT) ) && 
-             (weight_error_prev == 0) ){
-            xTaskNotify(system_error_handle, WEIGHT_NOTIFY, eSetBits);
-            xTaskNotify(eeprom_write_handle, WEIGHT_NOTIFY, eSetBits);
+        if(user_weight > MAX_WEIGHT || user_weight < MIN_WEIGHT){
             weight_error_next = 1;
         }
 
-        else if(user_weight <= MAX_WEIGHT && user_weight >= MIN_WEIGHT)
+        else
             weight_error_next = 0;
 
-        if(weight_error_prev == 1 && weight_error_next == 0){
+        if(weight_error_prev == 0 && weight_error_next == 1){
+            xTaskNotify(system_error_handle, WEIGHT_NOTIFY, eSetBits);
+            xTaskNotify(eeprom_write_handle, WEIGHT_NOTIFY, eSetBits);
+        }
+        
+        else if(weight_error_prev == 1 && weight_error_next == 0){
             xTaskNotify(system_error_handle, CLEAR_ERR_NOTIFY, eSetBits);
         }
 

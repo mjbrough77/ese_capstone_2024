@@ -120,8 +120,8 @@ _Noreturn void mpu_reset_task(void* param){
             (void*)&right_encoder_timers,2,&find_velocity_right_handle);
         xTaskCreate(find_velocity_task,"LeftV",128,
             (void*)&left_encoder_timers,2,&find_velocity_left_handle);
-        xTaskCreate(find_weight_task,"Weight",128,NULL,2,NULL);
-        xTaskCreate(eeprom_write_task,"EEPROM",128,NULL,1,&eeprom_write_handle);
+        xTaskCreate(find_weight_task,"Weight",128,NULL,1,NULL);
+        xTaskCreate(eeprom_write_task,"EEPROM",128,NULL,0,&eeprom_write_handle);
 
         start_encoder_readings();
         enable_mpu_int_pin();
@@ -134,15 +134,16 @@ _Noreturn void mpu_reset_task(void* param){
 
 _Noreturn void find_tilt_task(void* param){
     float accel_x, accel_y, accel_z;    /* [g] acceleration */
-    float gyro_z;                       /* [deg/s] rotational velocity */
-    float accel_x_angle;                /* [deg] angle from accel */
+    float accel_x_angle;                /* [deg] rotation about x-axis */
+    float accel_y_angle;                /* [deg] rotation about y-axis */
     float x_z_resultant;                /* [g] accel vector on x-z plane */
-    float roll, yaw;                    /* [deg] angle about x, z-axis */
+    float y_z_resultant;                /* [g] accel vecotr on x-y plane */
+    float roll, pitch;                  /* [deg] angle about x, z-axis */
 
     uint8_t tilt_exceeded_prev = 0;
     uint8_t tilt_exceeded_next = 0;
     MPUData_t raw_mpu_data = {0,0,0,0,0,0};
-    roll  = yaw = 0.0f;
+    roll = pitch = 0.0f;
     
     while(1){
     #ifdef TILT_TASK_SUSPEND
@@ -155,26 +156,29 @@ _Noreturn void find_tilt_task(void* param){
         accel_x = raw_mpu_data.accel_x_axis / ACCEL_SENSITIVITY;
         accel_y = raw_mpu_data.accel_y_axis / ACCEL_SENSITIVITY;
         accel_z = raw_mpu_data.accel_z_axis / ACCEL_SENSITIVITY;
-        gyro_z = raw_mpu_data.gyro_z_axis / GYRO_SENSITIVITY - GYRO_Z_OFFSET;
 
         x_z_resultant = sqrtf( accel_x*accel_x + accel_z*accel_z );
-        accel_x_angle = atanf( accel_y / x_z_resultant) * 180.0f/PI;
+        y_z_resultant = sqrtf( accel_y*accel_y + accel_z*accel_z );
+        accel_x_angle = atanf( accel_y / x_z_resultant ) * 180.0f/PI;
+        accel_y_angle = atanf( -accel_x / y_z_resultant ) * 180.0f/PI; 
         accel_x_angle -= ACCEL_X_OFFSET;
-
+        accel_y_angle -= ACCEL_Y_OFFSET;      
+        
         roll = accel_x_angle;
-        yaw += gyro_z * MPU_SAMPLE_TIME;
-
-        if(fabsf(roll) > MAX_TILT_ROLL || fabsf(yaw) > MAX_TILT_YAW ){
-            xTaskNotify(system_error_handle, MAXTILT_NOTIFY, eSetBits);
-            xTaskNotify(eeprom_write_handle, MAXTILT_NOTIFY, eSetBits);
+        pitch = accel_y_angle;
+        
+        if(fabsf(roll) > MAX_TILT_ROLL || fabsf(pitch) > MAX_TILT_PITCH)
             tilt_exceeded_next = 1;
-        }
 
         else
             tilt_exceeded_next = 0;
+        
+        if(tilt_exceeded_prev == 0 && tilt_exceeded_next == 1){
+            xTaskNotify(system_error_handle, MAXTILT_NOTIFY, eSetBits);
+            xTaskNotify(eeprom_write_handle, MAXTILT_NOTIFY, eSetBits);
+        }
 
-        /* Chair has returned to an acceptable angle */
-        if(tilt_exceeded_prev == 1 && tilt_exceeded_next == 0){
+        else if(tilt_exceeded_prev == 1 && tilt_exceeded_next == 0){
             xTaskNotify(system_error_handle, CLEAR_ERR_NOTIFY, eSetBits);
         }
 

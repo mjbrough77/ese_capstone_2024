@@ -69,8 +69,10 @@ static void board_init(void){
 
 _Noreturn static void error_control_task(void* param){
     uint32_t error_event = 0;
+    
+    /* Only services one error at a time, pre-empts all tasks */
     while(1){
-        xTaskNotifyWait(0, 0xFFFFFFFF, &error_event, portMAX_DELAY);
+        error_event = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         
         /* Error on I2C2 bus requires restart of peripheral */
         if(error_event & I2C2_ERR_NOTIFY){

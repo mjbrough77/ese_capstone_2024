@@ -66,7 +66,7 @@ _Noreturn void send_boardT_task(void* param){
     WheelVelocity_t right_vel = 0;
     WheelVelocity_t total_velocity = 0;
     uint32_t usart_flag_to_send = 0;
-    uint8_t wait_for_clear = 0;
+    uint32_t error_count = 0;
 
     /* Finish configuring DMA_USART3_Tx */
     DMA1_Channel2->CMAR = (uint32_t)&usart_send;
@@ -75,16 +75,16 @@ _Noreturn void send_boardT_task(void* param){
     while(1){
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS( SPEED_SAMPLE_MS ));
         usart_flag_to_send = ulTaskNotifyTake(pdTRUE, NULL);
-
+        
         if(usart_flag_to_send >= USART_CLEAR_ERROR){
+            if(usart_flag_to_send == USART_CLEAR_ERROR) error_count--;
+            else error_count++;
             usart_send = (UsartBuffer_t)usart_flag_to_send;
-            if(usart_flag_to_send == USART_CLEAR_ERROR) wait_for_clear = 0;
-            else wait_for_clear = 1;
-            USART3->CR3 |= USART_CR3_DMAT; /* Send error code to boardT*/
+            USART3->CR3 |= USART_CR3_DMAT; /* Send error code to boardT */
         }
 
         /* On an error, no speed information is sent until error is cleared */
-        else if(wait_for_clear == 0){
+        else if(error_count == 0){
             xQueuePeek(left_wheel_dataQ, &left_vel, NULL);
             xQueuePeek(right_wheel_dataQ, &right_vel, NULL);
             total_velocity = (left_vel+right_vel)/2;

@@ -14,7 +14,6 @@ void configure_adc1(void){
 void start_joystick_read(void){
     ADC1->CR2 |= ADC_CR2_ADON;      /* Start ADC conversions */
     NVIC_EnableIRQ(TIM3_IRQn);      /* Start data conversions */
-    ADC1->CR2 |= ADC_CR2_ADON;
 }
 
 void stop_joystick_read(void){

@@ -25,14 +25,14 @@
 //#define MPU_TASK_SUSPEND
 //#define TILT_TASK_SUSPEND
 //#define WEIGHT_TASK_SUSPEND
-//#define EEPROM_TASK_SUSPEND
+#define EEPROM_TASK_SUSPEND
 
 /**************************************************************************
  * Sample times
 **************************************************************************/
 #define MPU_SAMPLE_TIME         8e-03f  /* [s], programmed in reset vector */
 #define SPEED_SAMPLE_MS         8       /* [ms], based on max z-phase period */
-#define WEIGHT_SAMPLE_MS        200     /* [ms] arbitrary */
+#define WEIGHT_SAMPLE_MS        100     /* [ms] arbitrary */
 #define STARTUP_TIME_MS         500     /* [ms] let system 'warm up' */
 
 /**************************************************************************
@@ -42,9 +42,9 @@
 #define MAX_WEIGHT              220         /* [lbs] */
 #define MAX_SPEED               65400       /* [10^4 km/h] */
 #define MAX_TILT_ROLL           15.0f       /* [deg] */
-#define MAX_TILT_YAW             9.0f       /* [deg] */
-#define SLOW_DISTANCE           304800      /* [um] */
-#define STOP_DISTANCE            50000      /* [um] */
+#define MAX_TILT_PITCH           9.0f       /* [deg] */
+#define SLOW_DISTANCE          304800       /* [um] */
+#define STOP_DISTANCE           50000       /* [um] */
 
 /**************************************************************************
  * Ultrasonic Definitions
@@ -75,7 +75,7 @@
 #define GYRO_Y_OFFSET           -0.3351143f     /* [deg] average error */
 #define GYRO_Z_OFFSET           0.453847766f    /* [deg] average error */
 #define ACCEL_X_OFFSET          -78.4758759f    /* [deg] average error */
-#define ACCEL_Y_OFFSET          -0.196265712f   /* [deg] average error */
+#define ACCEL_Y_OFFSET          -0.627747715f   /* [deg] average error */
 
 /**************************************************************************
  * EEPROM Hardware Definitions
@@ -95,15 +95,18 @@
 /**************************************************************************
  * Task Notification Flags (Maximum of 32--see FreeRTOS reference manual)
 **************************************************************************/
-#define MAXTILT_NOTIFY          0x1
-#define DISTANCE_NOTIFY         0x2
-#define WEIGHT_NOTIFY           0x4
-#define OVERSPEED_NOTIFY        0x8
-#define SLOW_SPEED_NOTIFY       0x10
-#define TRIG_PULSE_NOTIFY       0x20
-#define I2C2_ERR_NOTIFY         0x40
-#define RESUME_SPEED_NOTIFY     0x80
-#define CLEAR_ERR_NOTIFY        0x100
+#define MAXTILT_NOTIFY              0x1
+#define DISTANCE_NOTIFY             0x2
+#define WEIGHT_NOTIFY               0x4
+#define OVERSPEED_NOTIFY            0x8
+#define SLOW_CHAIR_NOTIFY           0x10
+#define STOP_CHAIR_NOTIFY           0x20
+#define TRIG_PULSE_NOTIFY           0x40
+#define I2C2_ERR_NOTIFY             0x80
+#define RESUME_SPEED_NOTIFY         0x100
+#define ERROR_CNTRL_TILT_NOTIFY     0x200
+#define ERROR_CNTRL_WEIGHT_NOTIFY   0x400
+#define CLEAR_ERR_NOTIFY            0x80000000
 
 /**************************************************************************
  * Seven-segment display messages

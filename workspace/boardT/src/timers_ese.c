@@ -78,6 +78,12 @@ uint16_t read_left_ultrasonic(void){
 
 _Noreturn void ultrasonic_data_task(void* param){
     Distances_t readings = {0,0}; /* Distances in um */
+    uint32_t notify_value = 0;
+    uint32_t slow_state_prev = 0;
+    uint32_t slow_state_next = 0;
+    uint32_t stop_state_prev = 0;
+    uint32_t stop_state_next = 0;
+    
     
     /* Finish configuring DMA_USART3_Tx */
     DMA1_Channel2->CMAR = (uint32_t)&readings;
@@ -93,21 +99,42 @@ _Noreturn void ultrasonic_data_task(void* param){
         readings.left_data = (read_left_ultrasonic()-ULTRASONIC_LEFT_OFFSET)* 
                                 HALF_SPEED_OF_SOUND;
         
-        if((readings.left_data < SLOW_DISTANCE && readings.left_data >= STOP_DISTANCE) || 
-           (readings.right_data < SLOW_DISTANCE && readings.right_data >= STOP_DISTANCE)){
-            xTaskNotify(motor_control_handle,SLOW_SPEED_NOTIFY,eSetValueWithOverwrite);
+        if( (readings.left_data < SLOW_DISTANCE && readings.left_data >= STOP_DISTANCE) || 
+           (readings.right_data < SLOW_DISTANCE && readings.right_data >= STOP_DISTANCE) ){
+            slow_state_next = 1;
+        }
+        else{
+            slow_state_next = 0;
+        }
+        if(slow_state_prev == 0 && slow_state_next == 1){
+            notify_value |= SLOW_CHAIR_NOTIFY;
+        }
+        else if(slow_state_prev == 1 && slow_state_next == 0){
+            notify_value |= RESUME_SPEED_NOTIFY;
         }
         
-        else if((readings.left_data < STOP_DISTANCE) || 
-                (readings.right_data < STOP_DISTANCE)){
-            xTaskNotify(motor_control_handle,USART_STOP_CHAIR,eSetValueWithOverwrite);        
+        if(readings.left_data < STOP_DISTANCE || readings.right_data < STOP_DISTANCE){
+            stop_state_next = 1;
+        }
+        else{
+            stop_state_next = 0;
+        }
+        if(stop_state_prev == 0 && stop_state_next == 1){
+            notify_value |= STOP_CHAIR_NOTIFY;
+        }
+        else if(stop_state_prev == 1 && stop_state_next == 0){
+            notify_value |= CLEAR_ERR_NOTIFY;
         }
         
-        else
-            xTaskNotify(motor_control_handle,RESUME_SPEED_NOTIFY,eSetValueWithOverwrite);
+        if(notify_value != 0){
+            xTaskNotify(motor_control_handle,notify_value,eSetBits);
+            notify_value = 0;
+        }
+        
+        slow_state_prev = slow_state_next;
+        stop_state_prev = stop_state_next;
         
         USART3->CR3 |= USART_CR3_DMAT; /* Start transfer of ultrasonic data */
-        
         (void)param;
     }
 }
