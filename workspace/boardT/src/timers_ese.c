@@ -99,14 +99,14 @@ _Noreturn void ultrasonic_data_task(void* param){
         readings.left_data = (read_left_ultrasonic()-ULTRASONIC_LEFT_OFFSET)* 
                                 HALF_SPEED_OF_SOUND;
         
-        if( (readings.left_data < SLOW_DISTANCE && readings.left_data >= STOP_DISTANCE) || 
-           (readings.right_data < SLOW_DISTANCE && readings.right_data >= STOP_DISTANCE) ){
+        if( (readings.left_data < SLOW_DISTANCE_MIN) || 
+            (readings.right_data < SLOW_DISTANCE_MIN) ){
             slow_state_next = 1;
         }
-        else{
+        else if( (readings.left_data >= SLOW_DISTANCE_MAX) && 
+                 (readings.right_data >= SLOW_DISTANCE_MAX) ){
             slow_state_next = 0;
         }
-        
         if(slow_state_prev == 0 && slow_state_next == 1){
             notify_value |= SLOW_CHAIR_NOTIFY;
         }
@@ -114,13 +114,14 @@ _Noreturn void ultrasonic_data_task(void* param){
             notify_value |= RESUME_SPEED_NOTIFY;
         }
         
-        if(readings.left_data < STOP_DISTANCE || readings.right_data < STOP_DISTANCE){
+        if( (readings.left_data < STOP_DISTANCE_MIN) || 
+            (readings.right_data < STOP_DISTANCE_MIN) ){
             stop_state_next = 1;
         }
-        else{
+        else if( (readings.left_data >= STOP_DISTANCE_MAX) && 
+                 (readings.right_data >= STOP_DISTANCE_MAX) ){
             stop_state_next = 0;
         }
-        
         if(stop_state_prev == 0 && stop_state_next == 1){
             notify_value |= STOP_CHAIR_NOTIFY;
         }

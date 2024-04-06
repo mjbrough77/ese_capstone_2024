@@ -33,6 +33,7 @@ void prepare_usart3_dma(void){
     DMA1_Channel3->CNDTR = sizeof(UsartBuffer_t);
     DMA1_Channel3->CCR |= DMA_CCR3_TCIE | DMA_CCR3_MINC;
     DMA1_Channel3->CCR |= DMA_CCR3_CIRC | DMA_CCR3_PL_0;
+    DMA1_Channel3->CCR |= DMA_CCR3_PL_0; /* Medium priority */
     NVIC_SetPriority(DMA1_Channel3_IRQn, 5);
     NVIC_EnableIRQ(DMA1_Channel3_IRQn);
     /* Finished in DMA1_Channel3_IRQHandler() */
