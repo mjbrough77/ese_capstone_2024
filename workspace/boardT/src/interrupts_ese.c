@@ -22,7 +22,7 @@ void TIM2_IRQHandler(void){
 void TIM3_IRQHandler(void){
     BaseType_t wake = pdFALSE;
     
-    vTaskNotifyGiveFromISR(motor_control_handle, &wake);
+    xTaskNotifyFromISR(motor_control_handle,MOTOR_CTRL_UPDATE,eSetBits,&wake);
     TIM3->SR &= ~TIM_SR_CC1IF; /* Clear interrupt */
     
     portYIELD_FROM_ISR(wake);
@@ -47,11 +47,11 @@ void DMA1_Channel3_IRQHandler(void){
     }
         
     if(usart_buffer == USART_CLEAR_ERROR){
-        xTaskNotifyFromISR(motor_control_handle, CLEAR_ERR_NOTIFY, 
+        xTaskNotifyFromISR(motor_control_handle, CLEAR_STOP_FROM_USART, 
                     eSetBits, &wake);
     }
     else if(usart_buffer == USART_STOP_CHAIR){
-        xTaskNotifyFromISR(motor_control_handle, STOP_CHAIR_NOTIFY, 
+        xTaskNotifyFromISR(motor_control_handle, STOP_FROM_USART, 
                     eSetBits, &wake);  
     }
     

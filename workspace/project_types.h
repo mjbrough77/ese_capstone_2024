@@ -102,18 +102,20 @@
 #define DISTANCE_NOTIFY             0x2
 #define WEIGHT_NOTIFY               0x4
 #define OVERSPEED_NOTIFY            0x8
-#define SLOW_CHAIR_NOTIFY           0x10
-#define STOP_CHAIR_NOTIFY           0x20
-#define TRIG_PULSE_NOTIFY           0x40
-#define I2C2_ERR_NOTIFY             0x80
-#define RESUME_SPEED_NOTIFY         0x100
-#define LEFT_ENCODER_NOTIFY         0x200
-#define RIGHT_ENCODER_NOTIFY        0x400
-#define ERROR_CTRL_TILT_NOTIFY      0x800
-#define ERROR_CTRL_WEIGHT_NOTIFY    0x1000
-#define ERROR_CTRL_CLEAR_TILT       0x2000
-#define ERROR_CTRL_CLEAR_WEIGHT     0x4000
-#define CLEAR_ERR_NOTIFY            0x80000000
+#define I2C2_ERR_NOTIFY             0x10
+#define LEFT_ENCODER_NOTIFY         0x20
+#define RIGHT_ENCODER_NOTIFY        0x40
+#define ERROR_CTRL_TILT_NOTIFY      0x80
+#define ERROR_CTRL_WEIGHT_NOTIFY    0x100
+#define ERROR_CTRL_CLEAR_TILT       0x200
+#define ERROR_CTRL_CLEAR_WEIGHT     0x400
+#define SLOW_CHAIR_NOTIFY           0x800
+#define RESUME_SPEED_NOTIFY         0x1000
+#define STOP_FROM_USART             0x2000
+#define STOP_FROM_ULTRA             0x4000
+#define CLEAR_STOP_FROM_USART       0x8000
+#define CLEAR_STOP_FROM_ULTRA       0x10000
+#define MOTOR_CTRL_UPDATE           0x20000
 
 /**************************************************************************
  * Seven-segment display messages

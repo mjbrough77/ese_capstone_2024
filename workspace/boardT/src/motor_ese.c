@@ -18,19 +18,12 @@ _Noreturn void motor_control_task(void* param){
         chair_events = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         switch_position = GPIOC->IDR & GPIO_IDR_IDR7;
         
-        if(chair_events & STOP_CHAIR_NOTIFY){
-            stop_count++;
-        }
-        else if(chair_events & CLEAR_ERR_NOTIFY){
-            stop_count--;
-        }
-        
-        if(chair_events & SLOW_CHAIR_NOTIFY){
-            slowed = 1;
-        }
-        else if(chair_events & RESUME_SPEED_NOTIFY){
-            slowed = 0;
-        }
+        if(chair_events & STOP_FROM_ULTRA) stop_count++;
+        if(chair_events & STOP_FROM_USART) stop_count++;
+        if(chair_events & CLEAR_STOP_FROM_ULTRA) stop_count--;
+        if(chair_events & CLEAR_STOP_FROM_USART) stop_count--;
+        if(chair_events & SLOW_CHAIR_NOTIFY) slowed = 1;
+        if(chair_events & RESUME_SPEED_NOTIFY) slowed = 0;
         
         if(slowed == 1){
             joystick_y = read_joystick_y();

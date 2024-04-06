@@ -108,6 +108,7 @@ _Noreturn static void error_control_task(void* param){
         
         xTaskNotify(send_boardT_handle, notify_value, eSetBits);
         notify_value = 0;
+        
         (void)param;
     }
 }

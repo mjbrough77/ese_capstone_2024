@@ -123,10 +123,10 @@ _Noreturn void ultrasonic_data_task(void* param){
             stop_state_next = 0;
         }
         if(stop_state_prev == 0 && stop_state_next == 1){
-            notify_value |= STOP_CHAIR_NOTIFY;
+            notify_value |= STOP_FROM_ULTRA;
         }
         else if(stop_state_prev == 1 && stop_state_next == 0){
-            notify_value |= CLEAR_ERR_NOTIFY;
+            notify_value |= CLEAR_STOP_FROM_ULTRA;
         }
         
         if(notify_value != 0){
