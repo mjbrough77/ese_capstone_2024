@@ -65,6 +65,7 @@
 **************************************************************************/
 #define SPEED_SCALE             1000    /* Speed data stored as 10^4 km/h */
 #define VELOCITY_FACTOR         146112  /* See boardA/src/timers_ese.c */
+#define ENCODER_TIMEOUT         17      /* Count of times z-phase is low */
 
 /**************************************************************************
  * MPU6050 Definitions
@@ -104,8 +105,12 @@
 #define TRIG_PULSE_NOTIFY           0x40
 #define I2C2_ERR_NOTIFY             0x80
 #define RESUME_SPEED_NOTIFY         0x100
-#define ERROR_CNTRL_TILT_NOTIFY     0x200
-#define ERROR_CNTRL_WEIGHT_NOTIFY   0x400
+#define LEFT_ENCODER_NOTIFY         0x200
+#define RIGHT_ENCODER_NOTIFY        0x400
+#define ERROR_CTRL_TILT_NOTIFY      0x800
+#define ERROR_CTRL_WEIGHT_NOTIFY    0x1000
+#define ERROR_CTRL_CLEAR_TILT       0x2000
+#define ERROR_CTRL_CLEAR_WEIGHT     0x4000
 #define CLEAR_ERR_NOTIFY            0x80000000
 
 /**************************************************************************

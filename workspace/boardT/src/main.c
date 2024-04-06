@@ -20,7 +20,6 @@
 #include "../include/gpio_ese.h"
 #include "../include/interrupts_ese.h"
 #include "../include/motor_ese.h"
-#include "../include/queues_ese.h"
 #include "../include/tasks_ese.h"
 #include "../include/timers_ese.h"
 #include "../include/usart_ese.h"

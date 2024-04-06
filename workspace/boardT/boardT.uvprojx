@@ -420,11 +420,6 @@
               <FilePath>.\src\motor_ese.c</FilePath>
             </File>
             <File>
-              <FileName>queues_ese.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\queues_ese.c</FilePath>
-            </File>
-            <File>
               <FileName>tasks_ese.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\tasks_ese.c</FilePath>
@@ -478,11 +473,6 @@
               <FileName>motor_ese.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\include\motor_ese.h</FilePath>
-            </File>
-            <File>
-              <FileName>queues_ese.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\include\queues_ese.h</FilePath>
             </File>
             <File>
               <FileName>tasks_ese.h</FileName>

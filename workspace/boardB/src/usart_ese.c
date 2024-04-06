@@ -65,34 +65,70 @@ _Noreturn void send_boardT_task(void* param){
     WheelVelocity_t left_vel = 0;
     WheelVelocity_t right_vel = 0;
     WheelVelocity_t total_velocity = 0;
-    uint32_t usart_flag_to_send = 0;
-    uint32_t error_count = 0;
-
+    uint32_t event_flags = 0;
+    uint32_t stops_to_send = 0;
+    uint32_t clears_to_send = 0;
+    uint32_t active_errors = 0;
+    uint32_t left_encoder_count = 0;
+    uint32_t right_encoder_count = 0;
+    
+    
     /* Finish configuring DMA_USART3_Tx */
     DMA1_Channel2->CMAR = (uint32_t)&usart_send;
     DMA1_Channel2->CCR |= DMA_CCR2_EN;
 
     while(1){
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS( SPEED_SAMPLE_MS ));
-        usart_flag_to_send = ulTaskNotifyTake(pdTRUE, NULL);
+        event_flags = ulTaskNotifyTake(pdTRUE, NULL);
         
-        if(usart_flag_to_send >= USART_CLEAR_ERROR){
-            if(usart_flag_to_send == USART_CLEAR_ERROR) error_count--;
-            else error_count++;
-            usart_send = (UsartBuffer_t)usart_flag_to_send;
-            USART3->CR3 |= USART_CR3_DMAT; /* Send error code to boardT */
+        /* Total stop requests between sample times (sensor value exceeded) */
+        if(event_flags & ERROR_CTRL_TILT_NOTIFY) stops_to_send++;
+        if(event_flags & ERROR_CTRL_WEIGHT_NOTIFY) stops_to_send++;
+        
+        /* Total clear requests between sample times (sensor value normal) */
+        if(event_flags & ERROR_CTRL_CLEAR_TILT)  clears_to_send++;
+        if(event_flags & ERROR_CTRL_CLEAR_WEIGHT) clears_to_send++;
+        
+        /* If z-phase has not updated in some time, speed must be zero */
+        if(event_flags & LEFT_ENCODER_NOTIFY) left_encoder_count = 0;
+        else left_encoder_count++;
+        if(event_flags & RIGHT_ENCODER_NOTIFY) right_encoder_count = 0;
+        else right_encoder_count++;
+        
+        /* Let boardT know if a NEW stop request has arrived */
+        if(stops_to_send != 0){
+            usart_send = USART_STOP_CHAIR;
+            stops_to_send--;
+            active_errors++;
+            USART3->CR3 |= USART_CR3_DMAT; /* Send new stop to boardT */
+        }
+        
+        /* Let boardT know if a NEW clear request has arrived */
+        else if(clears_to_send != 0){
+            usart_send = USART_CLEAR_ERROR;
+            clears_to_send--;
+            active_errors--;
+            USART3->CR3 |= USART_CR3_DMAT; /* Send new clear to boardT */
         }
 
-        /* On an error, no speed information is sent until error is cleared */
-        else if(error_count == 0){
-            xQueuePeek(left_wheel_dataQ, &left_vel, NULL);
-            xQueuePeek(right_wheel_dataQ, &right_vel, NULL);
+        /* If all system errors have been cleared, print the speed */
+        else if(active_errors == 0){
+            if(left_encoder_count <= ENCODER_TIMEOUT)
+                xQueuePeek(left_wheel_dataQ, &left_vel, NULL);
+            else
+                left_vel = 0;
+            
+            if(right_encoder_count <= ENCODER_TIMEOUT)
+                xQueuePeek(right_wheel_dataQ, &right_vel, NULL);
+            else
+                right_vel = 0;
+            
             total_velocity = (left_vel+right_vel)/2;
             if(total_velocity < 0) total_velocity = -total_velocity;
             usart_send = (UsartBuffer_t)total_velocity;
-            USART3->CR3 |= USART_CR3_DMAT; /* Send speed to boardT */
+            USART3->CR3 |= USART_CR3_DMAT; /* Send data to boardT */
         }
-
+        
         (void)param;
     }
 }

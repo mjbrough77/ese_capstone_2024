@@ -1,6 +1,5 @@
 #include "../../project_types.h"
 #include "../include/tasks_ese.h"
-#include "../include/queues_ese.h"
 
 #include "../include/usart_ese.h"
 #include "../include/timers_ese.h"

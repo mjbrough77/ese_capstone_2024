@@ -7,29 +7,28 @@
 _Noreturn void motor_control_task(void* param){
     uint32_t joystick_y;
     uint32_t joystick_x;
-    uint32_t notify_value;
+    uint32_t chair_events;
     uint32_t switch_position;
     uint16_t s1_pulse = 15;
     uint16_t s2_pulse = 15;
     uint8_t stop_count = 0;
     uint8_t slowed = 0;
-
     
     while(1){
-        notify_value = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        chair_events = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         switch_position = GPIOC->IDR & GPIO_IDR_IDR7;
         
-        if(notify_value & STOP_CHAIR_NOTIFY){
+        if(chair_events & STOP_CHAIR_NOTIFY){
             stop_count++;
         }
-        else if(notify_value & CLEAR_ERR_NOTIFY){
+        else if(chair_events & CLEAR_ERR_NOTIFY){
             stop_count--;
         }
         
-        if(notify_value & SLOW_CHAIR_NOTIFY){
+        if(chair_events & SLOW_CHAIR_NOTIFY){
             slowed = 1;
         }
-        else if(notify_value & RESUME_SPEED_NOTIFY){
+        else if(chair_events & RESUME_SPEED_NOTIFY){
             slowed = 0;
         }
         

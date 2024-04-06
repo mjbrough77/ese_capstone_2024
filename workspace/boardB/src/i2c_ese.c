@@ -169,7 +169,6 @@ _Noreturn void find_tilt_task(void* param){
         
         if(fabsf(roll) > MAX_TILT_ROLL || fabsf(pitch) > MAX_TILT_PITCH)
             tilt_exceeded_next = 1;
-
         else
             tilt_exceeded_next = 0;
         
@@ -177,9 +176,8 @@ _Noreturn void find_tilt_task(void* param){
             xTaskNotify(system_error_handle, MAXTILT_NOTIFY, eSetBits);
             xTaskNotify(eeprom_write_handle, MAXTILT_NOTIFY, eSetBits);
         }
-
         else if(tilt_exceeded_prev == 1 && tilt_exceeded_next == 0){
-            xTaskNotify(system_error_handle, CLEAR_ERR_NOTIFY, eSetBits);
+            xTaskNotify(system_error_handle, ERROR_CTRL_CLEAR_TILT, eSetBits);
         }
 
         tilt_exceeded_prev = tilt_exceeded_next;
@@ -225,7 +223,7 @@ _Noreturn void eeprom_write_task(void* param){
         xQueuePeek(left_wheel_dataQ, &left_wheel_speed, NULL);
         xQueuePeek(right_wheel_dataQ, &right_wheel_speed, NULL);
         xQueuePeek(ultrasonic_dataQ, &distance_data, NULL);
-        xTaskNotifyWait(0,0xFFFFFFFF,&last_event,NULL);
+        last_event = ulTaskNotifyTake(pdTRUE, NULL);
 
         eeprom_log.address_high = address_high;
         eeprom_log.address_low  = address_low;
@@ -283,6 +281,7 @@ _Noreturn void mpu_read_task(void* param){
     #ifdef MPU_TASK_SUSPEND
         vTaskSuspend(NULL);
     #endif
+        
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
         xSemaphoreTake(i2c2_mutex, portMAX_DELAY);

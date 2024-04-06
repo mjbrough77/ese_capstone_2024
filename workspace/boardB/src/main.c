@@ -30,7 +30,7 @@ int main(void){
     left_wheel_dataQ = xQueueCreate(1, sizeof(WheelVelocity_t));
     ultrasonic_dataQ = xQueueCreate(1, sizeof(Distances_t));
 
-    /* Rest of tasks created inside `mpu_reset_task` */
+    /* Rest of tasks created inside `mpu_reset_task()` */
     xTaskCreate(mpu_reset_task,"MPU Reset",128,NULL,4,NULL);
     xTaskCreate(error_control_task, "Error",128,NULL,4,&system_error_handle);
     
@@ -69,8 +69,9 @@ static void board_init(void){
 
 _Noreturn static void error_control_task(void* param){
     uint32_t error_event = 0;
+    uint32_t notify_value = 0;
     
-    /* Only services one error at a time, pre-empts all tasks */
+    /* Only services one error at a time, this task preempts all other tasks */
     while(1){
         error_event = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         
@@ -86,14 +87,27 @@ _Noreturn static void error_control_task(void* param){
             vTaskResume(eeprom_write_handle);
         }
         
-        else if(error_event & WEIGHT_NOTIFY || error_event & MAXTILT_NOTIFY){
-            xTaskNotify(send_boardT_handle, USART_STOP_CHAIR, eSetValueWithOverwrite);
+        /*
+         * Because send_boardT is periodic, bits are set, NOT overwritten
+         */
+        if(error_event & WEIGHT_NOTIFY){
+            notify_value |= ERROR_CTRL_WEIGHT_NOTIFY;
         }
         
-        else if(error_event & CLEAR_ERR_NOTIFY){
-            xTaskNotify(send_boardT_handle, USART_CLEAR_ERROR, eSetValueWithOverwrite);
+        else if(error_event & MAXTILT_NOTIFY){
+            notify_value |= ERROR_CTRL_TILT_NOTIFY;
         }
         
+        else if(error_event & ERROR_CTRL_CLEAR_TILT){
+            notify_value |= ERROR_CTRL_CLEAR_TILT;
+        }
+        
+        else if(error_event & ERROR_CTRL_CLEAR_WEIGHT){
+            notify_value |= ERROR_CTRL_CLEAR_WEIGHT;
+        }
+        
+        xTaskNotify(send_boardT_handle, notify_value, eSetBits);
+        notify_value = 0;
         (void)param;
     }
 }

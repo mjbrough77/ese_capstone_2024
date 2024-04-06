@@ -1,6 +1,5 @@
 #include "../../project_types.h"
 #include "../include/tasks_ese.h"
-#include "../include/queues_ese.h"
 
 #include "../include/interrupts_ese.h"
 #include "../include/adc_ese.h"
@@ -42,7 +41,6 @@ void DMA1_Channel3_IRQHandler(void){
         xTaskNotifyFromISR(display_handle, DISPLAY_ERROR, 
                     eSetValueWithOverwrite, &wake);
     }
-    
     else{
         xTaskNotifyFromISR(display_handle, usart_buffer, 
                     eSetValueWithOverwrite, &wake);
@@ -52,7 +50,6 @@ void DMA1_Channel3_IRQHandler(void){
         xTaskNotifyFromISR(motor_control_handle, CLEAR_ERR_NOTIFY, 
                     eSetBits, &wake);
     }
-    
     else if(usart_buffer == USART_STOP_CHAIR){
         xTaskNotifyFromISR(motor_control_handle, STOP_CHAIR_NOTIFY, 
                     eSetBits, &wake);  

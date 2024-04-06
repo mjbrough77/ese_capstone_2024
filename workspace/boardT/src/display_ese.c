@@ -11,7 +11,6 @@
  */
 
 #include "../../project_types.h"
-#include "../include/queues_ese.h"
 
 #include "../include/display_ese.h"
 
@@ -145,15 +144,15 @@ void turn_off_display(void){
 
 _Noreturn void print_speed_task(void* param){
     ChairSpeed_t current_speed = 0;
-    uint32_t notify_value = 0;
+    uint32_t display_event = 0;
     
     while(1){
-        notify_value = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        if(notify_value == DISPLAY_ERROR)
+        display_event = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        if(display_event == DISPLAY_ERROR)
             send_to_display(DISPLAY_ERROR);
 
         else{
-            current_speed = (ChairSpeed_t)notify_value;
+            current_speed = (ChairSpeed_t)display_event;
             send_to_display(current_speed/SPEED_SCALE);
         }
         

@@ -106,6 +106,7 @@ _Noreturn void ultrasonic_data_task(void* param){
         else{
             slow_state_next = 0;
         }
+        
         if(slow_state_prev == 0 && slow_state_next == 1){
             notify_value |= SLOW_CHAIR_NOTIFY;
         }
@@ -119,6 +120,7 @@ _Noreturn void ultrasonic_data_task(void* param){
         else{
             stop_state_next = 0;
         }
+        
         if(stop_state_prev == 0 && stop_state_next == 1){
             notify_value |= STOP_CHAIR_NOTIFY;
         }
