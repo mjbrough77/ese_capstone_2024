@@ -39,8 +39,8 @@ void DMA1_Channel3_IRQHandler(void){
     xQueueOverwriteFromISR(ultrasonic_dataQ, &ultrasonic_distances, NULL);
     DMA1->IFCR |= DMA_IFCR_CTCIF3;
 
-    if((ultrasonic_distances.left_data < SLOW_DISTANCE) ||
-       (ultrasonic_distances.right_data < SLOW_DISTANCE)){
+    if((ultrasonic_distances.left_data < SLOW_DISTANCE_MIN) ||
+       (ultrasonic_distances.right_data < SLOW_DISTANCE_MIN)){
        xTaskNotifyFromISR(eeprom_write_handle, DISTANCE_NOTIFY, eSetBits, NULL);
     }
 }
