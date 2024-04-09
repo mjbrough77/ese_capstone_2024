@@ -7,7 +7,7 @@
   *@version 1.0
   *@date 2024-03-30
   *
-  *@copyright Copyright (c) 2024
+  *@copyright Copyright (c) 2024 Mitchell Brough
  */
 
 #ifndef USART_ESE_H
@@ -72,11 +72,9 @@ void send_ready_signal(void);
   * back below the excess reading, at which point a CLEAR signal will be sent
   * and speed data will resume transmission.
   *
-  * As of now, the data currently sent over USART is:
-  * READY signal
-  * Speed data
-  * STOP signal
-  * CLEAR signal
+  * This task must also keep track of the number of errors in the system as to
+  * ensure that no data is sent over USART except for STOPS and CLEARS when
+  * sensor data lies outside acceptable bounds
   *
   * This task assumes there is never concurrent access to USART3 and therefore
   * does *not* have any error controls to check if other data is in transmission

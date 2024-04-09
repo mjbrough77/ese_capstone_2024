@@ -1,3 +1,17 @@
+/**
+  *@file main.c
+  *@author Mitchell Brough
+  *@brief Main executable for our boardB program
+  *
+  * Initializes all peripherals and starts FreeRTOS scheduler
+  *
+  *@version 1.0
+  *@date 2024-04-09
+  *
+  *@copyright Copyright (c) 2024 Mitchell Brough
+ */
+
+/* Include all libraries in the program just for the sake of it */
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
@@ -14,15 +28,32 @@
 #include "../include/timers_ese.h"
 #include "../include/usart_ese.h"
 
+/**
+  *@brief Configures all peripherals before starting up RTOS scheduler
+  *
+  * This function should be run first before anything else
+ */
 static void board_init(void);
-_Noreturn static void error_control_task(void*);
+
+/**
+  *@brief Sends error notifcations to send_boardT_task()
+  *
+  * All tasks in charge of monitoring the wheelchair sensors should notify
+  * this task. When an error arrives, this task will preempt all other tasks.
+  * Each run of this task will send a notification to the send_boardT_task()
+  * so it may transmit that information to the motor controller for speed
+  * control
+  *
+  *@param param unused
+ */
+_Noreturn static void error_control_task(void* param);
 
 int main(void){
     board_init();
 
     /* Mutex for I2C2 access */
     i2c2_mutex = xSemaphoreCreateMutex();
-    
+
     /* Queue creation */
     i2c2Q = xQueueCreate(MPU_READ_ADDRS, sizeof(uint8_t));
     mpu_dataQ = xQueueCreate(1, sizeof(MPUData_t));
@@ -33,7 +64,7 @@ int main(void){
     /* Rest of tasks created inside `mpu_reset_task()` */
     xTaskCreate(mpu_reset_task,"MPU Reset",128,NULL,4,NULL);
     xTaskCreate(error_control_task, "Error",128,NULL,4,&system_error_handle);
-    
+
     vTaskStartScheduler();
     while(1);
 }
@@ -62,7 +93,7 @@ static void board_init(void){
     configure_tim3();
     configure_tim4();
     configure_usart3();
-    
+
     configure_i2c2_dma();
     prepare_usart3_dma();
 }
@@ -70,11 +101,11 @@ static void board_init(void){
 _Noreturn static void error_control_task(void* param){
     uint32_t error_event = 0;
     uint32_t notify_value = 0;
-    
+
     /* Only services one error at a time, this task preempts all other tasks */
     while(1){
         error_event = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        
+
         /* Error on I2C2 bus requires restart of peripheral */
         if(error_event & I2C2_ERR_NOTIFY){
             vTaskSuspend(eeprom_write_handle);
@@ -86,29 +117,29 @@ _Noreturn static void error_control_task(void* param){
             vTaskResume(mpu_read_handle);
             vTaskResume(eeprom_write_handle);
         }
-        
+
         /*
-         * Because send_boardT is periodic, bits are set, NOT overwritten
+         * Because send_boardT is periodic, bits are set and NOT overwritten
          */
         if(error_event & WEIGHT_NOTIFY){
             notify_value |= ERROR_CTRL_WEIGHT_NOTIFY;
         }
-        
+
         else if(error_event & MAXTILT_NOTIFY){
             notify_value |= ERROR_CTRL_TILT_NOTIFY;
         }
-        
+
         else if(error_event & ERROR_CTRL_CLEAR_TILT){
             notify_value |= ERROR_CTRL_CLEAR_TILT;
         }
-        
+
         else if(error_event & ERROR_CTRL_CLEAR_WEIGHT){
             notify_value |= ERROR_CTRL_CLEAR_WEIGHT;
         }
-        
+
         xTaskNotify(send_boardT_handle, notify_value, eSetBits);
         notify_value = 0;
-        
+
         (void)param;
     }
 }

@@ -99,6 +99,9 @@ _Noreturn void mpu_reset_task(void* param);
   * If calculated tilt on any axis is exceeded, the task will notify
   * `error_control_task()`
   *
+  * Like all tasks monitoring sensor data, notifications should only be sent
+  * during state transitions
+  *
   *@param param unused
   *@pre `mpu_dataQ` has been created and written to at least once
  */

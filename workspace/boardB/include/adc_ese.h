@@ -10,7 +10,7 @@
   *@version 1.0
   *@date 2024-03-30
   *
-  *@copyright Copyright (c) 2024
+  *@copyright Copyright (c) 2024 Mitchell Brough
  */
 
 #ifndef ADC_ESE_H
@@ -32,6 +32,9 @@ void configure_adc1(void);
   * If the weight reading is exceeded, this function will notify
   * `eeprom_write_task()` and `error_control_task()` which take the appropriate
   * action
+  *
+  * Like all tasks monitoring sensor data, notifications should only be sent
+  * during state transitions
   *
   *@param param not used
   *@pre `configure_adc1()` has been ran

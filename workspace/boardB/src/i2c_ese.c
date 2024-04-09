@@ -144,12 +144,13 @@ _Noreturn void find_tilt_task(void* param){
     uint8_t tilt_exceeded_next = 0;
     MPUData_t raw_mpu_data = {0,0,0,0,0,0};
     roll = pitch = 0.0f;
-    
+
     while(1){
     #ifdef TILT_TASK_SUSPEND
         vTaskSuspend(NULL);
     #endif
 
+        /* Compute tilt after each sample of the MPU6050 */
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
         xQueuePeek(mpu_dataQ, &raw_mpu_data, NULL);
@@ -160,18 +161,18 @@ _Noreturn void find_tilt_task(void* param){
         x_z_resultant = sqrtf( accel_x*accel_x + accel_z*accel_z );
         y_z_resultant = sqrtf( accel_y*accel_y + accel_z*accel_z );
         accel_x_angle = atanf( accel_y / x_z_resultant ) * 180.0f/PI;
-        accel_y_angle = atanf( -accel_x / y_z_resultant ) * 180.0f/PI; 
+        accel_y_angle = atanf( -accel_x / y_z_resultant ) * 180.0f/PI;
         accel_x_angle -= ACCEL_X_OFFSET;
-        accel_y_angle -= ACCEL_Y_OFFSET;      
-        
+        accel_y_angle -= ACCEL_Y_OFFSET;
+
         roll = accel_x_angle;
         pitch = accel_y_angle;
-        
+
         if(fabsf(roll) > MAX_TILT_ROLL || fabsf(pitch) > MAX_TILT_PITCH)
             tilt_exceeded_next = 1;
         else
             tilt_exceeded_next = 0;
-        
+
         if(tilt_exceeded_prev == 0 && tilt_exceeded_next == 1){
             xTaskNotify(system_error_handle, MAXTILT_NOTIFY, eSetBits);
             xTaskNotify(eeprom_write_handle, MAXTILT_NOTIFY, eSetBits);
@@ -281,7 +282,7 @@ _Noreturn void mpu_read_task(void* param){
     #ifdef MPU_TASK_SUSPEND
         vTaskSuspend(NULL);
     #endif
-        
+
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
         xSemaphoreTake(i2c2_mutex, portMAX_DELAY);

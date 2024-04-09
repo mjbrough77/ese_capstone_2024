@@ -1,21 +1,34 @@
 /**
   *@file clocks_ese.h
   *@author Mitchell Brough
-  *@brief Library concered with clock control on the F103RB
-  *@version 0.1
+  *@brief Library of prototypes concerned with clock control
+  *@version 1.0
   *@date 2024-03-04
   *
   *@copyright Copyright (c) 2024 Mitchell Brough
-  *
  */
 
 #ifndef CLOCKS_ESE_H
 #define CLOCKS_ESE_H
 
-#include "stm32f10x.h"
-
+/**************************************************************************
+ * System clock initialization
+**************************************************************************/
+/**
+  *@brief Configures SYSCLK to 40MHz, AHB clock to 20MHz
+  *
+  * This function should always be run first on device reset
+ */
 void sysclock_init(void);
 
+/**************************************************************************
+ * Enable peripheral clocks
+**************************************************************************/
+/**
+  *@brief All the functions below enable the clock on the realted peripheral
+  *
+  * These functions should be run immediately after `sysclock_init()`
+ */
 void clock_afio(void);
 void clock_gpioa(void);
 void clock_gpiob(void);

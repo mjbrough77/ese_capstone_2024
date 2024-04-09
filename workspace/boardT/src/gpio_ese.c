@@ -1,32 +1,27 @@
 /**
-  *@file gpio_ese.h
+  *@file gpio_ese.c
   *@author Mitchell Brough
   *@brief Library concerning GPIO/AFIO pin configurations
   *@version 1.0
   *@date 2024-03-04
   *
   *@copyright Copyright (c) 2024 Mitchell Brough
-  *
  */
 
+#include "stm32f10x.h"
 #include "../include/gpio_ese.h"
 
-/**
-  *@brief Uses GPIO, AFIO registers to configure IO pins
-  *
-  *@pre The GPIOx lines used in this function have their clocks enabled
- */
 void configure_io(void){
     /**************************************************************************
      * SEVEN SEGMENT DISPLAY 1
     **************************************************************************/
     /** Free PB4 by disabling NJTRST debug port **/
     AFIO->MAPR |= AFIO_MAPR_SWJ_CFG_NOJNTRST;
-    
+
     /** PB5 as GPO Push-Pull @ 2MHz (D0-1) **/
     GPIOB->CRL |= GPIO_CRL_MODE5_1;
     GPIOB->CRL &= ~GPIO_CRL_CNF5;
-    
+
     /** PB4 as GPO Push-Pull @ 2MHz (D1-1) **/
     GPIOB->CRL |= GPIO_CRL_MODE4_1;
     GPIOB->CRL &= ~GPIO_CRL_CNF4 & ~GPIO_CRL_MODE4_0;
@@ -67,7 +62,7 @@ void configure_io(void){
     GPIOA->CRL |= GPIO_CRL_MODE5_1;
     GPIOA->CRL &= ~GPIO_CRL_CNF5;
     GPIOA->BSRR |= GPIO_BSRR_BR5; /* Make sure displays are off */
-    
+
 
     /**************************************************************************
      * TWO POSITION SWITCH
@@ -114,22 +109,22 @@ void configure_io(void){
     /********** Configure TIM4 CH1,2 for Input Capture **********/
     /** PB6 as Floating Input (RIGHT SENSOR ECHO) */
     /* Default config on reset */
-    
+
     /** PB7 as Floating Input (LEFT SENSOR ECHO) */
     /* Default config on reset */
-    
-    
+
+
     /**************************************************************************
      * USART (INTER-MCU COMMUNICATIONS)
     **************************************************************************/
     /********** Configure USART3 **********/
     /* Remap PC10 -> Tx, PC11 -> Rx, PC12 -> CK */
     AFIO->MAPR |= AFIO_MAPR_USART3_REMAP_PARTIALREMAP;
-    
+
     /** PC10 as AFO push-pull @ 2MHz (USART3_Tx) */
     GPIOC->CRH |= GPIO_CRH_MODE10_1 | GPIO_CRH_CNF10_1;
     GPIOC->CRH &= ~GPIO_CRH_CNF10_0;
-    
+
     /** PC11 as Input w/pull-up (USART3_Rx) */
     /* Default config on reset */
 }

@@ -9,13 +9,12 @@
   *@copyright Copyright (c) 2024 Mitchell Brough
  */
 
-#include "../../project_types.h"
-#include "../include/queues_ese.h"
-#include "../include/tasks_ese.h"
+#include "../../project_types.h"        /* project macros, typedefs */
+#include "../include/queues_ese.h"      /* queue handle access */
+#include "../include/tasks_ese.h"       /* task handle access */
 
 #include "../include/interrupts_ese.h"
-#include "../include/i2c_ese.h"
-#include "../include/timers_ese.h"
+#include "../include/i2c_ese.h"         /* mpu_init[] */
 
 /**
   *@brief Buffer for storing Ultrasonic Data
@@ -87,7 +86,7 @@ void DMA1_Channel4_IRQHandler(void){
 void DMA1_Channel5_IRQHandler(void){
     MPUData_t fifo_data;
     BaseType_t wake = pdFALSE;
-    
+
     I2C2->CR2 &= ~I2C_CR2_DMAEN;    /* Requests are disabled at every EOT */
     I2C2->CR1 |= I2C_CR1_STOP;      /* Generate stop condition */
 
@@ -103,7 +102,7 @@ void DMA1_Channel5_IRQHandler(void){
     vTaskNotifyGiveFromISR(find_tilt_handle, &wake);
 
     DMA1->IFCR |= DMA_IFCR_CTCIF5; /* Clear interrupt */
-    
+
     portYIELD_FROM_ISR(wake);
 }
 
@@ -156,37 +155,37 @@ void I2C2_EV_IRQHandler(void){
 
 void I2C2_ER_IRQHandler(void){
     BaseType_t wake = pdFALSE;
-    
+
     I2C2->SR1 &= ~0xDF00; /* Clear all error flags */
     xTaskNotifyFromISR(system_error_handle, I2C2_ERR_NOTIFY, eSetBits, &wake);
-    
+
     portYIELD_FROM_ISR(wake);
 }
 
 void EXTI9_5_IRQHandler(void){
     BaseType_t wake = pdFALSE;
-    
+
     EXTI->PR |= EXTI_PR_PR6;
     vTaskNotifyGiveFromISR(mpu_read_handle, &wake);
-    
+
     portYIELD_FROM_ISR(wake);
 }
 
 void TIM1_CC_IRQHandler(void){
     BaseType_t wake = pdFALSE;
-    
+
     TIM1->SR &= ~TIM_SR_CC1IF;
     vTaskNotifyGiveFromISR(find_velocity_right_handle, &wake);
-    
+
     portYIELD_FROM_ISR(wake);
 }
 
 void TIM4_IRQHandler(void){
     BaseType_t wake = pdFALSE;
-    
+
     TIM4->SR &= ~TIM_SR_CC1IF;
     vTaskNotifyGiveFromISR(find_velocity_left_handle, &wake);
-    
+
     portYIELD_FROM_ISR(wake);
 }
 

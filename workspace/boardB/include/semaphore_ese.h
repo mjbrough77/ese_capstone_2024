@@ -9,7 +9,7 @@
   *@version 1.0
   *@date 2024-03-30
   *
-  *@copyright Copyright (c) 2024
+  *@copyright Copyright (c) 2024 Mitchell Brough
  */
 
 #ifndef SEMAPHORE_ESE_H

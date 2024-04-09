@@ -5,7 +5,7 @@
   *@version 1.0
   *@date 2024-03-30
   *
-  *@copyright Copyright (c) 2024
+  *@copyright Copyright (c) 2024 Mitchell Brough
  */
 
 #include "../include/tasks_ese.h"

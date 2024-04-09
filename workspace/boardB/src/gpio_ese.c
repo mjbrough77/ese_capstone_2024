@@ -1,12 +1,11 @@
 /**
-  *@file gpio_ese.h
+  *@file gpio_ese.c
   *@author Mitchell Brough
   *@brief Library concerning GPIO/AFIO pin configurations
   *@version 1.0
   *@date 2024-03-04
   *
   *@copyright Copyright (c) 2024 Mitchell Brough
-  *
  */
 
 #include "stm32f10x.h"

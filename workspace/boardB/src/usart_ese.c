@@ -7,7 +7,7 @@
   *@version 1.0
   *@date 2024-03-30
   *
-  *@copyright Copyright (c) 2024
+  *@copyright Copyright (c) 2024 Mitchell Brough
  */
 
 #include "../../project_types.h"        /* typedefs and macros */
@@ -39,7 +39,7 @@ void prepare_usart3_dma(void){
     NVIC_EnableIRQ(DMA1_Channel2_IRQn);
 
     /*
-     *DMA1_Channel2 finished configuration in send_boardT_task()
+     * DMA1_Channel2 finished configuration in send_boardT_task()
      */
 
     /* USART3_Rx DMA Channel */
@@ -71,8 +71,8 @@ _Noreturn void send_boardT_task(void* param){
     uint32_t active_errors = 0;
     uint32_t left_encoder_count = 0;
     uint32_t right_encoder_count = 0;
-    
-    
+
+
     /* Finish configuring DMA_USART3_Tx */
     DMA1_Channel2->CMAR = (uint32_t)&usart_send;
     DMA1_Channel2->CCR |= DMA_CCR2_EN;
@@ -80,21 +80,21 @@ _Noreturn void send_boardT_task(void* param){
     while(1){
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS( SPEED_SAMPLE_MS ));
         event_flags = ulTaskNotifyTake(pdTRUE, NULL);
-        
+
         /* Total stop requests between sample times (sensor value exceeded) */
         if(event_flags & ERROR_CTRL_TILT_NOTIFY) stops_to_send++;
         if(event_flags & ERROR_CTRL_WEIGHT_NOTIFY) stops_to_send++;
-        
+
         /* Total clear requests between sample times (sensor value normal) */
         if(event_flags & ERROR_CTRL_CLEAR_TILT)  clears_to_send++;
         if(event_flags & ERROR_CTRL_CLEAR_WEIGHT) clears_to_send++;
-        
+
         /* If z-phase has not updated in some time, speed must be zero */
         if(event_flags & LEFT_ENCODER_NOTIFY) left_encoder_count = 0;
         else left_encoder_count++;
         if(event_flags & RIGHT_ENCODER_NOTIFY) right_encoder_count = 0;
         else right_encoder_count++;
-        
+
         /* Let boardT know if a NEW stop request has arrived */
         if(stops_to_send != 0){
             usart_send = USART_STOP_CHAIR;
@@ -102,7 +102,7 @@ _Noreturn void send_boardT_task(void* param){
             active_errors++;
             USART3->CR3 |= USART_CR3_DMAT; /* Send new stop to boardT */
         }
-        
+
         /* Let boardT know if a NEW clear request has arrived */
         else if(clears_to_send != 0){
             usart_send = USART_CLEAR_ERROR;
@@ -117,18 +117,18 @@ _Noreturn void send_boardT_task(void* param){
                 xQueuePeek(left_wheel_dataQ, &left_vel, NULL);
             else
                 left_vel = 0;
-            
+
             if(right_encoder_count <= ENCODER_TIMEOUT)
                 xQueuePeek(right_wheel_dataQ, &right_vel, NULL);
             else
                 right_vel = 0;
-            
+
             total_velocity = (left_vel+right_vel)/2;
             if(total_velocity < 0) total_velocity = -total_velocity;
             usart_send = (UsartBuffer_t)total_velocity;
             USART3->CR3 |= USART_CR3_DMAT; /* Send data to boardT */
         }
-        
+
         (void)param;
     }
 }

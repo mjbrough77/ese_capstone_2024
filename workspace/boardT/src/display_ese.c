@@ -1,27 +1,19 @@
 /**
   *@file drive.c
-  *@author Emily Schwab
-  *@brief
+  *@author Mitchell Brough
+  *@brief Function definitions for controlling and printing to the seven-segment
+  *       displays
   *
   *@version 1.0
   *@date 2024-01-19
   *
-  *@copyright Copyright (c) 2024 Emily Schwab
-  *
+  *@copyright Copyright (c) 2024 Mitchell Brough
  */
 
-#include "../../project_types.h"
+#include "../../project_types.h"    /* ChairSpeed_t */
 
 #include "../include/display_ese.h"
 
-/**
-  *@brief Writes a value from 0-9 on the ones digit
-  *
-  * See schematic for pin information
-  *
-  *@param num value from 0-9
-  *@pre num has been type checked by send_to_display()
- */
 void write_tens_sevenseg(uint8_t num){
 	switch(num){
 		case 0:
@@ -68,14 +60,6 @@ void write_tens_sevenseg(uint8_t num){
 	}
 }
 
-/**
-  *@brief Writes a value from 0-9 on the tens digit
-  *
-  * See schematic for pin information
-  *
-  *@param num value from 0-9
-  *@pre num has been type checked by send_to_display()
- */
 void write_ones_sevenseg(uint8_t num){
 	switch(num){
 		case 0:
@@ -122,12 +106,6 @@ void write_ones_sevenseg(uint8_t num){
 	}
 }
 
-/**
-  *@brief Outputs a number to the two seven-segment displays
-  *
-  *@param digits value from 0-99
-  *@pre BL has been set to high
- */
 void send_to_display(uint8_t digits){
     if(digits > 99) digits = 99;        /* Saturate digits to 99 */
     write_tens_sevenseg(digits / 10);   /* Display tens digit */
@@ -145,9 +123,12 @@ void turn_off_display(void){
 _Noreturn void print_speed_task(void* param){
     ChairSpeed_t current_speed = 0;
     uint32_t display_event = 0;
-    
+
     while(1){
+
+        /* Unblock on new USART information */
         display_event = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
         if(display_event == DISPLAY_ERROR)
             send_to_display(DISPLAY_ERROR);
 
@@ -155,7 +136,7 @@ _Noreturn void print_speed_task(void* param){
             current_speed = (ChairSpeed_t)display_event;
             send_to_display(current_speed/SPEED_SCALE);
         }
-        
+
         (void)param;
     }
 }

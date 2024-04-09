@@ -3,7 +3,7 @@
   *@author Mitchell Brough
   *@brief Library concerned with the use of STM32F103RB hardware timers
   *
-  * See bottom of file for VELOCITY_FACTOR explanation
+  * See bottom of timers_ese.h for VELOCITY_FACTOR explanation
   *
   *@version 1.0
   *@date 2024-03-05
@@ -60,16 +60,18 @@ _Noreturn void find_velocity_task(void* timers){
     int16_t encoder_count;      /* Encoder mode used a signed counting method */
     uint16_t phaseZ_time;       /* Time for Z-phase to complete one rotation */
     uint32_t notify_value;
-    
+
     EncoderTimers_t* timers_used = (EncoderTimers_t*)timers;
     TIM_TypeDef* z_tim = timers_used->z_phase_timer;
     TIM_TypeDef* e_tim = timers_used->encoder_timer;
-    if(timers_used->side == left_wheel_dataQ) 
+    if(timers_used->side == left_wheel_dataQ)
         notify_value = LEFT_ENCODER_NOTIFY;
     else
         notify_value = RIGHT_ENCODER_NOTIFY;
-    
+
     while(1){
+
+        /* Unblock when z-phase goes high */
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
         phaseZ_time = z_tim->CCR1;
@@ -89,7 +91,7 @@ _Noreturn void find_velocity_task(void* timers){
         /* Post updated velocity information */
         xQueueOverwrite(timers_used->side, &velocity);
         xTaskNotify(send_boardT_handle, notify_value, eSetBits);
-        
+
         /* Reset Z-phase timer count without clearing CCRx registers */
         z_tim->CR1 |= TIM_CR1_UDIS;
         z_tim->EGR |= TIM_EGR_UG;
